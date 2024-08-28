@@ -71,27 +71,28 @@ class PreCombatUnit(CombatUnit):
     pass
 
 
-class Infantry(LandUnit, CombatUnit):
-    pass
+class Infantry(CombatUnit, LandUnit):
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class MechInfantry(Infantry):
     pass
 
 
-class Artillery(LandUnit, CombatUnit):
+class Artillery(CombatUnit, LandUnit):
     pass
 
 
-class Tank(LandUnit, CombatUnit):
+class Tank(CombatUnit, LandUnit):
     pass
 
 
-class Fighter(AirUnit, CombatUnit):
+class Fighter(CombatUnit, AirUnit):
     pass
 
 
-class Bomber(AirUnit, CombatUnit):
+class Bomber(CombatUnit, AirUnit):
     pass
 
 
@@ -107,11 +108,11 @@ class SurfaceShip(NavalUnit):
     pass
 
 
-class Submarine(NavalUnit, CombatUnit):
+class Submarine(CombatUnit, NavalUnit):
     pass
 
 
-class Warship(SurfaceShip, CombatUnit):
+class Warship(CombatUnit, SurfaceShip):
     pass
 
 
