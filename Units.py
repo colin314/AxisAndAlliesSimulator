@@ -92,3 +92,19 @@ class Destroyer(Warship):
 
 class Transport(SurfaceShip):
     pass
+
+
+class InfArt(Infantry, Artillery, ComboUnit):
+    pass
+
+
+class MechInfArt(MechInfantry, Artillery, ComboUnit):
+    pass
+
+
+class TankTactBomber(Tank, TacticalBomber, ComboUnit):
+    pass
+
+
+class FighterTactBomber(Fighter, TacticalBomber, ComboUnit):
+    pass
