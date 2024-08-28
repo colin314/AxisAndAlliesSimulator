@@ -1,6 +1,7 @@
 from Units import *
 from itertools import filterfalse, count
 from collections import Counter
+from statistics import mean, median
 
 infStrength = (2, 3)
 mechInfStrength = infStrength
@@ -22,7 +23,7 @@ class UnitCollection:
         for i in range(kwargs.get("tanks") or 0):
             self._unitList.append(Tank(*tankStrength))
 
-        # self._makeComboUnits()
+        self._makeComboUnits()
 
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
@@ -33,9 +34,7 @@ class UnitCollection:
     def _removeUnitType(self, unitType, removeCount=1):
         """Remove n units of the specified type from the unit list.
         Returns the number of units removed."""
-        oldCount = len([u for u in self._unitList if u is not ComboUnit]) + 2 * len(
-            [u for u in self._unitList if u is ComboUnit]
-        )
+        oldCount = len(self._unitList)
         self._unitList = list(
             filterfalse(
                 lambda u, counter=count(): type(u) == unitType
@@ -75,7 +74,10 @@ class UnitCollection:
             raise Exception("No infantry removed when it should have been")
 
     def __str__(self):
-        collStr = "Units in collection: " + str(len(self._unitList)) + "\n"
+        unitCount = len(
+            [u for u in self._unitList if not isinstance(u, ComboUnit)]
+        ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
+        collStr = "Units in collection: " + str(unitCount) + "\n"
         unitCount = Counter(type(obj) for obj in self._unitList)
         for objType, objCount in unitCount.items():
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
@@ -98,14 +100,14 @@ class UnitCollection:
 
 if __name__ == "__main__":
     attacker = UnitCollection(infantry=2, artillery=2, tanks=1, infantry_mech=2)
-    print(str(attacker))
-    attacker._removeUnitInstance(Infantry, 4)
-    print(str(attacker))
     print(attacker._unitTypeInList(Infantry))
     print(attacker._unitInstanceInList(Infantry))
-    hits = 0
+    print(str(attacker))
+    hits = []
     count = 0
-    while hits == 0:
-        hits = attacker.defend()
+    while count < 1000:
+        hits.append(attacker.defend())
         count += 1
-    print(count)
+    print(len(hits))
+    print(mean(hits))
+    print(median(hits))
