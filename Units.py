@@ -1,32 +1,58 @@
+import random
+
+
 class Unit:
+    def __init__(self):
+        self.diceSize = 12
+
     pass
 
 
 class LandUnit(Unit):
-    pass
+    def __init__(self):
+        super().__init__()
 
 
 class AirUnit(Unit):
-    pass
+    def __init__(self):
+        super().__init__()
 
 
 class NavalUnit(Unit):
-    pass
+    def __init__(self):
+        super().__init__()
 
 
-class ComboUnit(Unit):
+class NonCombatUnit(Unit):
+    def __init__(self):
+        super().__init__()
+
     pass
 
 
 class CombatUnit(Unit):
+    def __init__(self, attack, defense):
+        self.attack = attack
+        self.defense = defense
+        super().__init__()
+
+    def _roll(self, value):
+        """Roll the dice against the specified value"""
+        x = random.randint(1, self.diceSize)
+        return 1 if x <= value else 0
+
+    def _attack(self):
+        return self._roll(self.attack)
+
+    def _defend(self):
+        return self._defend(self.defense)
+
+
+class ComboUnit(CombatUnit):
     pass
 
 
 class PreCombatUnit(CombatUnit):
-    pass
-
-
-class NonCombatUnit(Unit):
     pass
 
 
@@ -108,3 +134,9 @@ class TankTactBomber(Tank, TacticalBomber, ComboUnit):
 
 class FighterTactBomber(Fighter, TacticalBomber, ComboUnit):
     pass
+
+
+inf = Infantry(2, 5)
+cUnit = CombatUnit(2, 3)
+cUnit._roll()
+inf._roll()
