@@ -31,9 +31,9 @@ class NonCombatUnit(Unit):
 
 
 class CombatUnit(Unit):
-    def __init__(self, attack, defense):
-        self.attack = attack
-        self.defense = defense
+    def __init__(self, attackStrength, defenseStrength):
+        self.attackStrength = attackStrength
+        self.defenseStrength = defenseStrength
         super().__init__()
 
     def _roll(self, value):
@@ -41,15 +41,30 @@ class CombatUnit(Unit):
         x = random.randint(1, self.diceSize)
         return 1 if x <= value else 0
 
-    def _attack(self):
-        return self._roll(self.attack)
+    def attack(self):
+        return self._roll(self.attackStrength)
 
-    def _defend(self):
-        return self._defend(self.defense)
+    def defend(self):
+        return self._defend(self.defenseStrength)
 
 
 class ComboUnit(CombatUnit):
-    pass
+    def __init__(self, attackVals, defenseVals):
+        self.attackVals = attackVals
+        self.defenseVals = defenseVals
+        super().__init__(0, 0)
+
+    def _makeRolls(self, rollValues):
+        hits = 0
+        for value in rollValues:
+            hits += self._roll(value)
+        return hits
+
+    def attack(self):
+        return self._makeRolls(self.attackVals)
+
+    def defend(self):
+        return self._makeRolls(self.defenseVals)
 
 
 class PreCombatUnit(CombatUnit):
@@ -134,9 +149,3 @@ class TankTactBomber(Tank, TacticalBomber, ComboUnit):
 
 class FighterTactBomber(Fighter, TacticalBomber, ComboUnit):
     pass
-
-
-inf = Infantry(2, 5)
-cUnit = CombatUnit(2, 3)
-cUnit._roll()
-inf._roll()
