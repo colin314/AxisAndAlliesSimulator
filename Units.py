@@ -168,9 +168,10 @@ class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
         super().__init__(attackVals, defenseVals)
 
 
-ia = InfArt([3, 3], [4, 3])
+if __name__ == "__main__":
+    ia = InfArt([3, 3], [4, 3])
 
-hits = 0
-for i in range(12):
-    hits += ia.attack()
-print(hits)
+    hits = 0
+    for i in range(12):
+        hits += ia.attack()
+    print(hits)
