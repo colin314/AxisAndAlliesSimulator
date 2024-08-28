@@ -149,16 +149,28 @@ class Transport(SurfaceShip):
 
 
 class InfArt(ComboUnit, Infantry, Artillery):
-    pass
+    def __init__(self, attackVals, defenseVals):
+        super().__init__(attackVals, defenseVals)
 
 
 class MechInfArt(ComboUnit, MechInfantry, Artillery):
-    pass
+    def __init__(self, attackVals, defenseVals):
+        super().__init__(attackVals, defenseVals)
 
 
 class TankTactBomber(ComboUnit, Tank, TacticalBomber):
-    pass
+    def __init__(self, attackVals, defenseVals):
+        super().__init__(attackVals, defenseVals)
 
 
 class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
-    pass
+    def __init__(self, attackVals, defenseVals):
+        super().__init__(attackVals, defenseVals)
+
+
+ia = InfArt([3, 3], [4, 3])
+
+hits = 0
+for i in range(12):
+    hits += ia.attack()
+print(hits)
