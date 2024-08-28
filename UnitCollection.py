@@ -110,22 +110,31 @@ class UnitCollection:
             self._unitList = []
             return
 
+        def correctComboUnits(comboType):
+            self._unitList.append(
+                comboType.priority(*unitStrengths[comboType.priority])
+            )
+            self._makeComboUnits()
+
         for unitType in self._lossPriority:
             while self._unitTypeInList(unitType) and hitCount > 0:
                 removed = self._removeUnitType(unitType, 1)
                 if removed > 0 and issubclass(unitType, ComboUnit):
-                    self._unitList.append(
-                        unitType.priority(*unitStrengths[unitType.priority])
-                    )
+                    correctComboUnits(unitType)
                     self._makeComboUnits()
                 hitCount -= removed
+        while hitCount > 0:
+            unit = self._unitList.pop()
+            if isinstance(unit, ComboUnit):
+                correctComboUnits(type(unit))
+            hitCount -= 1
 
 
 if __name__ == "__main__":
     attacker = UnitCollection(infantry=2, artillery=2, tanks=1, infantry_mech=2)
     print(str(attacker))
     attacker.defineLossPriority([MechInfArt])
-    attacker.takeLosses(1)
+    attacker.takeLosses(5)
     print(str(attacker))
     hits = []
     count = 0
