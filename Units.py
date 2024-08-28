@@ -45,7 +45,7 @@ class CombatUnit(Unit):
         return self._roll(self.attackStrength)
 
     def defend(self):
-        return self._defend(self.defenseStrength)
+        return self._roll(self.defenseStrength)
 
 
 class ComboUnit(CombatUnit):
