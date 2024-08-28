@@ -133,9 +133,12 @@ class UnitCollection:
 if __name__ == "__main__":
     attacker = UnitCollection(infantry=2, artillery=2, tanks=1, infantry_mech=2)
     print(str(attacker))
-    attacker.defineLossPriority([MechInfArt])
-    attacker.takeLosses(5)
-    print(str(attacker))
+    attacker.defineLossPriority(
+        [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
+    )
+    while attacker.unitCount() > 0:
+        attacker.takeLosses(1)
+        print(str(attacker))
     hits = []
     count = 0
     while count < 1000:
