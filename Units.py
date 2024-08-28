@@ -77,31 +77,38 @@ class Infantry(CombatUnit, LandUnit):
 
 
 class MechInfantry(Infantry):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Artillery(CombatUnit, LandUnit):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Tank(CombatUnit, LandUnit):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Fighter(CombatUnit, AirUnit):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Bomber(CombatUnit, AirUnit):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class TacticalBomber(Bomber):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class StratBomber(Bomber):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class SurfaceShip(NavalUnit):
@@ -113,40 +120,45 @@ class Submarine(CombatUnit, NavalUnit):
 
 
 class Warship(CombatUnit, SurfaceShip):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Carrier(Warship):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Battleship(Warship):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Cruiser(Warship):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Destroyer(Warship):
-    pass
+    def __init__(self, attackStrength, defenseStrength):
+        super().__init__(attackStrength, defenseStrength)
 
 
 class Transport(SurfaceShip):
     pass
 
 
-class InfArt(Infantry, Artillery, ComboUnit):
+class InfArt(ComboUnit, Infantry, Artillery):
     pass
 
 
-class MechInfArt(MechInfantry, Artillery, ComboUnit):
+class MechInfArt(ComboUnit, MechInfantry, Artillery):
     pass
 
 
-class TankTactBomber(Tank, TacticalBomber, ComboUnit):
+class TankTactBomber(ComboUnit, Tank, TacticalBomber):
     pass
 
 
-class FighterTactBomber(Fighter, TacticalBomber, ComboUnit):
+class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
     pass
