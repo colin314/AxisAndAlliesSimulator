@@ -149,21 +149,29 @@ class Transport(SurfaceShip):
 
 
 class InfArt(ComboUnit, Infantry, Artillery):
+    priority = Artillery
+
     def __init__(self, attackVals, defenseVals):
         super().__init__(attackVals, defenseVals)
 
 
 class MechInfArt(ComboUnit, MechInfantry, Artillery):
+    priority = Artillery
+
     def __init__(self, attackVals, defenseVals):
         super().__init__(attackVals, defenseVals)
 
 
 class TankTactBomber(ComboUnit, Tank, TacticalBomber):
+    priority = TacticalBomber
+
     def __init__(self, attackVals, defenseVals):
         super().__init__(attackVals, defenseVals)
 
 
 class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
+    priority = TacticalBomber
+
     def __init__(self, attackVals, defenseVals):
         super().__init__(attackVals, defenseVals)
 

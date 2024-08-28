@@ -9,6 +9,8 @@ artStrength = (3, 3)
 tankStrength = (7, 6)
 infArtComboStrength = ([3, 3], [4, 3])
 
+unitStrengths = {Artillery: artStrength}
+
 
 class UnitCollection:
     def __init__(self, **kwargs):
@@ -64,24 +66,27 @@ class UnitCollection:
     def _makeComboUnits(self):
         # Inf & Art
         while self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery):
-            self._unitList.append(InfArt(*infArtComboStrength))
             if self._removeUnitType(Artillery) == 0:
                 raise Exception("No artillery removed when it should have been")
             if self._removeUnitType(MechInfantry) == 1:
+                self._unitList.append(MechInfArt(*infArtComboStrength))
                 continue
             if self._removeUnitType(Infantry) == 1:
+                self._unitList.append(InfArt(*infArtComboStrength))
                 continue
             raise Exception("No infantry removed when it should have been")
 
     def __str__(self):
-        unitCount = len(
-            [u for u in self._unitList if not isinstance(u, ComboUnit)]
-        ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
-        collStr = "Units in collection: " + str(unitCount) + "\n"
+        collStr = "Units in collection: " + str(self.unitCount()) + "\n"
         unitCount = Counter(type(obj) for obj in self._unitList)
         for objType, objCount in unitCount.items():
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
-        return collStr
+        return collStr + "\n"
+
+    def unitCount(self):
+        return len(
+            [u for u in self._unitList if not isinstance(u, ComboUnit)]
+        ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
 
     def attack(self):
         """Makes attack rolls for all units in collection and returns the
@@ -97,11 +102,30 @@ class UnitCollection:
             hits += u.defend()
         return hits
 
+    def defineLossPriority(self, unitTypeList):
+        self._lossPriority = unitTypeList
+
+    def takeLosses(self, hitCount):
+        if hitCount >= self.unitCount():
+            self._unitList = []
+            return
+
+        for unitType in self._lossPriority:
+            while self._unitTypeInList(unitType) and hitCount > 0:
+                removed = self._removeUnitType(unitType, 1)
+                if removed > 0 and issubclass(unitType, ComboUnit):
+                    self._unitList.append(
+                        unitType.priority(*unitStrengths[unitType.priority])
+                    )
+                    self._makeComboUnits()
+                hitCount -= removed
+
 
 if __name__ == "__main__":
     attacker = UnitCollection(infantry=2, artillery=2, tanks=1, infantry_mech=2)
-    print(attacker._unitTypeInList(Infantry))
-    print(attacker._unitInstanceInList(Infantry))
+    print(str(attacker))
+    attacker.defineLossPriority([MechInfArt])
+    attacker.takeLosses(1)
     print(str(attacker))
     hits = []
     count = 0
