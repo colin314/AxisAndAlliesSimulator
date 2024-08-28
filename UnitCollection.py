@@ -1,4 +1,5 @@
 from Units import *
+from itertools import filterfalse, count
 
 infStrength = (2, 3)
 mechInfStrength = infStrength
@@ -19,6 +20,25 @@ class UnitCollection:
         for i in range(kwargs.get("tanks") or 0):
             self._unitList.append(Tank(*tankStrength))
 
+        self._makeComboUnits()
+
+    def _unitTypeInList(self, unitType):
+        return any(isinstance(unit, unitType) for unit in self._unitList)
+
+    def _removeUnitType(self, unitType, removeCount=1):
+        self._unitList = list(
+            filterfalse(
+                lambda u, counter=count(): isinstance(u, unitType)
+                and next(counter) < removeCount,
+                self._unitList,
+            )
+        )
+
+    def _makeComboUnits(self):
+        # Inf & Art
+        pass
+        # while(self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery)):
+
     def attack(self):
         """Makes attack rolls for all units in collection and returns the
         number of hits"""
@@ -36,9 +56,12 @@ class UnitCollection:
 
 if __name__ == "__main__":
     attacker = UnitCollection(infantry=2, artillery=2, tanks=1)
+    print(attacker._unitList)
+    attacker._removeUnitType(Tank)
+    print(attacker._unitList)
     hits = 0
     count = 0
-    while hits != 5:
+    while hits != 3:
         hits = attacker.defend()
         count += 1
     print(count)
