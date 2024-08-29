@@ -5,7 +5,7 @@ class Unit:
     diceSize = 12
 
     def __init__(self):
-        pass
+        self.cost = 0
 
     pass
 

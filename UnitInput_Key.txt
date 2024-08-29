@@ -1,0 +1,4 @@
+Infantry
+Mechanized Infantry
+Artillery
+Tanks

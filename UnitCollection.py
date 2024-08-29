@@ -5,24 +5,32 @@ from statistics import mean, median
 
 
 class UnitCollection:
-    def __init__(self, unitFile="./BasicUnitProfile.txt", **kwargs):
+    def __init__(self, unitFile="./UnitProfiles_German.txt", **kwargs):
         self._unitList = []
         self._loadUnitStrengths(unitFile)
         # Infantry
-        for i in range(kwargs.get("infantry") or 0):
-            self._unitList.append(Infantry(*self.infStrength))
-        for i in range(kwargs.get("infantry_mech") or 0):
-            self._unitList.append(MechInfantry(*self.mechInfStrength))
-        for i in range(kwargs.get("artillery") or 0):
-            self._unitList.append(Artillery(*self.artStrength))
-        for i in range(kwargs.get("tanks") or 0):
-            self._unitList.append(Tank(*self.tankStrength))
+        self._loadUnits(
+            kwargs.get("infantry") or 0,
+            kwargs.get("infantry_mech") or 0,
+            kwargs.get("artillery") or 0,
+            kwargs.get("tanks") or 0,
+        )
 
         self._makeComboUnits()
         self.defineLossPriority(
             [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
         )
         self._originalUnitList = self._unitList.copy()
+
+    def _loadUnits(self, inf, mechInf, art, tanks):
+        for i in range(inf):
+            self._unitList.append(Infantry(*self.infStrength))
+        for i in range(mechInf):
+            self._unitList.append(MechInfantry(*self.mechInfStrength))
+        for i in range(art):
+            self._unitList.append(Artillery(*self.artStrength))
+        for i in range(tanks):
+            self._unitList.append(Tank(*self.tankStrength))
 
     def _loadUnitStrengths(self, unitFile):
         f = open(unitFile)
@@ -64,11 +72,9 @@ class UnitCollection:
         return oldCount - newCount
 
     def _removeUnitInstance(self, unitType, removeCount=1):
-        """Remove n units of the specified type from the unit list.
+        """Remove n units of the specified instance from the unit list.
         Returns the number of units removed."""
-        oldCount = len([u for u in self._unitList if u is not ComboUnit]) + 2 * len(
-            [u for u in self._unitList if u is ComboUnit]
-        )
+        oldCount = len(self._unitList)
         self._unitList = list(
             filterfalse(
                 lambda u, counter=count(): isinstance(u, unitType)
@@ -105,8 +111,6 @@ class UnitCollection:
         ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
 
     def attack(self):
-        """Makes attack rolls for all units in collection and returns the
-        number of hits"""
         hits = 0
         for u in self._unitList:
             hits += u.attack()
@@ -147,6 +151,15 @@ class UnitCollection:
 
     def reset(self):
         self._unitList = self._originalUnitList.copy()
+
+    def printUnitsAndStrength(self, label="Unit List"):
+        for u in self._unitList:
+            print(label)
+            if isinstance(u, ComboUnit):
+                print(type(u).__name__, u.attackVals, u.defenseVals)
+            else:
+                print(type(u).__name__, u.attackStrength, u.defenseStrength)
+            print()
 
 
 if __name__ == "__main__":

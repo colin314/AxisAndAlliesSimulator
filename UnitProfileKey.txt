@@ -1,0 +1,8 @@
+For basic units: attackVal,defenseVal
+For combo units: attackVal_1.attackVal_2,defenseVal_1.defenseVal_2
+
+Infantry
+Mechanized Infantry
+Artillery
+Tank
+Combo: Infantry & Artillery
