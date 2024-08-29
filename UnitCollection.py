@@ -26,6 +26,10 @@ class UnitCollection:
             self._unitList.append(Tank(*tankStrength))
 
         self._makeComboUnits()
+        self.defineLossPriority(
+            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
+        )
+        self._originalUnitList = self._unitList.copy()
 
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
@@ -128,6 +132,9 @@ class UnitCollection:
             if isinstance(unit, ComboUnit):
                 correctComboUnits(type(unit))
             hitCount -= 1
+
+    def reset(self):
+        self._unitList = self._originalUnitList.copy()
 
 
 if __name__ == "__main__":
