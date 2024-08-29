@@ -3,33 +3,45 @@ from itertools import filterfalse, count
 from collections import Counter
 from statistics import mean, median
 
-infStrength = (2, 3)
-mechInfStrength = infStrength
-artStrength = (3, 3)
-tankStrength = (7, 6)
-infArtComboStrength = ([3, 3], [4, 3])
-
-unitStrengths = {Artillery: artStrength}
-
 
 class UnitCollection:
-    def __init__(self, **kwargs):
+    def __init__(self, unitFile="./BasicUnitProfile.txt", **kwargs):
         self._unitList = []
+        self._loadUnitStrengths(unitFile)
         # Infantry
         for i in range(kwargs.get("infantry") or 0):
-            self._unitList.append(Infantry(*infStrength))
+            self._unitList.append(Infantry(*self.infStrength))
         for i in range(kwargs.get("infantry_mech") or 0):
-            self._unitList.append(MechInfantry(*mechInfStrength))
+            self._unitList.append(MechInfantry(*self.mechInfStrength))
         for i in range(kwargs.get("artillery") or 0):
-            self._unitList.append(Artillery(*artStrength))
+            self._unitList.append(Artillery(*self.artStrength))
         for i in range(kwargs.get("tanks") or 0):
-            self._unitList.append(Tank(*tankStrength))
+            self._unitList.append(Tank(*self.tankStrength))
 
         self._makeComboUnits()
         self.defineLossPriority(
             [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
         )
         self._originalUnitList = self._unitList.copy()
+
+    def _loadUnitStrengths(self, unitFile):
+        f = open(unitFile)
+        lines = f.read().splitlines()
+
+        self.infStrength = self._readUnitProfileLine(lines[0])
+        self.mechInfStrength = self._readUnitProfileLine(lines[1])
+        self.artStrength = self._readUnitProfileLine(lines[2])
+        self.tankStrength = self._readUnitProfileLine(lines[3])
+        self.infArtComboStrength = self._readComboProfileLine(lines[4])
+        self.unitStrengths = {Artillery: self.artStrength}
+
+    def _readUnitProfileLine(self, line):
+        return tuple([int(x) for x in str.split(line, ",")])
+
+    def _readComboProfileLine(self, line):
+        return tuple(
+            [[int(x) for x in str.split(p, ".")] for p in str.split(line, ",")]
+        )
 
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
@@ -73,10 +85,10 @@ class UnitCollection:
             if self._removeUnitType(Artillery) == 0:
                 raise Exception("No artillery removed when it should have been")
             if self._removeUnitType(MechInfantry) == 1:
-                self._unitList.append(MechInfArt(*infArtComboStrength))
+                self._unitList.append(MechInfArt(*self.infArtComboStrength))
                 continue
             if self._removeUnitType(Infantry) == 1:
-                self._unitList.append(InfArt(*infArtComboStrength))
+                self._unitList.append(InfArt(*self.infArtComboStrength))
                 continue
             raise Exception("No infantry removed when it should have been")
 
@@ -116,7 +128,7 @@ class UnitCollection:
 
         def correctComboUnits(comboType):
             self._unitList.append(
-                comboType.priority(*unitStrengths[comboType.priority])
+                comboType.priority(*self.unitStrengths[comboType.priority])
             )
             self._makeComboUnits()
 
