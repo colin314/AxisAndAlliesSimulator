@@ -36,7 +36,8 @@ def LoadUnitCollection(unitFile, unitStrengthFile):
     mInf = int(lines[1])
     art = int(lines[2])
     tanks = int(lines[3])
-    return UnitCollection(unitStrengthFile, infantry=inf, infantry_mech=mInf, artillery=art, tanks=tanks)
+    fighters = int(lines[4])
+    return UnitCollection(unitStrengthFile, infantry=inf, infantry_mech=mInf, artillery=art, tanks=tanks, fighters=fighters)
 
 def GenerateBattleStats(attacker, defender, battleCount=10000):
     results = []
@@ -92,6 +93,14 @@ if __name__ == "__main__":
     GenerateBattleStats(attacker,defender)
 
     print("Standard - Tanks Swapped")
+    GenerateBattleStats(defender,attacker)
+
+    print("Standard - Fighters")
+    attacker = LoadUnitCollection("Units_Basic_Fighters.txt","./UnitProfiles_Basic.txt")
+    defender = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Basic.txt")
+    GenerateBattleStats(attacker,defender)
+
+    print("Standard - Fighters Swapped")
     GenerateBattleStats(defender,attacker)
 
     Unit.diceSize = 6

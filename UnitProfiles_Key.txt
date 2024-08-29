@@ -6,3 +6,4 @@ Mechanized Infantry
 Artillery
 Tank
 Combo: Infantry & Artillery
+Fighters

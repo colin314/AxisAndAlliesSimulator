@@ -14,6 +14,7 @@ class UnitCollection:
             kwargs.get("infantry_mech") or 0,
             kwargs.get("artillery") or 0,
             kwargs.get("tanks") or 0,
+            kwargs.get("fighters") or 0,
         )
 
         self._makeComboUnits()
@@ -22,7 +23,7 @@ class UnitCollection:
         )
         self._originalUnitList = self._unitList.copy()
 
-    def _loadUnits(self, inf, mechInf, art, tanks):
+    def _loadUnits(self, inf, mechInf, art, tanks, fighters):
         for i in range(inf):
             self._unitList.append(Infantry(*self.infStrength))
         for i in range(mechInf):
@@ -31,6 +32,8 @@ class UnitCollection:
             self._unitList.append(Artillery(*self.artStrength))
         for i in range(tanks):
             self._unitList.append(Tank(*self.tankStrength))
+        for i in range(fighters):
+            self._unitList.append(Fighter(*self.fighterStrength))
 
     def _loadUnitStrengths(self, unitFile):
         f = open(unitFile)
@@ -41,6 +44,7 @@ class UnitCollection:
         self.artStrength = self._readUnitProfileLine(lines[2])
         self.tankStrength = self._readUnitProfileLine(lines[3])
         self.infArtComboStrength = self._readComboProfileLine(lines[4])
+        self.fighterStrength = self._readUnitProfileLine(lines[5])
         self.unitStrengths = {Artillery: self.artStrength}
 
     def _readUnitProfileLine(self, line):
