@@ -2,8 +2,10 @@ import random
 
 
 class Unit:
+    diceSize = 12
+
     def __init__(self):
-        self.diceSize = 12
+        pass
 
     pass
 
