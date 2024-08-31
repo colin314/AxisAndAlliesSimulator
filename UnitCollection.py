@@ -54,10 +54,11 @@ class UnitCollection:
 
     def _loadUnitStrengths(self, unitProfiles:pd.DataFrame):
         for index,row in unitProfiles.iterrows():
-            self.unitStrengths[Units(index)] = (row["Attack"],row["Defense"])
+            unitType = unitDict[Units(index)]
+            self.unitStrengths[unitType] = (row["Attack"],row["Defense"])
         
         for key,value in self.unitStrengths.items():
-            if issubclass(unitDict[key],ComboUnit):
+            if issubclass(key,ComboUnit):
                 attStr, defStr = value
                 att = tuple([int(x) for x in str.split(attStr,"^")])
                 defense = tuple([int(x) for x in str.split(defStr,"^")])
