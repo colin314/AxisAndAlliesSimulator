@@ -4,6 +4,7 @@ from collections import Counter
 from statistics import mean, median
 import pandas as pd
 from UnitsEnum import Units
+from tabulate import tabulate
 
 unitDict = {Units.Infantry:Infantry,
 Units.MechInfantry:MechInfantry,
@@ -107,8 +108,16 @@ class UnitCollection:
         collStr = "Units in collection: " + str(self.unitCount()) + "\n"
         unitCount = Counter(type(obj) for obj in self._unitList)
         for objType, objCount in unitCount.items():
-            collStr += objType.__name__ + ": " + str(objCount) + "\t" + str(self.unitStrengths[objType]) + "\n"
+            collStr += objType.__name__ + ": " + str(objCount) + "\n"
         return collStr + "\n"
+    
+    def PrintCollection(self):
+        print(f"Unit Count: {self.unitCount()}")
+        unitCounter = Counter(type(obj) for obj in self._unitList)
+        unitArr = [["Unit","Count"]]
+        for objType, objCount in unitCounter.items():
+            unitArr.append([objType.__name__, objCount])
+        print(tabulate(unitArr,headers="firstrow",tablefmt="fancy_grid"))
 
     def unitCount(self):
         return len(

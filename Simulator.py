@@ -2,34 +2,48 @@ from UnitCollection import UnitCollection
 from Units import *
 import pandas as pd
 from statistics import mean, median
+from Resources import bcolors
+import sys
 
 unitListsFile = "unitLists.csv"
 
 def SimulateBattle(
     attacker: UnitCollection,
     defender: UnitCollection,
+    retreatThreshold = 0,
+    maxRounds = -1,
     printOutcome=False,
     printBattle=False,
 ):
+    maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
     round = 0
-    while attacker.unitCount() > 0 and defender.unitCount() > 0:
+    while attacker.unitCount() > 0 and defender.unitCount() > 0 and attacker.unitCount() > retreatThreshold and round < maxRounds:
         round += 1
+        print(round)
         attackerHits = attacker.attack()
         defenderHits = defender.defend()
         attacker.takeLosses(defenderHits)
         defender.takeLosses(attackerHits)
         if printBattle:
-            print(f"Round {round}")
-            print(f"Attacker: {attackerHits} hits")
-            print(str(attacker))
-            print(f"Defender: {defenderHits} hits")
-            print(str(defender))
+            print("Battle")
+            PrintBattleState(round, attacker, defender, attackerHits, defenderHits)
     if printOutcome:
-        print(f"Attacker: ")
-        print(str(attacker))
-        print("Defender: ")
-        print(str(defender))
+        PrintCombatants(attacker, defender)
     return (attacker.unitCount(), defender.unitCount())
+
+def PrintBattleState(round, attacker, defender, aH, dH):
+    print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
+    print(u'\u2500' * 30)
+    print(f"Attacker Hits: {aH}")
+    print(f"Defender Hits: {dH}")
+    PrintCombatants(attacker, defender)
+
+def PrintCombatants(attacker:UnitCollection, defender:UnitCollection):
+    print("Attacker: ")
+    attacker.PrintCollection()
+    print("Defender: ")
+    defender.PrintCollection()
+    print("\n")
 
 def LoadUnitCollection(listName, profileName):    
     profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding='utf-8',delimiter=",")
@@ -62,66 +76,14 @@ def swapPlaces(attacker,defender):
 if __name__ == "__main__":
     print(Unit.diceSize)
     
-    russianUnits = LoadUnitCollection("Russia","Basic")
-    germanUnits = LoadUnitCollection("Germany","Basic")
+    # russianUnits = LoadUnitCollection("Russia","Basic")
+    # germanUnits = LoadUnitCollection("Germany","Basic")
 
-    print("Equal - No Tanks")
-    attacker = LoadUnitCollection("Germany", "Basic")
-    # attacker.printUnitsAndStrength("Attacker")
-    defender = LoadUnitCollection("Russia","Basic")
-    # defender.printUnitsAndStrength("Defender")
-    GenerateBattleStats(attacker,defender)
 
     Unit.diceSize = 6
     print("Equal - Original")
     attacker = LoadUnitCollection("Germany", "Original")
     defender = LoadUnitCollection("Russia","Original")
-    GenerateBattleStats(attacker,defender)
-    exit()
-
-    # print("Equal - swapped")
-    # GenerateBattleStats(defender,attacker)
-
-    # print("German Tanks")
-    # attacker = LoadUnitCollection("Units_German_Tanks.txt","./UnitProfiles_German.txt")
-    # defender = LoadUnitCollection("Units_Russian.txt","./UnitProfiles_Russian.txt")
-    # GenerateBattleStats(attacker,defender)
-
-    # print("Tanks - swapped")
-    # GenerateBattleStats(defender,attacker)
-
-    print("Standard Equal")
-    attacker = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Basic.txt")
-    defender = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Basic.txt")
-    GenerateBattleStats(attacker,defender)
-
-    print("Standard - Tanks")
-    attacker = LoadUnitCollection("Units_Basic_Tanks.txt","./UnitProfiles_Basic.txt")
-    defender = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Basic.txt")
-    GenerateBattleStats(attacker,defender)
-
-    print("Standard - Tanks Swapped")
-    GenerateBattleStats(defender,attacker)
-
-    print("Standard - Fighters")
-    attacker = LoadUnitCollection("Units_Basic_Fighters.txt","./UnitProfiles_Basic.txt")
-    defender = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Basic.txt")
-    GenerateBattleStats(attacker,defender)
-
-    print("Standard - Fighters Swapped")
-    GenerateBattleStats(defender,attacker)
-
-    Unit.diceSize = 6
-    print(Unit.diceSize)
-    
-    print("Equal - No Tanks")
-    attacker = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Original.txt")
-    defender = LoadUnitCollection("Units_Basic.txt","./UnitProfiles_Original.txt")
-    GenerateBattleStats(attacker,defender)
-
-    print("Equal - Tanks")
-    attacker = LoadUnitCollection("Units_Basic_Tanks.txt","./UnitProfiles_Original.txt")
-    GenerateBattleStats(attacker,defender)
-
-    print("Equal - Tanks swapped")
-    GenerateBattleStats(defender,attacker)
+    attacker.reset()
+    defender.reset()
+    SimulateBattle(attacker, defender,maxRounds=2,printBattle=True)
