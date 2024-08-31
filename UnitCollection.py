@@ -2,28 +2,45 @@ from Units import *
 from itertools import filterfalse, count
 from collections import Counter
 from statistics import mean, median
+import pandas as pd
+from UnitsEnum import Units
 
+unitDict = {Units.Infantry:Infantry,
+Units.MechInfantry:MechInfantry,
+Units.Artillery:Artillery,
+Units.Tank:Tank,
+Units.Fighter:Fighter,
+Units.TacticalBomber:TacticalBomber,
+Units.StratBomber:StratBomber,
+Units.Submarine:Submarine,
+Units.Destroyer:Destroyer,
+Units.Cruiser:Cruiser,
+Units.Battleship:Battleship,
+Units.Carrier:Carrier,
+Units.Transport:Transport,
+Units.InfArt:InfArt,
+Units.MechInfArt:MechInfArt,
+Units.TankTactBomber:TankTactBomber,
+Units.FighterTactBomber:FighterTactBomber,}
 
 class UnitCollection:
-    def __init__(self, unitFile="./UnitProfiles_German.txt", **kwargs):
+    def __init__(self, unitList:pd.Series, unitProfiles:pd.DataFrame):
         self._unitList = []
-        self._loadUnitStrengths(unitFile)
-        # Infantry
-        self._loadUnits(
-            kwargs.get("infantry") or 0,
-            kwargs.get("infantry_mech") or 0,
-            kwargs.get("artillery") or 0,
-            kwargs.get("tanks") or 0,
-            kwargs.get("fighters") or 0,
-        )
+        self.unitStrengths = {}
+        self._loadUnitStrengths(unitProfiles)
 
-        self._makeComboUnits()
-        self.defineLossPriority(
-            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
-        )
-        self._originalUnitList = self._unitList.copy()
 
-    def _loadUnits(self, inf, mechInf, art, tanks, fighters):
+        # self._makeComboUnits()
+        # self.defineLossPriority(
+        #     [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
+        # )
+        # self._originalUnitList = self._unitList.copy()
+
+    def _loadUnits(self, unitList:pd.Series):
+        for index, row in unitList.items():
+            for i in range(row):
+                self._unitList.append(unitDict[index]())
+            self._unitList.append(unitDict[index])
         for i in range(inf):
             self._unitList.append(Infantry(*self.infStrength))
         for i in range(mechInf):
@@ -35,25 +52,18 @@ class UnitCollection:
         for i in range(fighters):
             self._unitList.append(Fighter(*self.fighterStrength))
 
-    def _loadUnitStrengths(self, unitFile):
-        f = open(unitFile)
-        lines = f.read().splitlines()
-
-        self.infStrength = self._readUnitProfileLine(lines[0])
-        self.mechInfStrength = self._readUnitProfileLine(lines[1])
-        self.artStrength = self._readUnitProfileLine(lines[2])
-        self.tankStrength = self._readUnitProfileLine(lines[3])
-        self.infArtComboStrength = self._readComboProfileLine(lines[4])
-        self.fighterStrength = self._readUnitProfileLine(lines[5])
-        self.unitStrengths = {Artillery: self.artStrength}
-
-    def _readUnitProfileLine(self, line):
-        return tuple([int(x) for x in str.split(line, ",")])
-
-    def _readComboProfileLine(self, line):
-        return tuple(
-            [[int(x) for x in str.split(p, ".")] for p in str.split(line, ",")]
-        )
+    def _loadUnitStrengths(self, unitProfiles:pd.DataFrame):
+        for index,row in unitProfiles.iterrows():
+            self.unitStrengths[Units(index)] = (row["Attack"],row["Defense"])
+        
+        for key,value in self.unitStrengths.items():
+            if issubclass(unitDict[key],ComboUnit):
+                attStr, defStr = value
+                att = tuple([int(x) for x in str.split(attStr,"^")])
+                defense = tuple([int(x) for x in str.split(defStr,"^")])
+                self.unitStrengths[key] = (att,defense)
+            else:
+                self.unitStrengths[key] = (int(value[0]), int(value[1]))
 
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)

@@ -1,8 +1,8 @@
 Key,Unit,Basic,Russia,Germany
-0,Infantry,0,8,8
+0,Infantry,8,8,8
 1,Mechanized Infantry,0,0,0
-2,Artillery,0,4,4
-3,Tank,0,0,0
+2,Artillery,4,4,4
+3,Tank,2,0,0
 4,Fighter,0,0,0
 5,Tactical Bomber,0,0,0
 6,Strategic Bomber,0,0,0

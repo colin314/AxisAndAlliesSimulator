@@ -11,3 +11,8 @@ Key,Unit,Cost,Attack,Defense
 9,Cruiser,12,6,6
 10,Battleship,20,8,8
 11,Carrier,16,0,4
+12,Transport,7,0,0
+13,Infantry^Artillery,7,3^3,4^3
+14,Mechanized Infantry^Artillery,8,3^3,4^3
+15,Tank^Tactical Bomber,17,7^8,6^6
+16,Fighter^Tactical Bomber,21,6^8,8^6

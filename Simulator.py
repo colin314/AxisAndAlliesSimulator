@@ -3,7 +3,7 @@ from Units import *
 import pandas as pd
 from statistics import mean, median
 
-unitLists = "UnitLists.csv"
+unitListsFile = "unitLists.csv"
 
 def SimulateBattle(
     attacker: UnitCollection,
@@ -33,9 +33,10 @@ def SimulateBattle(
 
 def LoadUnitCollection(listName, profileName):    
     profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding='utf-8',delimiter=",")
-    print(profile)
-    units = pd.read_csv(unitLists, encoding='utf-8',delimiter=",")
-    print(units[listName])
+    unitList = pd.read_csv(unitListsFile, encoding='utf-8',delimiter=",")
+    print(unitList[listName])
+    units = UnitCollection(unitList[listName],profile)
+    print(f'{units}')
 
 def GenerateBattleStats(attacker, defender, battleCount=10000):
     results = []
@@ -63,7 +64,6 @@ if __name__ == "__main__":
     print(Unit.diceSize)
     
     LoadUnitCollection("Russia","Basic")
-    LoadUnitCollection("Germany","Basic")
     exit()
     # print("Equal - No Tanks")
     # attacker = LoadUnitCollection("Units_German.txt","./UnitProfiles_German.txt")
