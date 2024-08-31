@@ -2,6 +2,9 @@ from UnitCollection import UnitCollection
 from Units import *
 import pandas as pd
 from statistics import mean, median
+import chardet
+
+unitLists = "UnitLists.xlsx"
 
 def SimulateBattle(
     attacker: UnitCollection,
@@ -29,15 +32,16 @@ def SimulateBattle(
         print(str(defender))
     return (attacker.unitCount(), defender.unitCount())
 
-def LoadUnitCollection(unitFile, unitStrengthFile):
-    f = open(unitFile)
-    lines = f.read().splitlines()
-    inf = int(lines[0])
-    mInf = int(lines[1])
-    art = int(lines[2])
-    tanks = int(lines[3])
-    fighters = int(lines[4])
-    return UnitCollection(unitStrengthFile, infantry=inf, infantry_mech=mInf, artillery=art, tanks=tanks, fighters=fighters)
+def LoadUnitCollection(listName, profileName):
+    f = open(profileName, 'rb')
+    f2 = open(unitLists, 'rb')
+    result = chardet.detect(f.read())
+    result2 = chardet.detect(f2.read())
+    
+    profile = pd.read_csv(profileName, encoding=result['encoding'],delimiter=",")
+    print(profile)
+    units = pd.read_csv(unitLists, encoding=result2['encoding'],delimiter=",")
+    print(units[listName])
 
 def GenerateBattleStats(attacker, defender, battleCount=10000):
     results = []
@@ -64,6 +68,8 @@ def swapPlaces(attacker,defender):
 if __name__ == "__main__":
     print(Unit.diceSize)
     
+    LoadUnitCollection("Basic","UnitProfiles_Basic.csv")
+    exit()
     # print("Equal - No Tanks")
     # attacker = LoadUnitCollection("Units_German.txt","./UnitProfiles_German.txt")
     # # attacker.printUnitsAndStrength("Attacker")

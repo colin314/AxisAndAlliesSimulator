@@ -33,9 +33,8 @@ class NonCombatUnit(Unit):
 
 
 class CombatUnit(Unit):
-    def __init__(self, attackStrength, defenseStrength):
-        self.attackStrength = attackStrength
-        self.defenseStrength = defenseStrength
+    def __init__(self, strengthArr):
+        self.attackStrength, self.defenseStrength = strengthArr
         super().__init__()
 
     def _roll(self, value):
@@ -51,9 +50,10 @@ class CombatUnit(Unit):
 
 
 class ComboUnit(CombatUnit):
-    def __init__(self, attackVals, defenseVals):
-        self.attackVals = attackVals
-        self.defenseVals = defenseVals
+    def __init__(self, strengthArr):
+        attackStr, defenseStr = strengthArr
+        self.attackVals = str.split(attackStr,"^")
+        self.defenseVals = str.split(defenseStr, "^")
         super().__init__(0, 0)
 
     def _makeRolls(self, rollValues):
@@ -74,43 +74,43 @@ class PreCombatUnit(CombatUnit):
 
 
 class Infantry(CombatUnit, LandUnit):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class MechInfantry(Infantry):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Artillery(CombatUnit, LandUnit):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Tank(CombatUnit, LandUnit):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Fighter(CombatUnit, AirUnit):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Bomber(CombatUnit, AirUnit):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class TacticalBomber(Bomber):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class StratBomber(Bomber):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class SurfaceShip(NavalUnit):
@@ -122,28 +122,28 @@ class Submarine(CombatUnit, NavalUnit):
 
 
 class Warship(CombatUnit, SurfaceShip):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Carrier(Warship):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Battleship(Warship):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Cruiser(Warship):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Destroyer(Warship):
-    def __init__(self, attackStrength, defenseStrength):
-        super().__init__(attackStrength, defenseStrength)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class Transport(SurfaceShip):
@@ -153,29 +153,29 @@ class Transport(SurfaceShip):
 class InfArt(ComboUnit, Infantry, Artillery):
     priority = Artillery
 
-    def __init__(self, attackVals, defenseVals):
-        super().__init__(attackVals, defenseVals)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class MechInfArt(ComboUnit, MechInfantry, Artillery):
     priority = Artillery
 
-    def __init__(self, attackVals, defenseVals):
-        super().__init__(attackVals, defenseVals)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class TankTactBomber(ComboUnit, Tank, TacticalBomber):
     priority = TacticalBomber
 
-    def __init__(self, attackVals, defenseVals):
-        super().__init__(attackVals, defenseVals)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
     priority = TacticalBomber
 
-    def __init__(self, attackVals, defenseVals):
-        super().__init__(attackVals, defenseVals)
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 
 if __name__ == "__main__":
