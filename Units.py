@@ -51,10 +51,8 @@ class CombatUnit(Unit):
 
 class ComboUnit(CombatUnit):
     def __init__(self, strengthArr):
-        attackStr, defenseStr = strengthArr
-        self.attackVals = str.split(attackStr,"^")
-        self.defenseVals = str.split(defenseStr, "^")
-        super().__init__(0, 0)
+        self.attackVals, self.defenseVals= strengthArr
+        super().__init__([0,0])
 
     def _makeRolls(self, rollValues):
         hits = 0

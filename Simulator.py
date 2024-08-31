@@ -34,9 +34,8 @@ def SimulateBattle(
 def LoadUnitCollection(listName, profileName):    
     profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding='utf-8',delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8',delimiter=",")
-    print(unitList[listName])
     units = UnitCollection(unitList[listName],profile)
-    print(f'{units}')
+    return units
 
 def GenerateBattleStats(attacker, defender, battleCount=10000):
     results = []

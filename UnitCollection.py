@@ -30,11 +30,11 @@ class UnitCollection:
         self._loadUnitStrengths(unitProfiles)
         self._loadUnits(unitList)
 
-        # self._makeComboUnits()
-        # self.defineLossPriority(
-        #     [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
-        # )
-        # self._originalUnitList = self._unitList.copy()
+        self._makeComboUnits()
+        self.defineLossPriority(
+            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
+        )
+        self._originalUnitList = self._unitList.copy()
 
     def _loadUnits(self, unitList:pd.Series):
         for index, row in unitList.items():
@@ -91,15 +91,16 @@ class UnitCollection:
         return oldCount - newCount
 
     def _makeComboUnits(self):
+        print(self.unitStrengths[InfArt])
         # Inf & Art
         while self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery):
             if self._removeUnitType(Artillery) == 0:
                 raise Exception("No artillery removed when it should have been")
             if self._removeUnitType(MechInfantry) == 1:
-                self._unitList.append(MechInfArt(*self.infArtComboStrength))
+                self._unitList.append(MechInfArt(self.unitStrengths[MechInfArt]))
                 continue
             if self._removeUnitType(Infantry) == 1:
-                self._unitList.append(InfArt(*self.infArtComboStrength))
+                self._unitList.append(InfArt(self.unitStrengths[InfArt]))
                 continue
             raise Exception("No infantry removed when it should have been")
 
