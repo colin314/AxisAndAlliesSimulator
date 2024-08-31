@@ -62,14 +62,22 @@ def swapPlaces(attacker,defender):
 if __name__ == "__main__":
     print(Unit.diceSize)
     
-    LoadUnitCollection("Russia","Basic")
+    russianUnits = LoadUnitCollection("Russia","Basic")
+    germanUnits = LoadUnitCollection("Germany","Basic")
+
+    print("Equal - No Tanks")
+    attacker = LoadUnitCollection("Germany", "Basic")
+    # attacker.printUnitsAndStrength("Attacker")
+    defender = LoadUnitCollection("Russia","Basic")
+    # defender.printUnitsAndStrength("Defender")
+    GenerateBattleStats(attacker,defender)
+
+    Unit.diceSize = 6
+    print("Equal - Original")
+    attacker = LoadUnitCollection("Germany", "Original")
+    defender = LoadUnitCollection("Russia","Original")
+    GenerateBattleStats(attacker,defender)
     exit()
-    # print("Equal - No Tanks")
-    # attacker = LoadUnitCollection("Units_German.txt","./UnitProfiles_German.txt")
-    # # attacker.printUnitsAndStrength("Attacker")
-    # defender = LoadUnitCollection("Units_Russian.txt","./UnitProfiles_Russian.txt")
-    # # defender.printUnitsAndStrength("Defender")
-    # GenerateBattleStats(attacker,defender)
 
     # print("Equal - swapped")
     # GenerateBattleStats(defender,attacker)

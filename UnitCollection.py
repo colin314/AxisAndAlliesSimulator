@@ -91,7 +91,6 @@ class UnitCollection:
         return oldCount - newCount
 
     def _makeComboUnits(self):
-        print(self.unitStrengths[InfArt])
         # Inf & Art
         while self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery):
             if self._removeUnitType(Artillery) == 0:
@@ -108,7 +107,7 @@ class UnitCollection:
         collStr = "Units in collection: " + str(self.unitCount()) + "\n"
         unitCount = Counter(type(obj) for obj in self._unitList)
         for objType, objCount in unitCount.items():
-            collStr += objType.__name__ + ": " + str(objCount) + "\n"
+            collStr += objType.__name__ + ": " + str(objCount) + "\t" + str(self.unitStrengths[objType]) + "\n"
         return collStr + "\n"
 
     def unitCount(self):
@@ -138,7 +137,7 @@ class UnitCollection:
 
         def correctComboUnits(comboType):
             self._unitList.append(
-                comboType.priority(*self.unitStrengths[comboType.priority])
+                comboType.priority(self.unitStrengths[comboType.priority])
             )
             self._makeComboUnits()
 
