@@ -40,7 +40,7 @@ def LoadUnitCollection(listName, profileName):
     
     profile = pd.read_csv(profileName, encoding=result['encoding'],delimiter=",")
     print(profile)
-    units = pd.read_csv(unitLists, encoding=result2['encoding'],delimiter=",")
+    units = pd.read_csv("UnitLists.csv", encoding=result2['encoding'],delimiter=",")
     print(units[listName])
 
 def GenerateBattleStats(attacker, defender, battleCount=10000):
