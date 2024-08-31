@@ -28,7 +28,7 @@ class UnitCollection:
         self._unitList = []
         self.unitStrengths = {}
         self._loadUnitStrengths(unitProfiles)
-
+        self._loadUnits(unitList)
 
         # self._makeComboUnits()
         # self.defineLossPriority(
@@ -38,19 +38,9 @@ class UnitCollection:
 
     def _loadUnits(self, unitList:pd.Series):
         for index, row in unitList.items():
+            unitType = unitDict[Units(index)] # Convert the int index to a Unit enum value, then get the type from the dictionary
             for i in range(row):
-                self._unitList.append(unitDict[index]())
-            self._unitList.append(unitDict[index])
-        for i in range(inf):
-            self._unitList.append(Infantry(*self.infStrength))
-        for i in range(mechInf):
-            self._unitList.append(MechInfantry(*self.mechInfStrength))
-        for i in range(art):
-            self._unitList.append(Artillery(*self.artStrength))
-        for i in range(tanks):
-            self._unitList.append(Tank(*self.tankStrength))
-        for i in range(fighters):
-            self._unitList.append(Fighter(*self.fighterStrength))
+                self._unitList.append(unitType(self.unitStrengths[unitType]))
 
     def _loadUnitStrengths(self, unitProfiles:pd.DataFrame):
         for index,row in unitProfiles.iterrows():
