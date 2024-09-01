@@ -7,14 +7,15 @@ import sys
 
 unitListsFile = "unitLists.csv"
 
+
 class Simulator:
 
     def SimulateBattle(
         self,
         attacker: UnitCollection,
         defender: UnitCollection,
-        retreatThreshold = 0,
-        maxRounds = -1,
+        retreatThreshold=0,
+        maxRounds=-1,
         printOutcome=False,
         printBattle=False,
     ):
@@ -29,7 +30,8 @@ class Simulator:
             defender.takeLosses(attackerHits)
             if printBattle:
                 print("Battle")
-                self.PrintBattleState(round, attacker, defender, attackerHits, defenderHits)
+                self.PrintBattleState(
+                    round, attacker, defender, attackerHits, defenderHits)
         if printOutcome:
             self.PrintCombatants(attacker, defender)
         return (attacker.unitCount(), defender.unitCount())
@@ -41,17 +43,18 @@ class Simulator:
         print(f"Defender Hits: {dH}")
         self.PrintCombatants(attacker, defender)
 
-    def PrintCombatants(self, attacker:UnitCollection, defender:UnitCollection):
+    def PrintCombatants(self, attacker: UnitCollection, defender: UnitCollection):
         print("Attacker: ")
         attacker.PrintCollection()
         print("Defender: ")
         defender.PrintCollection()
         print("\n")
 
-    def LoadUnitCollection(self, listName, profileName):    
-        profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding='utf-8',delimiter=",")
-        unitList = pd.read_csv(unitListsFile, encoding='utf-8',delimiter=",")
-        units = UnitCollection(unitList[listName],profile)
+    def LoadUnitCollection(self, listName, profileName):
+        profile = pd.read_csv(
+            f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
+        unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+        units = UnitCollection(unitList[listName], profile)
         return units
 
     def GenerateBattleStats(self, attacker, defender, battleCount=10000):
@@ -60,25 +63,31 @@ class Simulator:
         for i in range(battleCount):
             (a, d) = self.SimulateBattle(attacker, defender)
             results.append(1 if a > d else 0)
-            unitsLeft.append([a,d])
+            unitsLeft.append([a, d])
             attacker.reset()
             defender.reset()
         attackWinRate = float(sum(results)) / float(len(results))
-        print(f"attacker wins \033[91m{attackWinRate:2.2%}\033[97m percent of the time\033[0m")
+        print(f"attacker wins \033[91m{
+              attackWinRate:2.2%}\033[97m percent of the time\033[0m")
         attackingUnitsLeft = mean([x[0] for x in unitsLeft if x[0] > 0])
         defendingUnitsLeft = mean([x[1] for x in unitsLeft if x[1] > 0])
-        print(f"Attacking units left if attacker won: {attackingUnitsLeft:.2f}")
-        print(f"Defending units left if defender won: {defendingUnitsLeft:.2f}")
-        print(f"Attacking units left on average: {mean([x[0] for x in unitsLeft]):.2f}")
-        print(f"Defending units left on average: {mean([x[1] for x in unitsLeft]):.2f}")
+        print(f"Attacking units left if attacker won: {
+              attackingUnitsLeft:.2f}")
+        print(f"Defending units left if defender won: {
+              defendingUnitsLeft:.2f}")
+        print(f"Attacking units left on average: {
+              mean([x[0] for x in unitsLeft]):.2f}")
+        print(f"Defending units left on average: {
+              mean([x[1] for x in unitsLeft]):.2f}")
         print()
 
-    def swapPlaces(attacker,defender):
+    def swapPlaces(attacker, defender):
         return (defender, attacker)
+
 
 if __name__ == "__main__":
     print(Unit.diceSize)
-    
+
     # russianUnits = LoadUnitCollection("Russia","Basic")
     # germanUnits = LoadUnitCollection("Germany","Basic")
     sim = Simulator()
@@ -86,7 +95,7 @@ if __name__ == "__main__":
     Unit.diceSize = 6
     print("Equal - Original")
     attacker = sim.LoadUnitCollection("Germany", "Original")
-    defender = sim.LoadUnitCollection("Russia","Original")
+    defender = sim.LoadUnitCollection("Russia", "Original")
     attacker.reset()
     defender.reset()
-    sim.SimulateBattle(attacker, defender,maxRounds=2,printBattle=True)
+    sim.SimulateBattle(attacker, defender, maxRounds=2, printBattle=True)
