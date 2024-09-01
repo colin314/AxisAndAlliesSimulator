@@ -5,6 +5,7 @@ from statistics import mean, median
 import pandas as pd
 from UnitsEnum import Units
 from tabulate import tabulate
+from Hit import Hit
 
 unitDict = {Units.Infantry:Infantry,
 Units.MechInfantry:MechInfantry,
@@ -125,24 +126,31 @@ class UnitCollection:
         ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
 
     def attack(self):
-        hits = 0
+        hits = []
         for u in self._unitList:
-            hits += u.attack()
+            success = u.attack()
+            if success:
+                hits.append(self._generateHit(u))
         return hits
 
     def defend(self):
-        hits = 0
+        hits = []
         for u in self._unitList:
-            hits += u.defend()
+            success = u.defend()
+            if success:
+                hits.append(self._generateHit(u))
         return hits
+
+    def _generateHit(self, unit:CombatUnit):
+        hit = Hit(unit)
+        # Air vs Sub
+        if isinstance(unit, AirUnit) and self._unitInstanceInList(Destroyer):
+            hit.Immune.remove(Submarine)
 
     def defineLossPriority(self, unitTypeList):
         self._lossPriority = unitTypeList
 
-    def takeLosses(self, hitCount):
-        if hitCount >= self.unitCount():
-            self._unitList = []
-            return
+    def takeLosses(self, hits):
 
         def correctComboUnits(comboType):
             self._unitList.append(
@@ -151,7 +159,9 @@ class UnitCollection:
             self._makeComboUnits()
 
         for unitType in self._lossPriority:
-            while self._unitTypeInList(unitType) and hitCount > 0:
+            _continue = True
+            while self._unitTypeInList(unitType) and _continue:
+
                 removed = self._removeUnitType(unitType, 1)
                 if removed > 0 and issubclass(unitType, ComboUnit):
                     correctComboUnits(unitType)
