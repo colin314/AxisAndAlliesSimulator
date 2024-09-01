@@ -2,9 +2,9 @@ from Units import *
 
 
 class Hit:
-    def __init__(self):
-        self.Vulnerable = [Unit]
-        self.Immune = []
+    def __init__(self, unit:CombatUnit):
+        self.Vulnerable = unit.ValidTargets
+        self.Immune = unit.ImmuneTargets
 
     def UnitIsValidTarget(self, unit: Unit):
         isVulnerable = any(isinstance(unit, vType) for vType in self.Vulnerable)
@@ -15,14 +15,3 @@ class Hit:
         isVulnerable = any(issubclass(unitType, vType) for vType in self.Vulnerable)
         isImmune = any(issubclass(unitType, iType) for iType in self.Immune)
         return isVulnerable and not isImmune
-
-
-class AirHit(Hit):
-    def __init__(self):
-        super().__init__()
-        self.Immune = [Submarine]
-
-class SubHit(Hit):
-    def __init__(self):
-        super().__init__()
-        self.Vulnerable = [NavalUnit]

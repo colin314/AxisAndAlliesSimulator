@@ -12,6 +12,7 @@ class Unit:
 
 class LandUnit(Unit):
     def __init__(self):
+        self.ValidTargets = [LandUnit, AirUnit]
         super().__init__()
 
 
@@ -22,6 +23,7 @@ class AirUnit(Unit):
 
 class NavalUnit(Unit):
     def __init__(self):
+        self.ValidTargets = [AirUnit, NavalUnit]
         super().__init__()
 
 
@@ -29,13 +31,23 @@ class NonCombatUnit(Unit):
     def __init__(self):
         super().__init__()
 
-    pass
-
 
 class CombatUnit(Unit):
     def __init__(self, strengthArr):
         self.attackStrength, self.defenseStrength = strengthArr
+        self._setValidTargets()
         super().__init__()
+
+    def _setValidTargets(self):
+        self.ValidTargets = []
+        self.ImmuneTargets = []
+        if isinstance(self, LandUnit):
+            self.ValidTargets.extend([LandUnit, AirUnit])
+        if isinstance(self, AirUnit):
+            self.ValidTargets.extend([Unit])
+            self.ImmuneTargets.extend([Submarine])
+        if isinstance(self, NavalUnit):
+            self.ValidTargets.extend([AirUnit, NavalUnit])
 
     def _roll(self, value):
         """Roll the dice against the specified value"""
@@ -116,7 +128,9 @@ class SurfaceShip(NavalUnit):
 
 
 class Submarine(CombatUnit, NavalUnit):
-    pass
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
+        self.ValidTargets = [NavalUnit]
 
 
 class Warship(CombatUnit, SurfaceShip):
