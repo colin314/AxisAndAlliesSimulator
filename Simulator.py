@@ -21,9 +21,10 @@ class Simulator:
     ):
         maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
         round = 0
+        if printBattle:
+            self.PrintBattleState(0, attacker, defender, [], [])
         while attacker.unitCount() > 0 and defender.unitCount() > 0 and attacker.unitCount() > retreatThreshold and round < maxRounds:
             round += 1
-            print(round)
             attackerHits = attacker.attack()
             defenderHits = defender.defend()
             attacker.takeLosses(defenderHits)
@@ -39,8 +40,8 @@ class Simulator:
     def PrintBattleState(self, round, attacker, defender, aH, dH):
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
         print(u'\u2500' * 30)
-        print(f"Attacker Hits: {aH}")
-        print(f"Defender Hits: {dH}")
+        print(f"Attacker Hits: {len(aH)}")
+        print(f"Defender Hits: {len(dH)}")
         self.PrintCombatants(attacker, defender)
 
     def PrintCombatants(self, attacker: UnitCollection, defender: UnitCollection):
@@ -87,15 +88,20 @@ class Simulator:
 
 if __name__ == "__main__":
     print(Unit.diceSize)
-
-    # russianUnits = LoadUnitCollection("Russia","Basic")
-    # germanUnits = LoadUnitCollection("Germany","Basic")
     sim = Simulator()
+    attacker = sim.LoadUnitCollection("Attacker", "Basic")
+    defender = sim.LoadUnitCollection("Defender", "Basic")
+    defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
+                                Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier])
+    sim.SimulateBattle(attacker, defender, retreatThreshold=0,
+                       maxRounds=-1, printBattle=True)
 
-    Unit.diceSize = 6
-    print("Equal - Original")
-    attacker = sim.LoadUnitCollection("Germany", "Original")
-    defender = sim.LoadUnitCollection("Russia", "Original")
-    attacker.reset()
-    defender.reset()
-    sim.SimulateBattle(attacker, defender, maxRounds=2, printBattle=True)
+    # Unit.diceSize = 6
+    # print("Equal - Original")
+    # attacker = sim.LoadUnitCollection("Germany", "Original")
+    # defender = sim.LoadUnitCollection("Russia", "Original")
+    # defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
+    #                             Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier])
+    # attacker.reset()
+    # defender.reset()
+    # sim.SimulateBattle(attacker, defender, printBattle=True)

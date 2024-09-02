@@ -6,6 +6,7 @@ import pandas as pd
 from UnitsEnum import Units
 from tabulate import tabulate
 from Hit import Hit
+from Resources import bcolors
 
 unitDict = {Units.Infantry: Infantry,
             Units.MechInfantry: MechInfantry,
@@ -39,7 +40,7 @@ class UnitCollection:
         )
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
-        self._correctLossPriority()
+        #self._correctLossPriority()
 
     def _loadUnits(self, unitList: pd.Series):
         for index, row in unitList.items():
@@ -64,11 +65,8 @@ class UnitCollection:
 
     def _correctLossPriority(self):
         for type in list(self._lossPriority):
-            print(type, self._unitInstanceInList(type))
             if not self._unitInstanceInList(type):
                 self._lossPriority.remove(type)
-                print(self._lossPriority)
-        print(self._lossPriority)
 
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
@@ -164,50 +162,58 @@ class UnitCollection:
 
     def defineLossPriority(self, unitTypeList):
         self._lossPriority = unitTypeList
+        self._originalLossPriority = unitTypeList.copy()
 
     def takeLosses(self, hitList):
-
-        def correctComboUnits(comboType):
-            self._unitList.append(
-                comboType.priority(self.unitStrengths[comboType.priority])
-            )
-            self._makeComboUnits()
-        removed = 0
         leftOver = []
+        hitList.sort()
         for hit in hitList:
-            removed = 0
-            hitApplied = 0
+            if len(self._unitList) == 0:
+                break # All units killed, no need to apply further hits
             for unitType in self._lossPriority:
-                if hit.UnitTypeIsValidTarget(unitType):
-                    hitApplied = 1
+                removed = 0
+                if self._unitTypeInList(unitType) and hit.UnitTypeIsValidTarget(unitType):
                     removed = self._removeUnitType(unitType, 1)
                     if removed > 0 and issubclass(unitType, ComboUnit):
-                        correctComboUnits(unitType)
+                        self._correctComboUnits(unitType)
                         self._makeComboUnits()
-                    
-            
-            while hitCount > 0:
-                unit = self._unitList.pop()
-                if isinstance(unit, ComboUnit):
-                    correctComboUnits(type(unit))
-                hitCount -= 1
+                if removed > 0:
+                    break # hit was applied, we can break out of the loop
+            if removed == 0:
+                # Hit wasn't applied (for whatever reason, likely a bug, or the unit list is empty)
+                leftOver.append(hit)
+
+        if len(leftOver) > 0:
+            print(f"{bcolors.RED}ERROR: Some hits couldn't be applied{bcolors.ENDC}")
+            print(leftOver)
+            hitList = [] # just keep track of hits that couldn't be applied at all
+            for hit in leftOver:
+                if len(self._unitList) == 0:
+                    break
+                removedUnit = self._applyHit(hit)
+                if removedUnit == None:
+                    hitList.append(hit)
+                if removedUnit != None and isinstance(removedUnit, ComboUnit):
+                    self._correctComboUnits(type(removedUnit))
+            print(hitList)
+
+    def _correctComboUnits(self, comboType):
+        self._unitList.append(
+            comboType.priority(self.unitStrengths[comboType.priority])
+        )
+        self._makeComboUnits()
 
     def _applyHit(self, hit: Hit):
-        oldCount = len(self._unitList)
-        self._unitList = list(
-            filterfalse(
-                lambda u, counter=count(): hit.UnitIsValidTarget(u)
-                and next(counter) < 1,
-                self._unitList,
-            )
-        )
-        newCount = len(self._unitList)
-        return oldCount - newCount
+        """Applies the hit with no regard for loss priority"""
+        unit = next((x for x in self._unitList if hit.UnitIsValidTarget(x)), None)
+        if unit != None:
+            self._unitList.remove(unit)
+        return unit
 
     def reset(self):
         self._unitList = self._originalUnitList.copy()
         self._lossPriority = self._originalLossPriority.copy()
-        self._correctLossPriority()
+        #self._correctLossPriority()
 
     def printUnitsAndStrength(self, label="Unit List"):
         for u in self._unitList:

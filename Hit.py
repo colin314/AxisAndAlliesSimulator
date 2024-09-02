@@ -24,7 +24,6 @@ class Hit:
                 cmpVal = True if issubclass(type,type2) and type != type2 else cmpVal
                 cmpVal = False if issubclass(type2, type) and type != type2 else cmpVal
         # If specified vulnerabilities are not subclasses of either, then prioritize hits with immunities.
-        print(cmpVal)
         if cmpVal == None:
             cmpVal = len(self.Immune) > len(that.Immune)
         return cmpVal
