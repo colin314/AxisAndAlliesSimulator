@@ -236,7 +236,7 @@ class UnitCollection:
                 leftOver.append(hit)
 
         if len(leftOver) > 0:
-            print(f"{bcolors.RED}ERROR: Some hits couldn't be applied{bcolors.ENDC}")
+            print(f"{bcolors.RED}ERROR: Units exist outside of the loss priority{bcolors.ENDC}")
             print(leftOver)
             hitList = []  # just keep track of hits that couldn't be applied at all
             for hit in leftOver:
@@ -247,7 +247,9 @@ class UnitCollection:
                     hitList.append(hit)
                 if removedUnit != None and isinstance(removedUnit, ComboUnit):
                     self._correctComboUnits(type(removedUnit))
-            print(hitList)
+            if len(hitList) > 0:
+                print(f"{bcolors.RED}ERROR: Some hits could not be applied{bcolors.ENDC}")
+                print(hitList)
 
     def _correctComboUnits(self, comboType):
         self._unitList.append(
