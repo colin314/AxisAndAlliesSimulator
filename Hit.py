@@ -21,9 +21,23 @@ class Hit:
         cmpVal = None
         for type in self.Vulnerable:
             for type2 in that.Vulnerable:
-                cmpVal = True if issubclass(type,type2) else cmpVal
-                cmpVal = False if issubclass(type2, type) else cmpVal
+                cmpVal = True if issubclass(type,type2) and type != type2 else cmpVal
+                cmpVal = False if issubclass(type2, type) and type != type2 else cmpVal
         # If specified vulnerabilities are not subclasses of either, then prioritize hits with immunities.
+        print(cmpVal)
         if cmpVal == None:
-            cmpVal = len(self.Immune) < len(that.Immune)
+            cmpVal = len(self.Immune) > len(that.Immune)
+        return cmpVal
+    
+    # There is likely a bug here. This method is really janky (weird behavior if there is more than one entry in the vulnerable lists)
+    # This is only used if using the key=cmp_to_key method of sorting.
+    def cmp(this, that):
+        cmpVal = 0
+        for type in this.Vulnerable:
+            for type2 in that.Vulnerable:
+                cmpVal = -1 if issubclass(type,type2) and type != type2 else cmpVal
+                cmpVal = 1 if issubclass(type2, type) and type != type2 else cmpVal
+        # If specified vulnerabilities are not subclasses of either, then prioritize hits with immunities.
+        if cmpVal == 0:
+            cmpVal = len(that.Immune) - len(this.Immune)
         return cmpVal

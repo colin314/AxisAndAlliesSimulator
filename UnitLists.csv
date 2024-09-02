@@ -1,13 +1,13 @@
-Key,Unit,Basic,Russia,Germany
-0,Infantry,8,8,8
-1,Mechanized Infantry,0,0,0
-2,Artillery,4,4,4
-3,Tank,2,0,0
-4,Fighter,0,0,0
-5,Tactical Bomber,0,0,0
-6,Strategic Bomber,0,0,0
-7,Submarine,0,0,0
-8,Destroyer,0,0,0
-9,Cruiser,0,0,0
-10,Battleship,0,0,0
-11,Carrier,0,0,0
+Key,Unit,Basic,Russia,Germany,BasicNaval
+0,Infantry,8,8,8,0
+1,Mechanized Infantry,0,0,0,0
+2,Artillery,4,4,4,0
+3,Tank,2,0,0,0
+4,Fighter,0,0,0,2
+5,Tactical Bomber,0,0,0,0
+6,Strategic Bomber,0,0,0,0
+7,Submarine,0,0,0,2
+8,Destroyer,0,0,0,2
+9,Cruiser,0,0,0,0
+10,Battleship,0,0,0,0
+11,Carrier,0,0,0,0

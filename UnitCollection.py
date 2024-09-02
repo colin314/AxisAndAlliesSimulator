@@ -7,26 +7,27 @@ from UnitsEnum import Units
 from tabulate import tabulate
 from Hit import Hit
 
-unitDict = {Units.Infantry:Infantry,
-Units.MechInfantry:MechInfantry,
-Units.Artillery:Artillery,
-Units.Tank:Tank,
-Units.Fighter:Fighter,
-Units.TacticalBomber:TacticalBomber,
-Units.StratBomber:StratBomber,
-Units.Submarine:Submarine,
-Units.Destroyer:Destroyer,
-Units.Cruiser:Cruiser,
-Units.Battleship:Battleship,
-Units.Carrier:Carrier,
-Units.Transport:Transport,
-Units.InfArt:InfArt,
-Units.MechInfArt:MechInfArt,
-Units.TankTactBomber:TankTactBomber,
-Units.FighterTactBomber:FighterTactBomber,}
+unitDict = {Units.Infantry: Infantry,
+            Units.MechInfantry: MechInfantry,
+            Units.Artillery: Artillery,
+            Units.Tank: Tank,
+            Units.Fighter: Fighter,
+            Units.TacticalBomber: TacticalBomber,
+            Units.StratBomber: StratBomber,
+            Units.Submarine: Submarine,
+            Units.Destroyer: Destroyer,
+            Units.Cruiser: Cruiser,
+            Units.Battleship: Battleship,
+            Units.Carrier: Carrier,
+            Units.Transport: Transport,
+            Units.InfArt: InfArt,
+            Units.MechInfArt: MechInfArt,
+            Units.TankTactBomber: TankTactBomber,
+            Units.FighterTactBomber: FighterTactBomber, }
+
 
 class UnitCollection:
-    def __init__(self, unitList:pd.Series, unitProfiles:pd.DataFrame):
+    def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame):
         self._unitList = []
         self.unitStrengths = {}
         self._loadUnitStrengths(unitProfiles)
@@ -34,29 +35,40 @@ class UnitCollection:
 
         self._makeComboUnits()
         self.defineLossPriority(
-            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
+            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier]
         )
+        self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
+        self._correctLossPriority()
 
-    def _loadUnits(self, unitList:pd.Series):
+    def _loadUnits(self, unitList: pd.Series):
         for index, row in unitList.items():
-            unitType = unitDict[Units(index)] # Convert the int index to a Unit enum value, then get the type from the dictionary
+            # Convert the int index to a Unit enum value, then get the type from the dictionary
+            unitType = unitDict[Units(index)]
             for i in range(row):
                 self._unitList.append(unitType(self.unitStrengths[unitType]))
 
-    def _loadUnitStrengths(self, unitProfiles:pd.DataFrame):
-        for index,row in unitProfiles.iterrows():
+    def _loadUnitStrengths(self, unitProfiles: pd.DataFrame):
+        for index, row in unitProfiles.iterrows():
             unitType = unitDict[Units(index)]
-            self.unitStrengths[unitType] = (row["Attack"],row["Defense"])
-        
-        for key,value in self.unitStrengths.items():
-            if issubclass(key,ComboUnit):
+            self.unitStrengths[unitType] = (row["Attack"], row["Defense"])
+
+        for key, value in self.unitStrengths.items():
+            if issubclass(key, ComboUnit):
                 attStr, defStr = value
-                att = tuple([int(x) for x in str.split(attStr,"^")])
-                defense = tuple([int(x) for x in str.split(defStr,"^")])
-                self.unitStrengths[key] = (att,defense)
+                att = tuple([int(x) for x in str.split(attStr, "^")])
+                defense = tuple([int(x) for x in str.split(defStr, "^")])
+                self.unitStrengths[key] = (att, defense)
             else:
                 self.unitStrengths[key] = (int(value[0]), int(value[1]))
+
+    def _correctLossPriority(self):
+        for type in list(self._lossPriority):
+            print(type, self._unitInstanceInList(type))
+            if not self._unitInstanceInList(type):
+                self._lossPriority.remove(type)
+                print(self._lossPriority)
+        print(self._lossPriority)
 
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
@@ -96,9 +108,11 @@ class UnitCollection:
         # Inf & Art
         while self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery):
             if self._removeUnitType(Artillery) == 0:
-                raise Exception("No artillery removed when it should have been")
+                raise Exception(
+                    "No artillery removed when it should have been")
             if self._removeUnitType(MechInfantry) == 1:
-                self._unitList.append(MechInfArt(self.unitStrengths[MechInfArt]))
+                self._unitList.append(MechInfArt(
+                    self.unitStrengths[MechInfArt]))
                 continue
             if self._removeUnitType(Infantry) == 1:
                 self._unitList.append(InfArt(self.unitStrengths[InfArt]))
@@ -111,14 +125,14 @@ class UnitCollection:
         for objType, objCount in unitCount.items():
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
         return collStr + "\n"
-    
+
     def PrintCollection(self):
         print(f"Unit Count: {self.unitCount()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
-        unitArr = [["Unit","Count"]]
+        unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
-        print(tabulate(unitArr,headers="firstrow",tablefmt="fancy_grid"))
+        print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def unitCount(self):
         return len(
@@ -141,40 +155,59 @@ class UnitCollection:
                 hits.append(self._generateHit(u))
         return hits
 
-    def _generateHit(self, unit:CombatUnit):
+    def _generateHit(self, unit: CombatUnit):
         hit = Hit(unit)
         # Air vs Sub
         if isinstance(unit, AirUnit) and self._unitInstanceInList(Destroyer):
             hit.Immune.remove(Submarine)
+        return hit
 
     def defineLossPriority(self, unitTypeList):
         self._lossPriority = unitTypeList
 
-    def takeLosses(self, hits):
+    def takeLosses(self, hitList):
 
         def correctComboUnits(comboType):
             self._unitList.append(
                 comboType.priority(self.unitStrengths[comboType.priority])
             )
             self._makeComboUnits()
+        removed = 0
+        leftOver = []
+        for hit in hitList:
+            removed = 0
+            hitApplied = 0
+            for unitType in self._lossPriority:
+                if hit.UnitTypeIsValidTarget(unitType):
+                    hitApplied = 1
+                    removed = self._removeUnitType(unitType, 1)
+                    if removed > 0 and issubclass(unitType, ComboUnit):
+                        correctComboUnits(unitType)
+                        self._makeComboUnits()
+                    
+            
+            while hitCount > 0:
+                unit = self._unitList.pop()
+                if isinstance(unit, ComboUnit):
+                    correctComboUnits(type(unit))
+                hitCount -= 1
 
-        for unitType in self._lossPriority:
-            _continue = True
-            while self._unitTypeInList(unitType) and _continue:
-
-                removed = self._removeUnitType(unitType, 1)
-                if removed > 0 and issubclass(unitType, ComboUnit):
-                    correctComboUnits(unitType)
-                    self._makeComboUnits()
-                hitCount -= removed
-        while hitCount > 0:
-            unit = self._unitList.pop()
-            if isinstance(unit, ComboUnit):
-                correctComboUnits(type(unit))
-            hitCount -= 1
+    def _applyHit(self, hit: Hit):
+        oldCount = len(self._unitList)
+        self._unitList = list(
+            filterfalse(
+                lambda u, counter=count(): hit.UnitIsValidTarget(u)
+                and next(counter) < 1,
+                self._unitList,
+            )
+        )
+        newCount = len(self._unitList)
+        return oldCount - newCount
 
     def reset(self):
         self._unitList = self._originalUnitList.copy()
+        self._lossPriority = self._originalLossPriority.copy()
+        self._correctLossPriority()
 
     def printUnitsAndStrength(self, label="Unit List"):
         for u in self._unitList:
@@ -187,7 +220,8 @@ class UnitCollection:
 
 
 if __name__ == "__main__":
-    attacker = UnitCollection(infantry=2, artillery=2, tanks=1, infantry_mech=2)
+    attacker = UnitCollection(infantry=2, artillery=2,
+                              tanks=1, infantry_mech=2)
     print(str(attacker))
     attacker.defineLossPriority(
         [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]

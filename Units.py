@@ -12,7 +12,6 @@ class Unit:
 
 class LandUnit(Unit):
     def __init__(self):
-        self.ValidTargets = [LandUnit, AirUnit]
         super().__init__()
 
 
@@ -23,7 +22,6 @@ class AirUnit(Unit):
 
 class NavalUnit(Unit):
     def __init__(self):
-        self.ValidTargets = [AirUnit, NavalUnit]
         super().__init__()
 
 
@@ -39,15 +37,12 @@ class CombatUnit(Unit):
         super().__init__()
 
     def _setValidTargets(self):
-        self.ValidTargets = []
+        self.ValidTargets = [Unit]
         self.ImmuneTargets = []
-        if isinstance(self, LandUnit):
-            self.ValidTargets.extend([LandUnit, AirUnit])
         if isinstance(self, AirUnit):
-            self.ValidTargets.extend([Unit])
             self.ImmuneTargets.extend([Submarine])
-        if isinstance(self, NavalUnit):
-            self.ValidTargets.extend([AirUnit, NavalUnit])
+        if isinstance(self, Submarine):
+            self.ValidTargets = [NavalUnit]
 
     def _roll(self, value):
         """Roll the dice against the specified value"""
@@ -63,8 +58,8 @@ class CombatUnit(Unit):
 
 class ComboUnit(CombatUnit):
     def __init__(self, strengthArr):
-        self.attackVals, self.defenseVals= strengthArr
-        super().__init__([0,0])
+        self.attackVals, self.defenseVals = strengthArr
+        super().__init__([0, 0])
 
     def _makeRolls(self, rollValues):
         hits = 0
