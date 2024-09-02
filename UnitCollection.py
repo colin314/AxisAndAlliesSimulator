@@ -40,7 +40,8 @@ class UnitCollection:
         self._makeComboUnits()
         self.defineLossPriority(
             [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
-                Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier]
+                TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
+                StratBomber, Cruiser, Battleship, Carrier]
         )
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
@@ -128,12 +129,15 @@ class UnitCollection:
             raise Exception("No infantry removed when it should have been")
         while self._unitTypeInList(TacticalBomber) and (self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)):
             if self._removeUnitType(TacticalBomber) == 0:
-                raise Exception("No tactical bomber removed when it should have been")
+                raise Exception(
+                    "No tactical bomber removed when it should have been")
             if self._removeUnitType(Fighter) == 1:
-                self._unitList.append(FighterTactBomber(self.unitStrengths[FighterTactBomber]))
+                self._unitList.append(FighterTactBomber(
+                    self.unitStrengths[FighterTactBomber]))
                 continue
             if self._removeUnitType(Tank) == 1:
-                self._unitList.append(TankTactBomber(self.unitStrengths[TankTactBomber]))
+                self._unitList.append(TankTactBomber(
+                    self.unitStrengths[TankTactBomber]))
                 continue
             raise Exception("No fighter/tank removed when it should have been")
 
@@ -160,8 +164,8 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         df1 = self._unitStrArrToDf(self.oldTable)
         df2 = self._unitStrArrToDf(unitArr)
-        dfJoin = pd.concat([df1,df2],axis=1,join='outer')
-        printArr = [["Unit","Before","After"]]
+        dfJoin = pd.concat([df1, df2], axis=1, join='outer')
+        printArr = [["Unit", "Before", "After"]]
         df = dfJoin.infer_objects(copy=False).fillna(0).reset_index()
         df.Count = df.Count.astype(int)
         printArr.extend(df.values.tolist())
@@ -172,7 +176,7 @@ class UnitCollection:
         indexes = [x[0] for x in arr[1:]]
         headers = ["Count"]
         count = [x[1] for x in arr[1:]]
-        df = pd.DataFrame(count,index=indexes,columns=headers)
+        df = pd.DataFrame(count, index=indexes, columns=headers)
         return df
 
     def unitCount(self):

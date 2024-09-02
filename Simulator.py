@@ -96,7 +96,7 @@ if __name__ == "__main__":
     attacker = sim.LoadUnitCollection("Attacker", "Basic")
     defender = sim.LoadUnitCollection("Defender", "Basic")
     defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
-                                Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier])
+                                Tank, Submarine, Destroyer, TacticalBomber, Fighter, FighterTactBomber, StratBomber, Cruiser, Battleship, Carrier])
     sim.SimulateBattle(attacker, defender, retreatThreshold=0,
                        maxRounds=-1, printBattle=True)
 
