@@ -181,6 +181,7 @@ class UnitCollection:
         df = pd.DataFrame(count, index=indexes, columns=headers)
         return df
 
+#BUG: Battleships are combo units, but only a single unit
     def unitCount(self):
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]
