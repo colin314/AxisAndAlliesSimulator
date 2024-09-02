@@ -3,7 +3,7 @@ Key,Unit,Cost,Attack,Defense
 1,Mechanized Infantry,4,2,3
 2,Artillery,4,3,3
 3,Tank,6,7,6
-4,Fighter,10,6,8
+4,Fighter,6,4,6
 5,Tactical Bomber,11,6,6
 6,Strategic Bomber,12,8,2
 7,Submarine,6,4,2

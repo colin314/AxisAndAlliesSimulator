@@ -231,8 +231,7 @@ class UnitCollection:
                 leftOver.append(hit)
 
         if len(leftOver) > 0:
-            print(f"{bcolors.RED}ERROR: Some hits couldn't be applied{
-                  bcolors.ENDC}")
+            print(f"{bcolors.RED}ERROR: Some hits couldn't be applied{bcolors.ENDC}")
             print(leftOver)
             hitList = []  # just keep track of hits that couldn't be applied at all
             for hit in leftOver:
