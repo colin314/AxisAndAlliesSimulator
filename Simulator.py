@@ -42,7 +42,11 @@ class Simulator:
         print(u'\u2500' * 30)
         print(f"Attacker Hits: {len(aH)}")
         print(f"Defender Hits: {len(dH)}")
-        self.PrintCombatants(attacker, defender)
+        print("Attacker: ")
+        attacker.PrintCollectionComparison()
+        print("Defender: ")
+        defender.PrintCollectionComparison()
+        print("\n")
 
     def PrintCombatants(self, attacker: UnitCollection, defender: UnitCollection):
         print("Attacker: ")
@@ -94,7 +98,7 @@ if __name__ == "__main__":
     defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
                                 Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier])
     sim.SimulateBattle(attacker, defender, retreatThreshold=0,
-                       maxRounds=-1, printBattle=True)
+                       maxRounds=1, printBattle=True)
 
     # Unit.diceSize = 6
     # print("Equal - Original")

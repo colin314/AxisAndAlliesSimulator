@@ -1,5 +1,5 @@
 from Units import *
-from itertools import filterfalse, count
+from itertools import cycle, filterfalse, count
 from collections import Counter
 from statistics import mean, median
 import pandas as pd
@@ -151,9 +151,14 @@ class UnitCollection:
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
-        tab1 = str(tabulate(self.oldTable),headers="firstrow", tablefmt="fancy_grid")
-        tab2 = str(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
-        print(tabulate([list(item) for item in zip(tab1, tab2)], ["Before", "After"], tablefmt="Simple"))
+        tab1 = str(tabulate(self.oldTable,headers="firstrow", tablefmt="fancy_grid")).splitlines()
+        tab2 = str(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid")).splitlines()
+        if len(tab1) > len(tab2):
+            tab2.extend(["" for x in range(len(tab1) - len(tab2))])
+        else:
+            tab1.extend(["" for x in range(len(tab2) - len(tab1)) ])
+        zipList = zip(tab1,cycle(tab2)) if len(tab1) > len(tab2) else zip(cycle(tab1),tab2)
+        print(tabulate([list(item) for item in zipList], ["Before", "After"], tablefmt="Simple"))
         self.oldTable = unitArr
 
 
