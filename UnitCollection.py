@@ -188,24 +188,27 @@ class UnitCollection:
         hits = []
         for u in self._unitList:
             success = u.attack()
-            if success:
-                hits.append(self._generateHit(u))
+            if success > 0:
+                hits.extend(self._generateHit(u,success))
         return hits
 
     def defend(self):
         hits = []
         for u in self._unitList:
             success = u.defend()
-            if success:
-                hits.append(self._generateHit(u))
+            if success > 0:
+                hits.extend(self._generateHit(u,success))
         return hits
 
-    def _generateHit(self, unit: CombatUnit):
-        hit = Hit(unit)
-        # Air vs Sub
-        if isinstance(unit, AirUnit) and self._unitInstanceInList(Destroyer):
-            hit.Immune.remove(Submarine)
-        return hit
+    def _generateHit(self, unit: CombatUnit, hitNumber):
+        hits = []
+        for i in range(hitNumber):
+            hit = Hit(unit)
+            # Air vs Sub
+            if isinstance(unit, AirUnit) and self._unitInstanceInList(Destroyer):
+                hit.Immune.remove(Submarine)
+            hits.append(hit)
+        return hits
 
     def defineLossPriority(self, unitTypeList):
         self._lossPriority = unitTypeList

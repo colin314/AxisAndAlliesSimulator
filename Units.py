@@ -138,15 +138,15 @@ class Carrier(Warship):
         super().__init__(strengthArr)
 
 
-class Battleship(Warship,ComboUnit):
-    priority = DamagedBattleship
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
-
 class DamagedBattleship(Warship,ComboUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
+
+class Battleship(Warship,ComboUnit):
+    priority = DamagedBattleship
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 class Cruiser(Warship):
     def __init__(self, strengthArr):
