@@ -1,3 +1,4 @@
+import math
 from Units import *
 from itertools import cycle, filterfalse, count
 from collections import Counter
@@ -155,16 +156,23 @@ class UnitCollection:
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
-        tab1 = str(tabulate(self.oldTable,headers="firstrow", tablefmt="fancy_grid")).splitlines()
-        tab2 = str(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid")).splitlines()
-        if len(tab1) > len(tab2):
-            tab2.extend(["" for x in range(len(tab1) - len(tab2))])
-        else:
-            tab1.extend(["" for x in range(len(tab2) - len(tab1)) ])
-        zipList = zip(tab1,tab2)
-        print(tabulate([list(item) for item in zipList], ["Before", "After"], tablefmt="Simple"))
+        df1 = self._unitStrArrToDf(self.oldTable)
+        df2 = self._unitStrArrToDf(unitArr)
+        dfJoin = pd.concat([df1,df2],axis=1,join='outer')
+        print("Printing")
+        printArr = [["Unit","Before","After"]]
+        df = dfJoin.fillna(0).reset_index()
+        df.Count = df.Count.astype(int)
+        printArr.extend(df.values.tolist())
+        print(tabulate(printArr, tablefmt="fancy_grid"))
         self.oldTable = unitArr
 
+    def _unitStrArrToDf(self, arr):
+        indexes = [x[0] for x in arr[1:]]
+        headers = ["Count"]
+        count = [x[1] for x in arr[1:]]
+        df = pd.DataFrame(count,index=indexes,columns=headers)
+        return df
 
     def unitCount(self):
         return len(
