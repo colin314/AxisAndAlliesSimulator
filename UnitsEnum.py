@@ -18,3 +18,4 @@ class Units(Enum):
     MechInfArt=14
     TankTactBomber=15
     FighterTactBomber=16
+    DamagedBattleship=17

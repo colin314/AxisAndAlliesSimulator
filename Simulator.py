@@ -91,7 +91,7 @@ def battleStats(sim, at = "Attacker", df = "Defender"):
     defender = sim.LoadUnitCollection(df, "Basic")
     defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
                                 Tank, Submarine, Destroyer, TacticalBomber, Fighter,
-                                FighterTactBomber, StratBomber, Cruiser, Battleship, Carrier])
+                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
     sim.GenerateBattleStats(attacker, defender, 5000)
 
     Unit.diceSize = 6
@@ -99,12 +99,23 @@ def battleStats(sim, at = "Attacker", df = "Defender"):
     defender = sim.LoadUnitCollection(df, "Original")
     defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
                                 Tank, Submarine, Destroyer, TacticalBomber, Fighter,
-                                FighterTactBomber, StratBomber, Cruiser, Battleship, Carrier])
+                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
     sim.GenerateBattleStats(attacker, defender, 5000)
     Unit.diceSize = 12
 
 if __name__ == "__main__":
     sim = Simulator()
-    battleStats(sim)
+    # battleStats(sim)
+    attacker = sim.LoadUnitCollection("Attacker", "Basic")
+    attacker.defineLossPriority(
+        [Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+            TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
+            StratBomber, Cruiser, Battleship, Carrier]
+    )
+    defender = sim.LoadUnitCollection("Defender", "Basic")
+    defender.defineLossPriority([Battleship, Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
+                                Tank, Submarine, Destroyer, TacticalBomber, Fighter,
+                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
+    sim.SimulateBattle(attacker,defender,printBattle=True)
     # sim.SimulateBattle(attacker, defender, retreatThreshold=0,
     #                    maxRounds=-1, printBattle=True)

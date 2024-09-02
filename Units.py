@@ -138,7 +138,7 @@ class Carrier(Warship):
         super().__init__(strengthArr)
 
 
-class DamagedBattleship(Warship,ComboUnit):
+class DamagedBattleship(Warship):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 

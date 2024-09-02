@@ -27,7 +27,9 @@ unitDict = {Units.Infantry: Infantry,
             Units.InfArt: InfArt,
             Units.MechInfArt: MechInfArt,
             Units.TankTactBomber: TankTactBomber,
-            Units.FighterTactBomber: FighterTactBomber, }
+            Units.FighterTactBomber: FighterTactBomber, 
+            Units.DamagedBattleship: DamagedBattleship,
+            }
 
 
 class UnitCollection:
