@@ -22,7 +22,8 @@ class Simulator:
         maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
         round = 0
         if printBattle:
-            self.PrintBattleState(0, attacker, defender, [], [])
+            print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
+            print(u'\u2550' * 50)
         while attacker.unitCount() > 0 and defender.unitCount() > 0 and attacker.unitCount() > retreatThreshold and round < maxRounds:
             round += 1
             attackerHits = attacker.attack()
@@ -30,16 +31,16 @@ class Simulator:
             attacker.takeLosses(defenderHits)
             defender.takeLosses(attackerHits)
             if printBattle:
-                print("Battle")
                 self.PrintBattleState(
                     round, attacker, defender, attackerHits, defenderHits)
+                input("Press Enter to continue...")
         if printOutcome:
             self.PrintCombatants(attacker, defender)
         return (attacker.unitCount(), defender.unitCount())
 
     def PrintBattleState(self, round, attacker, defender, aH, dH):
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
-        print(u'\u2500' * 30)
+        print(u'\u2500' * 40)
         print(f"Attacker Hits: {len(aH)}")
         print(f"Defender Hits: {len(dH)}")
         print("Attacker: ")
@@ -91,14 +92,13 @@ class Simulator:
 
 
 if __name__ == "__main__":
-    print(Unit.diceSize)
     sim = Simulator()
     attacker = sim.LoadUnitCollection("Attacker", "Basic")
     defender = sim.LoadUnitCollection("Defender", "Basic")
     defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
                                 Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier])
     sim.SimulateBattle(attacker, defender, retreatThreshold=0,
-                       maxRounds=1, printBattle=True)
+                       maxRounds=-1, printBattle=True)
 
     # Unit.diceSize = 6
     # print("Equal - Original")

@@ -9,6 +9,8 @@ from tabulate import tabulate
 from Hit import Hit
 from Resources import bcolors
 
+pd.set_option('future.no_silent_downcasting', True)
+
 unitDict = {Units.Infantry: Infantry,
             Units.MechInfantry: MechInfantry,
             Units.Artillery: Artillery,
@@ -159,9 +161,8 @@ class UnitCollection:
         df1 = self._unitStrArrToDf(self.oldTable)
         df2 = self._unitStrArrToDf(unitArr)
         dfJoin = pd.concat([df1,df2],axis=1,join='outer')
-        print("Printing")
         printArr = [["Unit","Before","After"]]
-        df = dfJoin.fillna(0).reset_index()
+        df = dfJoin.infer_objects(copy=False).fillna(0).reset_index()
         df.Count = df.Count.astype(int)
         printArr.extend(df.values.tolist())
         print(tabulate(printArr, tablefmt="fancy_grid"))
