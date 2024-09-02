@@ -36,11 +36,12 @@ class UnitCollection:
 
         self._makeComboUnits()
         self.defineLossPriority(
-            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank, Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier]
+            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+                Submarine, Destroyer, Fighter, Bomber, Cruiser, Battleship, Carrier]
         )
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
-        #self._correctLossPriority()
+        # self._correctLossPriority()
 
     def _loadUnits(self, unitList: pd.Series):
         for index, row in unitList.items():
@@ -116,6 +117,16 @@ class UnitCollection:
                 self._unitList.append(InfArt(self.unitStrengths[InfArt]))
                 continue
             raise Exception("No infantry removed when it should have been")
+        while self._unitTypeInList(TacticalBomber) and (self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)):
+            if self._removeUnitType(TacticalBomber) == 0:
+                raise Exception("No tactical bomber removed when it should have been")
+            if self._removeUnitType(Fighter) == 1:
+                self._unitList.append(FighterTactBomber(self.unitStrengths[FighterTactBomber]))
+                continue
+            if self._removeUnitType(Tank) == 1:
+                self._unitList.append(TankTactBomber(self.unitStrengths[TankTactBomber]))
+                continue
+            raise Exception("No fighter/tank removed when it should have been")
 
     def __str__(self):
         collStr = "Units in collection: " + str(self.unitCount()) + "\n"
@@ -169,7 +180,7 @@ class UnitCollection:
         hitList.sort()
         for hit in hitList:
             if len(self._unitList) == 0:
-                break # All units killed, no need to apply further hits
+                break  # All units killed, no need to apply further hits
             for unitType in self._lossPriority:
                 removed = 0
                 if self._unitTypeInList(unitType) and hit.UnitTypeIsValidTarget(unitType):
@@ -178,15 +189,16 @@ class UnitCollection:
                         self._correctComboUnits(unitType)
                         self._makeComboUnits()
                 if removed > 0:
-                    break # hit was applied, we can break out of the loop
+                    break  # hit was applied, we can break out of the loop
             if removed == 0:
                 # Hit wasn't applied (for whatever reason, likely a bug, or the unit list is empty)
                 leftOver.append(hit)
 
         if len(leftOver) > 0:
-            print(f"{bcolors.RED}ERROR: Some hits couldn't be applied{bcolors.ENDC}")
+            print(f"{bcolors.RED}ERROR: Some hits couldn't be applied{
+                  bcolors.ENDC}")
             print(leftOver)
-            hitList = [] # just keep track of hits that couldn't be applied at all
+            hitList = []  # just keep track of hits that couldn't be applied at all
             for hit in leftOver:
                 if len(self._unitList) == 0:
                     break
@@ -205,7 +217,8 @@ class UnitCollection:
 
     def _applyHit(self, hit: Hit):
         """Applies the hit with no regard for loss priority"""
-        unit = next((x for x in self._unitList if hit.UnitIsValidTarget(x)), None)
+        unit = next(
+            (x for x in self._unitList if hit.UnitIsValidTarget(x)), None)
         if unit != None:
             self._unitList.remove(unit)
         return unit
@@ -213,7 +226,7 @@ class UnitCollection:
     def reset(self):
         self._unitList = self._originalUnitList.copy()
         self._lossPriority = self._originalLossPriority.copy()
-        #self._correctLossPriority()
+        # self._correctLossPriority()
 
     def printUnitsAndStrength(self, label="Unit List"):
         for u in self._unitList:
