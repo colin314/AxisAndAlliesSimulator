@@ -41,6 +41,12 @@ class UnitCollection:
         )
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
+        unitCounter = Counter(type(obj) for obj in self._unitList)
+        unitArr = [["Unit", "Count"]]
+        for objType, objCount in unitCounter.items():
+            unitArr.append([objType.__name__, objCount])
+        self.oldTable = unitArr
+        self.oldTableOriginal = unitArr.copy()
         # self._correctLossPriority()
 
     def _loadUnits(self, unitList: pd.Series):
@@ -144,8 +150,6 @@ class UnitCollection:
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintCollectionComparison(self):
-        if not hasattr(self, 'oldTable'):
-            self.oldTable = [["Unit", "Count"],["",""]]
         print(f"Unit Count: {self.unitCount()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
@@ -157,7 +161,7 @@ class UnitCollection:
             tab2.extend(["" for x in range(len(tab1) - len(tab2))])
         else:
             tab1.extend(["" for x in range(len(tab2) - len(tab1)) ])
-        zipList = zip(tab1,cycle(tab2)) if len(tab1) > len(tab2) else zip(cycle(tab1),tab2)
+        zipList = zip(tab1,tab2)
         print(tabulate([list(item) for item in zipList], ["Before", "After"], tablefmt="Simple"))
         self.oldTable = unitArr
 
@@ -245,7 +249,7 @@ class UnitCollection:
     def reset(self):
         self._unitList = self._originalUnitList.copy()
         self._lossPriority = self._originalLossPriority.copy()
-        self.oldTable = [["Unit", "Count"],["",""]]
+        self.oldTable = self.oldTableOriginal.copy()
         # self._correctLossPriority()
 
     def printUnitsAndStrength(self, label="Unit List"):
