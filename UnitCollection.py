@@ -143,6 +143,20 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
+    def PrintCollectionComparison(self):
+        if not hasattr(self, 'oldTable'):
+            self.oldTable = [["Unit", "Count"],["",""]]
+        print(f"Unit Count: {self.unitCount()}")
+        unitCounter = Counter(type(obj) for obj in self._unitList)
+        unitArr = [["Unit", "Count"]]
+        for objType, objCount in unitCounter.items():
+            unitArr.append([objType.__name__, objCount])
+        tab1 = str(tabulate(self.oldTable),headers="firstrow", tablefmt="fancy_grid")
+        tab2 = str(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
+        print(tabulate([list(item) for item in zip(tab1, tab2)], ["Before", "After"], tablefmt="Simple"))
+        self.oldTable = unitArr
+
+
     def unitCount(self):
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]
@@ -226,6 +240,7 @@ class UnitCollection:
     def reset(self):
         self._unitList = self._originalUnitList.copy()
         self._lossPriority = self._originalLossPriority.copy()
+        self.oldTable = [["Unit", "Count"],["",""]]
         # self._correctLossPriority()
 
     def printUnitsAndStrength(self, label="Unit List"):
