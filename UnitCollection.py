@@ -46,18 +46,19 @@ defaultLossPriority = [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfA
 class UnitCollection:
     """A group of units that will attack or defend together."""
 
+# region Initialization functions
     def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame):
         self._unitList = []
         self.unitStrengths = {}
         self.unitCosts = {}
+
+        # Call initialization functions (load units, etc.)
         self._loadUnitStrengths(unitProfiles)
         self._loadUnits(unitList)
         self._makeComboUnits()
-        self.defineLossPriority(
-            [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
-                TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-                StratBomber, Cruiser, DamagedBattleship, Carrier]
-        )
+        self.defineLossPriority(defaultLossPriority)
+
+        # Record original collection state to support resets
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
         unitCounter = Counter(type(obj) for obj in self._unitList)
@@ -66,14 +67,6 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         self.oldTable = unitArr
         self.oldTableOriginal = unitArr.copy()
-        # self._correctLossPriority()
-
-    def _loadUnits(self, unitList: pd.Series):
-        for index, row in unitList.items():
-            # Convert the int index to a Unit enum value, then get the type from the dictionary
-            unitType = unitDict[Units(index)]
-            for i in range(row):
-                self._addUnit(unitType)
 
     def _loadUnitStrengths(self, unitProfiles: pd.DataFrame):
         for index, row in unitProfiles.iterrows():
@@ -89,12 +82,17 @@ class UnitCollection:
                 self.unitStrengths[key] = (att, defense)
             else:
                 self.unitStrengths[key] = (int(value[0]), int(value[1]))
+    def _loadUnits(self, unitList: pd.Series):
+        """Use the given unit series to populate the collection with units."""
+        for index, row in unitList.items():
+            # Convert the int index to a Unit enum value, then get the type from the dictionary
+            unitType = unitDict[Units(index)]
+            for i in range(row):
+                self._addUnit(unitType)
 
-    def _correctLossPriority(self):
-        for type in list(self._lossPriority):
-            if not self._unitInstanceInList(type):
-                self._lossPriority.remove(type)
+# endregion
 
+# region Private helper functions
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
 
@@ -158,16 +156,36 @@ class UnitCollection:
                 self._addUnit(TankTactBomber)
                 continue
             raise Exception("No fighter/tank removed when it should have been")
+# endregion
+
+# region Magic methods
 
     def __str__(self):
-        collStr = "Units in collection: " + str(self.unitCount()) + "\n"
+        collStr = "Units in collection: " + str(self.collectionHP()) + "\n"
         unitCount = Counter(type(obj) for obj in self._unitList)
         for objType, objCount in unitCount.items():
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
         return collStr + "\n"
 
+# endregion
+
+# region Collection modification functions
+
+    def reset(self):
+        self._unitList = self._originalUnitList.copy()
+        self._lossPriority = self._originalLossPriority.copy()
+        self.oldTable = self.oldTableOriginal.copy()
+
+    def defineLossPriority(self, unitTypeList):
+        self._lossPriority = unitTypeList
+        self._originalLossPriority = unitTypeList.copy()
+
+# endregion
+
+# region Printing Functions
+
     def PrintCollection(self):
-        print(f"Unit Count: {self.unitCount()}")
+        print(f"Unit Count: {self.collectionHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -175,7 +193,7 @@ class UnitCollection:
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintCollectionComparison(self):
-        print(f"Unit Count: {self.unitCount()}")
+        print(f"Unit Count: {self.collectionHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -197,11 +215,87 @@ class UnitCollection:
         df = pd.DataFrame(count, index=indexes, columns=headers)
         return df
 
-# BUG: Battleships are combo units, but only a single unit
-    def unitCount(self):
+    def printUnitsAndStrength(self, label="Unit List"):
+        for u in self._unitList:
+            print(label)
+            if isinstance(u, ComboUnit):
+                print(type(u).__name__, u.attackVals, u.defenseVals)
+            else:
+                print(type(u).__name__, u.attackStrength, u.defenseStrength)
+            print()
+
+    def PrintCollectionStats(self, label: str, attack=True):
+        print(label)
+        genStats = {
+            "HP": self.collectionHP(),
+            "Total Cost": self.collectionCost(),
+            "Expected Hits": self.expectedHits(attack),
+            "Hits / IPC * 10": self.collectionCost() / self.expectedHits(attack)
+        }
+        print(json.dumps(genStats, indent=4))
+        stats = self.collectionEndurance(attack)
+        print(json.dumps(stats, indent=4))
+        self.PrintCollection()
+        print()
+
+# endregion
+
+# region Collection stats functions
+
+    def collectionHP(self):
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]
         ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
+
+    def collectionCost(self):
+        totalCost = 0
+        for u in self._unitList:
+            totalCost += u.cost
+        return totalCost
+
+    def expectedHits(self, attack=True):
+        if len(self._unitList) > 0:
+            dice = [u.unitHitDie(attack) for u in self._unitList]
+            return sum(dice).mean()
+        else:
+            return H({0: 12})
+
+    def hitsPerIpc(self, attack=True):
+        hits = self.expectedHits(attack)
+        cost = self.collectionCost()
+        return hits/cost * 10
+
+    def collectionEndurance(self, attack=True):
+        startingStrength = self.expectedHits(attack)
+        startingUnitCount = self.collectionHP()
+        startingCost = self.collectionCost()
+        halfStrength = 0.5 * startingStrength
+        currStrength = startingStrength
+        placeholderUnit = CombatUnit((0, 0))
+        while len(self._unitList) > 0 and currStrength > halfStrength:
+            self.takeLosses([Hit(placeholderUnit)])
+            currStrength = self.expectedHits(attack)
+        endurance = startingUnitCount - self.collectionHP()
+        enduranceRatio = (float(endurance) / startingUnitCount)
+        remainingValue = self.collectionCost()
+        lostValue = startingCost - remainingValue
+        relLostValue = float(lostValue) / startingCost
+        costPerLostUnit = float(lostValue) / endurance
+        rv = {
+            "endurance": endurance,
+            "enduranceRatio": f"{enduranceRatio:.1%}",
+            "remainingUnits": len(self._unitList),
+            "lostValue": lostValue,
+            "remainingValue": remainingValue,
+            "% Value Lost": f"{relLostValue:.1%}",
+            "Lost / Unit": f"{costPerLostUnit:.2f}"
+        }
+        self.reset()
+        return rv
+
+# endregion
+
+# region Combat functions
 
     def attack(self):
         hits = []
@@ -228,10 +322,6 @@ class UnitCollection:
                 hit.Immune.remove(Submarine)
             hits.append(hit)
         return hits
-
-    def defineLossPriority(self, unitTypeList):
-        self._lossPriority = unitTypeList
-        self._originalLossPriority = unitTypeList.copy()
 
     def takeLosses(self, hitList):
         leftOver = []
@@ -282,80 +372,9 @@ class UnitCollection:
             self._unitList.remove(unit)
         return unit
 
-    def reset(self):
-        self._unitList = self._originalUnitList.copy()
-        self._lossPriority = self._originalLossPriority.copy()
-        self.oldTable = self.oldTableOriginal.copy()
-        # self._correctLossPriority()
+# endregion
 
-    def printUnitsAndStrength(self, label="Unit List"):
-        for u in self._unitList:
-            print(label)
-            if isinstance(u, ComboUnit):
-                print(type(u).__name__, u.attackVals, u.defenseVals)
-            else:
-                print(type(u).__name__, u.attackStrength, u.defenseStrength)
-            print()
 
-    def collectionCost(self):
-        totalCost = 0
-        for u in self._unitList:
-            totalCost += u.cost
-        return totalCost
-
-    def expectedHits(self, attack=True):
-        if len(self._unitList) > 0:
-            dice = [u.unitHitDie(attack) for u in self._unitList]
-            return sum(dice).mean()
-        else:
-            return H({0: 12})
-
-    def hitsPerIpc(self, attack=True):
-        hits = self.expectedHits(attack)
-        cost = self.collectionCost()
-        return hits/cost * 10
-
-    def collectionEndurance(self, attack=True):
-        startingStrength = self.expectedHits(attack)
-        startingUnitCount = self.unitCount()
-        startingCost = self.collectionCost()
-        halfStrength = 0.5 * startingStrength
-        currStrength = startingStrength
-        placeholderUnit = CombatUnit((0, 0))
-        while len(self._unitList) > 0 and currStrength > halfStrength:
-            self.takeLosses([Hit(placeholderUnit)])
-            currStrength = self.expectedHits(attack)
-        endurance = startingUnitCount - self.unitCount()
-        enduranceRatio = (float(endurance) / startingUnitCount)
-        remainingValue = self.collectionCost()
-        lostValue = startingCost - remainingValue
-        relLostValue = float(lostValue) / startingCost
-        costPerLostUnit = float(lostValue) / endurance
-        rv = {
-            "endurance": endurance,
-            "enduranceRatio": f"{enduranceRatio:.1%}",
-            "remainingUnits": len(self._unitList),
-            "lostValue": lostValue,
-            "remainingValue": remainingValue,
-            "% Value Lost": f"{relLostValue:.1%}",
-            "Lost / Unit": f"{costPerLostUnit:.2f}"
-        }
-        self.reset()
-        return rv
-
-    def PrintCollectionStats(self, label: str, attack=True):
-        print(label)
-        genStats = {
-            "HP": self.unitCount(),
-            "Total Cost": self.collectionCost(),
-            "Expected Hits": self.expectedHits(attack),
-            "Hits / IPC * 10": self.collectionCost() / self.expectedHits(attack)
-        }
-        print(json.dumps(genStats, indent=4))
-        stats = self.collectionEndurance(attack)
-        print(json.dumps(stats, indent=4))
-        self.PrintCollection()
-        print()
 
 
 if __name__ == "__main__":

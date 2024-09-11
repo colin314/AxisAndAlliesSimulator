@@ -24,7 +24,7 @@ class Simulator:
         if printBattle:
             print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
             print(u'\u2550' * 50)
-        while attacker.unitCount() > 0 and defender.unitCount() > 0 and attacker.unitCount() > retreatThreshold and round < maxRounds:
+        while attacker.collectionHP() > 0 and defender.collectionHP() > 0 and attacker.collectionHP() > retreatThreshold and round < maxRounds:
             round += 1
             attackerHits = attacker.attack()
             defenderHits = defender.defend()
@@ -36,7 +36,7 @@ class Simulator:
                 input("Press Enter to continue...")
         if printOutcome:
             self.PrintCombatants(attacker, defender)
-        return (attacker.unitCount(), defender.unitCount())
+        return (attacker.collectionHP(), defender.collectionHP())
 
     def PrintBattleState(self, round, attacker, defender, aH, dH):
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
