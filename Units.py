@@ -1,5 +1,5 @@
 import random
-
+from dyce import H
 
 class Unit:
     diceSize = 12
@@ -54,6 +54,18 @@ class CombatUnit(Unit):
 
     def defend(self):
         return self._roll(self.defenseStrength)
+    
+    def unitHitDie(self,attack=True):
+        if attack:
+            strength = self.attackStrength
+        else:
+            strength = self.defenseStrength
+        die = H(Unit.diceSize)
+        unitDie = H({
+            1:die.le(strength)[1],
+            0:die.ge(strength + 1)[1]
+        })
+        return unitDie
 
 
 class ComboUnit(CombatUnit):
@@ -72,6 +84,23 @@ class ComboUnit(CombatUnit):
 
     def defend(self):
         return self._makeRolls(self.defenseVals)
+    
+    def unitHitDie(self, attack=True):
+        die = H(Unit.diceSize)
+        if attack:
+            strengthVals = self.attackVals
+        else:
+            strengthVals = self.defenseVals
+
+        unitDie1 = H({
+            1:die.le(strengthVals[0])[1],
+            0:die.ge(strengthVals[0] + 1)[1]
+        })
+        unitDie2 = H({
+            1:die.le(strengthVals[1])[1],
+            0:die.ge(strengthVals[1] + 1)[1]
+        })
+        return unitDie1 + unitDie2
 
 
 class PreCombatUnit(CombatUnit):

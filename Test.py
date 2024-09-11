@@ -1,23 +1,10 @@
-from functools import cmp_to_key
+from dyce import H
 from Units import *
-from UnitCollection import UnitCollection
-from Simulator import Simulator
-from Hit import Hit
+import pandas as pd
+inf = Infantry((2,3))
 
-sim = Simulator()
-units = sim.LoadUnitCollection("BasicNaval", "Basic")
+print(inf.unitHitDie())
+print(inf.unitHitDie(False))
 
-# subHit = Hit(Submarine([4,4]))
-# print(subHit.Vulnerable,subHit.Immune)
-# airHit = Hit(Fighter([6,8]))
-# print(airHit.Vulnerable,airHit.Immune)
-# hit = Hit(Infantry([2,3]))
-# print(hit.Vulnerable,hit.Immune)
-
-# print()
-# hitList = [hit,airHit,subHit]
-# print([h.Vulnerable for h in hitList])
-# print([h.Immune for h in hitList])
-# hitList.sort()
-# print([h.Vulnerable for h in hitList])
-# print([h.Immune for h in hitList])
+infArt = InfArt([(3,3),(4,4)])
+print(infArt.unitHitDie())
