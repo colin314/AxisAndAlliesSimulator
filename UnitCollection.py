@@ -42,6 +42,8 @@ defaultLossPriority = [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfA
                        TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
                        StratBomber, Cruiser, DamagedBattleship, Carrier]
 
+comboSeparator = "^"
+
 
 class UnitCollection:
     """A group of units that will attack or defend together."""
@@ -69,19 +71,25 @@ class UnitCollection:
         self.oldTableOriginal = unitArr.copy()
 
     def _loadUnitStrengths(self, unitProfiles: pd.DataFrame):
+        """Use the given profile to define the combat strengths of each unit type."""
         for index, row in unitProfiles.iterrows():
+            # It's critical that the index values of the data frame match the int value in the Units enum
+            # Load the unit's strength
             unitType = unitDict[Units(index)]
-            self.unitStrengths[unitType] = (row["Attack"], row["Defense"])
+            if issubclass(unitType, ComboUnit):
+                attStr, defStr = (row["Attack"], row["Defense"])
+                attack = tuple([int(x)
+                               for x in str.split(attStr, comboSeparator)])
+                defense = tuple([int(x)
+                                for x in str.split(defStr, comboSeparator)])
+                self.unitStrengths[unitType] = (attack, defense)
+            else:
+                strengthTup = (int(row["Attack"]), int(row["Defense"]))
+                self.unitStrengths[unitType] = strengthTup
+
+            # Load the unit's cost
             self.unitCosts[unitType] = int(row["Cost"])
 
-        for key, value in self.unitStrengths.items():
-            if issubclass(key, ComboUnit):
-                attStr, defStr = value
-                att = tuple([int(x) for x in str.split(attStr, "^")])
-                defense = tuple([int(x) for x in str.split(defStr, "^")])
-                self.unitStrengths[key] = (att, defense)
-            else:
-                self.unitStrengths[key] = (int(value[0]), int(value[1]))
     def _loadUnits(self, unitList: pd.Series):
         """Use the given unit series to populate the collection with units."""
         for index, row in unitList.items():
@@ -373,8 +381,6 @@ class UnitCollection:
         return unit
 
 # endregion
-
-
 
 
 if __name__ == "__main__":
