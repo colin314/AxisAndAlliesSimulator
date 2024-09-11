@@ -9,6 +9,7 @@ from tabulate import tabulate
 from Hit import Hit
 from Resources import bcolors
 from dyce import H
+import json
 
 pd.set_option('future.no_silent_downcasting', True)
 
@@ -44,9 +45,9 @@ class UnitCollection:
 
         self._makeComboUnits()
         self.defineLossPriority(
-            [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+            [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
                 TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-                StratBomber, Cruiser, Battleship, Carrier]
+                StratBomber, Cruiser, DamagedBattleship, Carrier]
         )
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
@@ -63,9 +64,7 @@ class UnitCollection:
             # Convert the int index to a Unit enum value, then get the type from the dictionary
             unitType = unitDict[Units(index)]
             for i in range(row):
-                newUnit = unitType(self.unitStrengths[unitType])
-                newUnit.cost = self.unitCosts[unitType]
-                self._unitList.append(newUnit)
+                self._addUnit(unitType)
 
     def _loadUnitStrengths(self, unitProfiles: pd.DataFrame):
         for index, row in unitProfiles.iterrows():
@@ -121,6 +120,11 @@ class UnitCollection:
         newCount = len(self._unitList)
         return oldCount - newCount
 
+    def _addUnit(self, unitType):
+        unit = unitType(self.unitStrengths[unitType])
+        unit.cost = self.unitCosts[unitType]
+        self._unitList.append(unit)
+
     def _makeComboUnits(self):
         # Inf & Art
         while self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery):
@@ -128,11 +132,10 @@ class UnitCollection:
                 raise Exception(
                     "No artillery removed when it should have been")
             if self._removeUnitType(MechInfantry) == 1:
-                self._unitList.append(MechInfArt(
-                    self.unitStrengths[MechInfArt]))
+                self._addUnit(MechInfArt)
                 continue
             if self._removeUnitType(Infantry) == 1:
-                self._unitList.append(InfArt(self.unitStrengths[InfArt]))
+                self._addUnit(InfArt)
                 continue
             raise Exception("No infantry removed when it should have been")
         while self._unitTypeInList(TacticalBomber) and (self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)):
@@ -140,12 +143,10 @@ class UnitCollection:
                 raise Exception(
                     "No tactical bomber removed when it should have been")
             if self._removeUnitType(Fighter) == 1:
-                self._unitList.append(FighterTactBomber(
-                    self.unitStrengths[FighterTactBomber]))
+                self._addUnit(FighterTactBomber)
                 continue
             if self._removeUnitType(Tank) == 1:
-                self._unitList.append(TankTactBomber(
-                    self.unitStrengths[TankTactBomber]))
+                self._addUnit(TankTactBomber)
                 continue
             raise Exception("No fighter/tank removed when it should have been")
 
@@ -261,9 +262,7 @@ class UnitCollection:
                 print(hitList)
 
     def _correctComboUnits(self, comboType):
-        self._unitList.append(
-            comboType.priority(self.unitStrengths[comboType.priority])
-        )
+        self._addUnit(comboType.priority)
         self._makeComboUnits()
 
     def _applyHit(self, hit: Hit):
@@ -296,8 +295,11 @@ class UnitCollection:
         return totalCost
 
     def expectedHits(self, attack=True):
-        dice = [u.unitHitDie(attack) for u in self._unitList]
-        return sum(dice).mean()
+        if len(self._unitList) > 0:
+            dice = [u.unitHitDie(attack) for u in self._unitList]
+            return sum(dice).mean()
+        else:
+            return H({0:12})
 
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)
@@ -311,35 +313,58 @@ class UnitCollection:
         halfStrength = 0.5 * startingStrength
         currStrength = startingStrength
         placeholderUnit = CombatUnit((0, 0))
-        print(currStrength)
         while len(self._unitList) > 0 and currStrength > halfStrength:
             self.takeLosses([Hit(placeholderUnit)])
             currStrength = self.expectedHits(attack)
-            print(currStrength)
-        endurance = startingUnitCount - len(self._unitList)
+        endurance = startingUnitCount - self.unitCount()
         enduranceRatio = (float(endurance) / startingUnitCount)
         remainingValue = self.collectionCost()
         lostValue = startingCost - remainingValue
         relLostValue = float(lostValue) / startingCost
+        costPerLostUnit = float(lostValue) / endurance
         rv = {
             "endurance": endurance,
-            "enduranceRatio": enduranceRatio,
+            "enduranceRatio": f"{enduranceRatio:.1%}",
             "remainingUnits": len(self._unitList),
             "lostValue": lostValue,
             "remainingValue": remainingValue,
-            "% Value Lost": relLostValue
+            "% Value Lost": f"{relLostValue:.1%}",
+            "Lost / Unit": f"{costPerLostUnit:.2f}"
         }
-        
+        self.reset()
         return rv
+    
+    def PrintCollectionStats(self, label:str, attack=True):
+        print(label)
+        genStats = {
+            "HP": self.unitCount(),
+            "Total Cost": self.collectionCost(),
+            "Expected Hits": self.expectedHits(attack),
+            "Hits / IPC * 10": self.collectionCost() / self.expectedHits(attack)
+        }
+        print(json.dumps(genStats,indent=4))
+        stats = self.collectionEndurance(attack)
+        print(json.dumps(stats,indent=4))
+        self.PrintCollection()
+        print()
 
 
 if __name__ == "__main__":
-    profileName = "Basic"
+    Unit.diceSize = 12
+    profileName = "Basic2"
     unitListsFile = "unitLists.csv"
     listName = "Attacker"
     profile = pd.read_csv(
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    print(units.collectionEndurance())
-    units.PrintCollection()
+    units.PrintCollectionStats("Attacker", attack=True)
+
+    profileName = "Basic2"
+    unitListsFile = "unitLists.csv"
+    listName = "Defender"
+    profile = pd.read_csv(
+        f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
+    unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+    units = UnitCollection(unitList[listName], profile)
+    units.PrintCollectionStats("Defender", attack=False)
