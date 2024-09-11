@@ -11,8 +11,11 @@ from Resources import bcolors
 from dyce import H
 import json
 
+# This is just to keep pandas from complaining
 pd.set_option('future.no_silent_downcasting', True)
 
+# This dictionary defines the mapping between the unit type enum
+# and specific unit types.
 unitDict = {Units.Infantry: Infantry,
             Units.MechInfantry: MechInfantry,
             Units.Artillery: Artillery,
@@ -32,17 +35,23 @@ unitDict = {Units.Infantry: Infantry,
             Units.TankTactBomber: TankTactBomber,
             Units.FighterTactBomber: FighterTactBomber,
             Units.DamagedBattleship: DamagedBattleship,
+            Units.DamagedCarrier: DamagedCarrier
             }
+
+defaultLossPriority = [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+                       TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
+                       StratBomber, Cruiser, DamagedBattleship, Carrier]
 
 
 class UnitCollection:
+    """A group of units that will attack or defend together."""
+
     def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame):
         self._unitList = []
         self.unitStrengths = {}
         self.unitCosts = {}
         self._loadUnitStrengths(unitProfiles)
         self._loadUnits(unitList)
-
         self._makeComboUnits()
         self.defineLossPriority(
             [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
@@ -299,7 +308,7 @@ class UnitCollection:
             dice = [u.unitHitDie(attack) for u in self._unitList]
             return sum(dice).mean()
         else:
-            return H({0:12})
+            return H({0: 12})
 
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)
@@ -333,8 +342,8 @@ class UnitCollection:
         }
         self.reset()
         return rv
-    
-    def PrintCollectionStats(self, label:str, attack=True):
+
+    def PrintCollectionStats(self, label: str, attack=True):
         print(label)
         genStats = {
             "HP": self.unitCount(),
@@ -342,9 +351,9 @@ class UnitCollection:
             "Expected Hits": self.expectedHits(attack),
             "Hits / IPC * 10": self.collectionCost() / self.expectedHits(attack)
         }
-        print(json.dumps(genStats,indent=4))
+        print(json.dumps(genStats, indent=4))
         stats = self.collectionEndurance(attack)
-        print(json.dumps(stats,indent=4))
+        print(json.dumps(stats, indent=4))
         self.PrintCollection()
         print()
 

@@ -20,3 +20,4 @@ class Units(Enum):
     TankTactBomber=16
     FighterTactBomber=17
     DamagedBattleship=18
+    DamagedCarrier=19

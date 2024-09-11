@@ -1,6 +1,7 @@
 import random
 from dyce import H
 
+
 class Unit:
     diceSize = 12
 
@@ -37,6 +38,7 @@ class CombatUnit(Unit):
         super().__init__()
 
     def _setValidTargets(self):
+        """All special unit hit restrictions are defined here, rather than in the specific classes."""
         self.ValidTargets = [Unit]
         self.ImmuneTargets = []
         if isinstance(self, AirUnit):
@@ -45,35 +47,41 @@ class CombatUnit(Unit):
             self.ValidTargets = [NavalUnit]
 
     def _roll(self, value):
-        """Roll the dice against the specified value"""
+        """Roll the dice against the specified value."""
         x = random.randint(1, self.diceSize)
         return 1 if x <= value else 0
 
     def attack(self):
+        """Make an attack roll using the units attack strength."""
         return self._roll(self.attackStrength)
 
     def defend(self):
+        """Make a defense roll using the units defense strength."""
         return self._roll(self.defenseStrength)
-    
-    def unitHitDie(self,attack=True):
-        if attack:
+
+    def unitHitDie(self, isAttack=True):
+        """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
+        if isAttack:
             strength = self.attackStrength
         else:
             strength = self.defenseStrength
         die = H(Unit.diceSize)
         unitDie = H({
-            1:die.le(strength)[1],
-            0:die.ge(strength + 1)[1]
+            1: die.le(strength)[1],  # Hits
+            0: die.ge(strength + 1)[1]  # Misses
         })
         return unitDie
 
 
 class ComboUnit(CombatUnit):
-    def __init__(self, strengthArr):
+    """Represents combined arms effects of combining 2 (or more) units."""
+
+    def __init__(self, strengthArr: list[tuple[int, ...]]):
         self.attackVals, self.defenseVals = strengthArr
         super().__init__([0, 0])
 
     def _makeRolls(self, rollValues):
+        """Equivalent of _makeRoll for non-Combo units"""
         hits = 0
         for value in rollValues:
             hits += self._roll(value)
@@ -84,7 +92,7 @@ class ComboUnit(CombatUnit):
 
     def defend(self):
         return self._makeRolls(self.defenseVals)
-    
+
     def unitHitDie(self, attack=True):
         die = H(Unit.diceSize)
         if attack:
@@ -92,18 +100,20 @@ class ComboUnit(CombatUnit):
         else:
             strengthVals = self.defenseVals
 
-        unitDie1 = H({
-            1:die.le(strengthVals[0])[1],
-            0:die.ge(strengthVals[0] + 1)[1]
-        })
-        unitDie2 = H({
-            1:die.le(strengthVals[1])[1],
-            0:die.ge(strengthVals[1] + 1)[1]
-        })
-        return unitDie1 + unitDie2
+        # Create a hit die for each unit in the combination
+        dice = []
+        for strength in strengthVals:
+            hitDie = H({
+                1: die.le(strength)[1],
+                0: die.ge(strength + 1)[1]
+            })
+            dice.append(hitDie)
+
+        return sum(dice)
 
 
 class PreCombatUnit(CombatUnit):
+    """Represents units that make their combat rolls in the early strike phase (i.e., AAA and submarines)"""
     pass
 
 
@@ -126,9 +136,11 @@ class Tank(CombatUnit, LandUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
+
 class AAA(PreCombatUnit, LandUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
+
 
 class Fighter(CombatUnit, AirUnit):
     def __init__(self, strengthArr):
@@ -157,6 +169,7 @@ class SurfaceShip(NavalUnit):
 class Submarine(CombatUnit, NavalUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
+        # TODO: Figure out where to make this definition. Currently double defined
         self.ValidTargets = [NavalUnit]
 
 
@@ -165,7 +178,14 @@ class Warship(CombatUnit, SurfaceShip):
         super().__init__(strengthArr)
 
 
-class Carrier(Warship):
+class DamagedCarrier(Warship):
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
+
+
+class Carrier(Warship, ComboUnit):
+    priority = DamagedCarrier
+
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
@@ -175,10 +195,12 @@ class DamagedBattleship(Warship):
         super().__init__(strengthArr)
 
 
-class Battleship(Warship,ComboUnit):
+class Battleship(Warship, ComboUnit):
     priority = DamagedBattleship
+
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
+
 
 class Cruiser(Warship):
     def __init__(self, strengthArr):
@@ -220,12 +242,3 @@ class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
-
-
-if __name__ == "__main__":
-    ia = InfArt([3, 3], [4, 3])
-
-    hits = 0
-    for i in range(12):
-        hits += ia.attack()
-    print(hits)

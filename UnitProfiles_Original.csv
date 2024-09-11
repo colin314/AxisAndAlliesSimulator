@@ -18,3 +18,4 @@ Key,Unit,Cost,Attack,Defense
 16,Tank^Tactical Bomber,17,3^4,3^3
 17,Fighter^Tactical Bomber,21,3^4,4^3
 18,Damaged Battleship,20,4,4
+19,Damaged Carrier,16,0,4
