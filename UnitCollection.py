@@ -287,6 +287,12 @@ class UnitCollection:
                 print(type(u).__name__, u.attackStrength, u.defenseStrength)
             print()
 
+    def collectionCost(self):
+        totalCost = 0
+        for u in self._unitList:
+            totalCost += u.cost
+        print(f"TUV: {totalCost}")
+
 
 if __name__ == "__main__":
     profileName = "Basic"
@@ -296,3 +302,4 @@ if __name__ == "__main__":
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
+    units.collectionCost()
