@@ -304,6 +304,34 @@ class UnitCollection:
         cost = self.collectionCost()
         return hits/cost * 10
 
+    def collectionEndurance(self, attack=True):
+        startingStrength = self.expectedHits(attack)
+        startingUnitCount = self.unitCount()
+        startingCost = self.collectionCost()
+        halfStrength = 0.5 * startingStrength
+        currStrength = startingStrength
+        placeholderUnit = CombatUnit((0, 0))
+        print(currStrength)
+        while len(self._unitList) > 0 and currStrength > halfStrength:
+            self.takeLosses([Hit(placeholderUnit)])
+            currStrength = self.expectedHits(attack)
+            print(currStrength)
+        endurance = startingUnitCount - len(self._unitList)
+        enduranceRatio = (float(endurance) / startingUnitCount)
+        remainingValue = self.collectionCost()
+        lostValue = startingCost - remainingValue
+        relLostValue = float(lostValue) / startingCost
+        rv = {
+            "endurance": endurance,
+            "enduranceRatio": enduranceRatio,
+            "remainingUnits": len(self._unitList),
+            "lostValue": lostValue,
+            "remainingValue": remainingValue,
+            "% Value Lost": relLostValue
+        }
+        
+        return rv
+
 
 if __name__ == "__main__":
     profileName = "Basic"
@@ -313,4 +341,5 @@ if __name__ == "__main__":
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    print(units.hitsPerIpc())
+    print(units.collectionEndurance())
+    units.PrintCollection()
