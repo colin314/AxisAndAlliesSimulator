@@ -58,7 +58,6 @@ class UnitCollection:
         # self._correctLossPriority()
 
     def _loadUnits(self, unitList: pd.Series):
-        print(self.unitCosts)
         for index, row in unitList.items():
             # Convert the int index to a Unit enum value, then get the type from the dictionary
             unitType = unitDict[Units(index)]
