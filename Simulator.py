@@ -72,14 +72,12 @@ class Simulator:
             unitsLeft.append([a, d])
             attacker.reset()
             defender.reset()
-        print(sum(results), len(results))
         attackWinRate = float(sum(results)) / float(len(results))
         print(f"attacker wins \033[91m{attackWinRate:2.2%}\033[97m percent of the time\033[0m")
         attArr = [x[0] for x in unitsLeft if x[0] > 0]
         defArr = [x[1] for x in unitsLeft if x[1] > 0]
         attackingUnitsLeft = mean(attArr) if len(attArr) > 0 else 0
         defendingUnitsLeft = mean(defArr) if len(defArr) > 0 else 0
-        print(attackingUnitsLeft)
         print(f"Attacking units left if attacker won: {attackingUnitsLeft:.2f}")
         print(f"Defending units left if defender won: {defendingUnitsLeft:.2f}")
         print(f"Attacking units left on average: {mean([x[0] for x in unitsLeft]):.2f}")
@@ -89,38 +87,59 @@ class Simulator:
     def swapPlaces(attacker, defender):
         return (defender, attacker)
 
-def battleStats(sim, at = "Attacker", df = "Defender", simCount = 5000):
+def battleStats(sim:Simulator, at, df, at_profile, df_profile,  at_lossProfile, df_lossProfile, simCount = 5000):
     Unit.diceSize = 12
-    attacker = sim.LoadUnitCollection(at, "Basic")
-    defender = sim.LoadUnitCollection(df, "Basic")
-    defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
-                                Tank, Submarine, Destroyer, TacticalBomber, Fighter,
-                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
+    attacker = sim.LoadUnitCollection(at, at_profile)
+    defender = sim.LoadUnitCollection(df, df_profile)
+    attacker.defineLossPriority(at_lossProfile)
+    defender.defineLossPriority(df_lossProfile)
+
+    def resetSides():
+        attacker.reset()
+        defender.reset()
+
+    sim.SimulateBattle(attacker, defender, printBattle=True)
+    resetSides()
     sim.GenerateBattleStats(attacker, defender, simCount)
 
     Unit.diceSize = 6
-    attacker = sim.LoadUnitCollection(at, "Original")
-    defender = sim.LoadUnitCollection(df, "Original")
-    defender.defineLossPriority([Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
-                                Tank, Submarine, Destroyer, TacticalBomber, Fighter,
-                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
-    sim.GenerateBattleStats(attacker, defender, simCount)
+    try:
+        attacker = sim.LoadUnitCollection("AttackerOriginal", "Original")
+        defender = sim.LoadUnitCollection("DefenderOriginal", "Original")
+        defender.defineLossPriority([AAA,Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
+                                    Tank, Submarine, Destroyer, TacticalBomber, Fighter,
+                                    FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
+        sim.GenerateBattleStats(attacker, defender, simCount)
+    except:
+        pass
     Unit.diceSize = 12
+
+def testBattle(sim:Simulator, attacker, defender):
+    attacker.reset()
+    defender.reset()
+    sim.SimulateBattle(attacker, defender, printBattle=True)
+    attacker.reset()
+    defender.reset()
+    sim.GenerateBattleStats(attacker, defender, 5000)
+    attacker.reset()
+    defender.reset()
 
 if __name__ == "__main__":
     sim = Simulator()
-    # battleStats(sim)
-    attacker = sim.LoadUnitCollection("Attacker", "Basic")
-    attacker.defineLossPriority(
-        [Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+    attackerLossPriority = [AAA,Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
             TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-            StratBomber, Cruiser, Battleship, Carrier]
-    )
-    defender = sim.LoadUnitCollection("Defender", "Basic")
-    defender.defineLossPriority([Battleship, Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
+            StratBomber, Cruiser, DamagedBattleship, Carrier]
+    defenderLossPriority = [AAA,Battleship, Infantry, MechInfantry, InfArt, Artillery, MechInfArt,
                                 Tank, Submarine, Destroyer, TacticalBomber, Fighter,
-                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
-    sim.SimulateBattle(attacker,defender,printBattle=True)
-    battleStats(sim)
-    # sim.SimulateBattle(attacker, defender, retreatThreshold=0,
-    #                    maxRounds=-1, printBattle=True)
+                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier]
+    russianLossPriority = [AAA,Battleship, Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
+                                Tank, Submarine, Destroyer, TacticalBomber, Fighter,
+                                FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier]
+    # Russia on defense
+    battleStats(sim, "Attacker", "Defender", "Basic", "Basic", attackerLossPriority, defenderLossPriority)
+    exit()
+
+    # Russia on attack
+    battleStats(sim, "RussianAttack", "Defender", "Russian", "Basic", russianLossPriority, defenderLossPriority)
+    exit()
+

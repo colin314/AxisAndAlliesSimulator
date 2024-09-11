@@ -1,13 +1,14 @@
-Key,Unit,Attacker,Defender
-0,Infantry,6,2
-1,Mechanized Infantry,0,1
-2,Artillery,2,0
-3,Tank,0,1
-4,Fighter,3,0
-5,Tactical Bomber,1,0
-6,Strategic Bomber,2,0
-7,Submarine,0,0
-8,Destroyer,0,0
-9,Cruiser,0,0
-10,Battleship,0,0
-11,Carrier,0,0
+Key,Unit,Attacker,Defender,RussianAttack,RussianDefense,AttackerOriginal,DefenderOriginal
+0,Infantry,0,0,0,5,0,0
+1,Mechanized Infantry,0,0,0,1,0,0
+2,Artillery,0,0,0,3,0,0
+3,Tank,0,0,0,1,0,0
+4,AAA,0,0,0,0,0,0
+5,Fighter,0,0,0,0,0,0
+6,Tactical Bomber,0,0,0,0,0,0
+7,Strategic Bomber,0,0,0,0,0,0
+8,Submarine,0,0,0,0,0,0
+9,Destroyer,0,0,0,0,0,0
+10,Cruiser,5,0,0,0,5,0
+11,Battleship,0,3,0,0,0,3
+12,Carrier,0,0,0,0,0,0

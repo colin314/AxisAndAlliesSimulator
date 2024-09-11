@@ -97,6 +97,9 @@ class Tank(CombatUnit, LandUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
+class AAA(PreCombatUnit, LandUnit):
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 class Fighter(CombatUnit, AirUnit):
     def __init__(self, strengthArr):
