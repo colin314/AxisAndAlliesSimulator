@@ -8,6 +8,7 @@ from UnitsEnum import Units
 from tabulate import tabulate
 from Hit import Hit
 from Resources import bcolors
+from dyce import H
 
 pd.set_option('future.no_silent_downcasting', True)
 
@@ -15,7 +16,7 @@ unitDict = {Units.Infantry: Infantry,
             Units.MechInfantry: MechInfantry,
             Units.Artillery: Artillery,
             Units.Tank: Tank,
-            Units.AAA:AAA,
+            Units.AAA: AAA,
             Units.Fighter: Fighter,
             Units.TacticalBomber: TacticalBomber,
             Units.StratBomber: StratBomber,
@@ -28,7 +29,7 @@ unitDict = {Units.Infantry: Infantry,
             Units.InfArt: InfArt,
             Units.MechInfArt: MechInfArt,
             Units.TankTactBomber: TankTactBomber,
-            Units.FighterTactBomber: FighterTactBomber, 
+            Units.FighterTactBomber: FighterTactBomber,
             Units.DamagedBattleship: DamagedBattleship,
             }
 
@@ -186,7 +187,7 @@ class UnitCollection:
         df = pd.DataFrame(count, index=indexes, columns=headers)
         return df
 
-#BUG: Battleships are combo units, but only a single unit
+# BUG: Battleships are combo units, but only a single unit
     def unitCount(self):
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]
@@ -197,7 +198,7 @@ class UnitCollection:
         for u in self._unitList:
             success = u.attack()
             if success > 0:
-                hits.extend(self._generateHit(u,success))
+                hits.extend(self._generateHit(u, success))
         return hits
 
     def defend(self):
@@ -205,7 +206,7 @@ class UnitCollection:
         for u in self._unitList:
             success = u.defend()
             if success > 0:
-                hits.extend(self._generateHit(u,success))
+                hits.extend(self._generateHit(u, success))
         return hits
 
     def _generateHit(self, unit: CombatUnit, hitNumber):
@@ -242,7 +243,8 @@ class UnitCollection:
                 leftOver.append(hit)
 
         if len(leftOver) > 0:
-            print(f"{bcolors.RED}ERROR: Units exist outside of the loss priority{bcolors.ENDC}")
+            print(f"{bcolors.RED}ERROR: Units exist outside of the loss priority{
+                  bcolors.ENDC}")
             print(leftOver)
             hitList = []  # just keep track of hits that couldn't be applied at all
             for hit in leftOver:
@@ -254,7 +256,8 @@ class UnitCollection:
                 if removedUnit != None and isinstance(removedUnit, ComboUnit):
                     self._correctComboUnits(type(removedUnit))
             if len(hitList) > 0:
-                print(f"{bcolors.RED}ERROR: Some hits could not be applied{bcolors.ENDC}")
+                print(f"{bcolors.RED}ERROR: Some hits could not be applied{
+                      bcolors.ENDC}")
                 print(hitList)
 
     def _correctComboUnits(self, comboType):
@@ -290,7 +293,16 @@ class UnitCollection:
         totalCost = 0
         for u in self._unitList:
             totalCost += u.cost
-        print(f"TUV: {totalCost}")
+        return totalCost
+
+    def expectedHits(self, attack=True):
+        dice = [u.unitHitDie(attack) for u in self._unitList]
+        return sum(dice).mean()
+
+    def hitsPerIpc(self, attack=True):
+        hits = self.expectedHits(attack)
+        cost = self.collectionCost()
+        return hits/cost * 10
 
 
 if __name__ == "__main__":
@@ -301,4 +313,4 @@ if __name__ == "__main__":
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    units.collectionCost()
+    print(units.hitsPerIpc())
