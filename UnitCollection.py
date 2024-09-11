@@ -37,6 +37,7 @@ class UnitCollection:
     def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame):
         self._unitList = []
         self.unitStrengths = {}
+        self.unitCosts = {}
         self._loadUnitStrengths(unitProfiles)
         self._loadUnits(unitList)
 
@@ -57,16 +58,20 @@ class UnitCollection:
         # self._correctLossPriority()
 
     def _loadUnits(self, unitList: pd.Series):
+        print(self.unitCosts)
         for index, row in unitList.items():
             # Convert the int index to a Unit enum value, then get the type from the dictionary
             unitType = unitDict[Units(index)]
             for i in range(row):
-                self._unitList.append(unitType(self.unitStrengths[unitType]))
+                newUnit = unitType(self.unitStrengths[unitType])
+                newUnit.cost = self.unitCosts[unitType]
+                self._unitList.append(newUnit)
 
     def _loadUnitStrengths(self, unitProfiles: pd.DataFrame):
         for index, row in unitProfiles.iterrows():
             unitType = unitDict[Units(index)]
             self.unitStrengths[unitType] = (row["Attack"], row["Defense"])
+            self.unitCosts[unitType] = int(row["Cost"])
 
         for key, value in self.unitStrengths.items():
             if issubclass(key, ComboUnit):
@@ -284,20 +289,10 @@ class UnitCollection:
 
 
 if __name__ == "__main__":
-    attacker = UnitCollection(infantry=2, artillery=2,
-                              tanks=1, infantry_mech=2)
-    print(str(attacker))
-    attacker.defineLossPriority(
-        [Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank]
-    )
-    while attacker.unitCount() > 0:
-        attacker.takeLosses(1)
-        print(str(attacker))
-    hits = []
-    count = 0
-    while count < 1000:
-        hits.append(attacker.defend())
-        count += 1
-    print(len(hits))
-    print(mean(hits))
-    print(median(hits))
+    profileName = "Basic"
+    unitListsFile = "unitLists.csv"
+    listName = "Attacker"
+    profile = pd.read_csv(
+        f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
+    unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+    units = UnitCollection(unitList[listName], profile)
