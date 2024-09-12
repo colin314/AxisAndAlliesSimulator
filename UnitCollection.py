@@ -10,6 +10,7 @@ from Hit import Hit
 from Resources import bcolors
 from dyce import H
 import json
+from matplotlib import pyplot as plt
 
 # This is just to keep pandas from complaining
 pd.set_option('future.no_silent_downcasting', True)
@@ -303,6 +304,17 @@ class UnitCollection:
         self.reset()
         return rv
 
+    def generateHitCurve(self, isAttack=True):
+        placeholderUnit = CombatUnit((0,0))
+        curveList = []
+        while len(self._unitList) > 0:
+            curveList.append([self.collectionHP(), self.expectedHits(isAttack)])
+            self.takeLosses([Hit(placeholderUnit)])
+        df = pd.DataFrame(curveList, columns=["HP", "Expected Hits"])
+        plt.plot(df["HP"], df["Expected Hits"])
+        plt.show()
+
+
 # endregion
 
 # region Combat functions
@@ -394,13 +406,14 @@ if __name__ == "__main__":
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    units.PrintCollectionStats("Attacker", attack=True)
+    #units.PrintCollectionStats("Attacker", attack=True)
+    units.generateHitCurve()
 
-    profileName = "Basic2"
-    unitListsFile = "unitLists.csv"
-    listName = "Defender"
-    profile = pd.read_csv(
-        f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
-    unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
-    units = UnitCollection(unitList[listName], profile)
-    units.PrintCollectionStats("Defender", attack=False)
+    # profileName = "Basic2"
+    # unitListsFile = "unitLists.csv"
+    # listName = "Defender"
+    # profile = pd.read_csv(
+    #     f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
+    # unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+    # units = UnitCollection(unitList[listName], profile)
+    # units.PrintCollectionStats("Defender", attack=False)
