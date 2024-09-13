@@ -326,11 +326,27 @@ class UnitCollection:
             if success > 0:
                 hits.extend(self._generateHit(u, success))
         return hits
+    
+    def firstStrikeAttack(self, opponent:UnitCollection):
+        hits = []
+        for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:
+            success = u._firstStrikeAttack(opponent)
+            if success > 0:
+                hits.extend(self._generateHit(u, success))
+        return hits
 
     def defend(self):
         hits = []
         for u in self._unitList:
             success = u.defend()
+            if success > 0:
+                hits.extend(self._generateHit(u, success))
+        return hits
+
+    def firstStrikeDefend(self, opponent:UnitCollection):
+        hits = []
+        for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:
+            success = u._firstStrikeDefense(opponent)
             if success > 0:
                 hits.extend(self._generateHit(u, success))
         return hits
