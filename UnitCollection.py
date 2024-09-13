@@ -406,8 +406,8 @@ if __name__ == "__main__":
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    #units.PrintCollectionStats("Attacker", attack=True)
-    units.generateHitCurve()
+    units.PrintCollectionStats("Attacker", attack=True)
+    # units.generateHitCurve()
 
     # profileName = "Basic2"
     # unitListsFile = "unitLists.csv"

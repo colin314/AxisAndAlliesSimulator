@@ -138,12 +138,13 @@ if __name__ == "__main__":
 
     # Russia on defense
     print("Basic")
-    battleStats(sim, "Attacker", "Defender", "Basic", "Basic", attackerLossPriority, defenderLossPriority)
-    print("Basic 2.0")
-    battleStats(sim, "Attacker", "Defender", "Basic2", "Basic2", attackerLossPriority, defenderLossPriority)
-    Unit.diceSize = 6
-    print("Original")
-    battleStats(sim, "Attacker", "Defender", "Original", "Original", attackerLossPriority, defenderLossPriority)
+    sim.SimulateBattle(sim.LoadUnitCollection("Attacker", "Basic2"), sim.LoadUnitCollection("Defender","Basic2"),printOutcome=True)
+    # battleStats(sim, "Attacker", "Defender", "Basic", "Basic", attackerLossPriority, defenderLossPriority)
+    # print("Basic 2.0")
+    # battleStats(sim, "Attacker", "Defender", "Basic2", "Basic2", attackerLossPriority, defenderLossPriority)
+    # Unit.diceSize = 6
+    # print("Original")
+    # battleStats(sim, "Attacker", "Defender", "Original", "Original", attackerLossPriority, defenderLossPriority)
     # # Russia on attack
     # battleStats(sim, "RussianAttack", "Defender", "Russian", "Basic", russianLossPriority, defenderLossPriority)
     # exit()

@@ -47,14 +47,14 @@ class CombatUnit(Unit):
         if isinstance(self, Submarine):
             self.ValidTargets = [NavalUnit]
 
-    def _roll(self, value):
+    def _makeRolls(self, value):
         """Roll the dice against the specified value."""
         x = random.randint(1, self.diceSize)
         return 1 if x <= value else 0
 
     def _doCombat(self, strength):
         if not self._madeFirstStrike():
-            return self._roll(strength)
+            return self._makeRolls(strength)
         else:
             return 0
 
@@ -65,11 +65,11 @@ class CombatUnit(Unit):
 
     def attack(self):
         """Make an attack roll using the units attack strength."""
-        return self._roll(self.attackStrength)
+        return self._makeRolls(self.attackStrength)
 
     def defend(self):
         """Make a defense roll using the units defense strength."""
-        return self._roll(self.defenseStrength)
+        return self._makeRolls(self.defenseStrength)
 
     def unitHitDie(self, isAttack=True):
         """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
@@ -96,14 +96,8 @@ class ComboUnit(CombatUnit):
         """Equivalent of _makeRoll for non-Combo units"""
         hits = 0
         for value in rollValues:
-            hits += self._roll(value)
+            hits += super()._makeRolls(value)
         return hits
-
-    def _doCombat(self, strengthVals):
-        if not self._madeFirstStrike():
-            return self._makeRolls(strengthVals)
-        else:
-            return 0
 
     def attack(self):
         return self._doCombat(self.attackVals)
