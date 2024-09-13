@@ -34,6 +34,7 @@ class NonCombatUnit(Unit):
 class CombatUnit(Unit):
     def __init__(self, strengthArr):
         self.attackStrength, self.defenseStrength = strengthArr
+        self.didFirstStrike = False
         self._setValidTargets()
         super().__init__()
 
@@ -50,6 +51,17 @@ class CombatUnit(Unit):
         """Roll the dice against the specified value."""
         x = random.randint(1, self.diceSize)
         return 1 if x <= value else 0
+
+    def _doCombat(self, strength):
+        if not self._madeFirstStrike():
+            return self._roll(strength)
+        else:
+            return 0
+
+    def _madeFirstStrike(self):
+        didFirstStrike = self.didFirstStrike
+        self.didFirstStrike = False
+        return didFirstStrike
 
     def attack(self):
         """Make an attack roll using the units attack strength."""
@@ -87,11 +99,17 @@ class ComboUnit(CombatUnit):
             hits += self._roll(value)
         return hits
 
+    def _doCombat(self, strengthVals):
+        if not self._madeFirstStrike():
+            return self._makeRolls(strengthVals)
+        else:
+            return 0
+
     def attack(self):
-        return self._makeRolls(self.attackVals)
+        return self._doCombat(self.attackVals)
 
     def defend(self):
-        return self._makeRolls(self.defenseVals)
+        return self._doCombat(self.defenseVals)
 
     def unitHitDie(self, attack=True):
         die = H(Unit.diceSize)
