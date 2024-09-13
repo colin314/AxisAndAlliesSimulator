@@ -1,5 +1,6 @@
 import random
 from dyce import H
+from UnitCollection import UnitCollection
 
 
 class Unit:
@@ -30,6 +31,8 @@ class NonCombatUnit(Unit):
     def __init__(self):
         super().__init__()
 
+# TODO: Refactor to use lists for attackStrength and defenseStrength
+
 
 class CombatUnit(Unit):
     def __init__(self, strengthArr):
@@ -52,7 +55,7 @@ class CombatUnit(Unit):
         x = random.randint(1, self.diceSize)
         return 1 if x <= value else 0
 
-    def _doCombat(self, strength):
+    def _doStandardCombat(self, strength):
         if not self._madeFirstStrike():
             return self._makeRolls(strength)
         else:
@@ -100,10 +103,10 @@ class ComboUnit(CombatUnit):
         return hits
 
     def attack(self):
-        return self._doCombat(self.attackVals)
+        return self._doStandardCombat(self.attackVals)
 
     def defend(self):
-        return self._doCombat(self.defenseVals)
+        return self._doStandardCombat(self.defenseVals)
 
     def unitHitDie(self, attack=True):
         die = H(Unit.diceSize)
@@ -124,9 +127,30 @@ class ComboUnit(CombatUnit):
         return sum(dice)
 
 
-class PreCombatUnit(CombatUnit):
-    """Represents units that make their combat rolls in the early strike phase (i.e., AAA and submarines)"""
-    pass
+class FirstStrikeUnit(CombatUnit):
+    """Represents units that make their combat rolls in the first strike phase (i.e. submarines)"""
+
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
+        self._counterUnits = []
+
+    def _doFirstStrikeCombat(self, strength, opponent: UnitCollection):
+        countered = False
+        for counter in self._counterUnits:
+            countered = opponent._unitInstanceInList(counter)
+            if countered:
+                break
+        if countered:
+            return 0
+
+        self.didFirstStrike = True
+        return self._makeRolls(strength)
+
+    def _firstStrikeAttack(self, opponent: UnitCollection):
+        return self._doFirstStrikeCombat(self.attackStrength, opponent)
+
+    def _firstStrikeDefense(self, opponent: UnitCollection):
+        return self._doFirstStrikeCombat(self.defenseStrength, opponent)
 
 
 class Infantry(CombatUnit, LandUnit):
@@ -149,7 +173,7 @@ class Tank(CombatUnit, LandUnit):
         super().__init__(strengthArr)
 
 
-class AAA(PreCombatUnit, LandUnit):
+class AAA(FirstStrikeUnit, LandUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
@@ -178,11 +202,12 @@ class SurfaceShip(NavalUnit):
     pass
 
 
-class Submarine(CombatUnit, NavalUnit):
+class Submarine(NavalUnit, FirstStrikeUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
         # TODO: Figure out where to make this definition. Currently double defined
         self.ValidTargets = [NavalUnit]
+        self._counterUnits.append(Destroyer)
 
 
 class Warship(CombatUnit, SurfaceShip):
