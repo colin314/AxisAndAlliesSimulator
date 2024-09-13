@@ -241,7 +241,7 @@ class UnitCollection:
             "HP": self.collectionHP(),
             "Total Cost": self.collectionCost(),
             "Expected Hits": self.expectedHits(attack),
-            "Hits / IPC * 10": self.collectionCost() / self.expectedHits(attack)
+            "IPC / Hit": self.collectionCost() / self.expectedHits(attack)
         }
         print(json.dumps(genStats, indent=4))
         stats = self.collectionEndurance(attack)
