@@ -66,7 +66,7 @@ class UnitCollection:
         self.originalCost = self.currCost()
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
-        unitCounter = Counter(type(obj) for obj in self._unitList)
+        unitCounter = Counter(type(obj) for obj in self._getGranularUnitList())
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
@@ -228,7 +228,7 @@ class UnitCollection:
     def PrintCollectionComparison(self):
         self._unitList.sort()
         # print(f"Current HP: {self.currHP()}")
-        unitCounter = Counter(type(obj) for obj in self._unitList)
+        unitCounter = Counter(type(obj) for obj in self._getGranularUnitList())
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
