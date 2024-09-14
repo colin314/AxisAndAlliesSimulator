@@ -28,52 +28,50 @@ class Simulator:
 
     def SimulateBattle(
         self,
-        attacker: UnitCollection,
-        defender: UnitCollection,
         retreatThreshold=0,
         maxRounds=-1,
         printOutcome=False,
         printBattle=False,
     ):
         maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
-        attacker.reset()
-        defender.reset()
+        self.attacker.reset()
+        self.defender.reset()
         round = 0
         if printBattle:
             print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
             print(u'\u2550' * 50)
         retreat = False
-        while attacker.currHP() > 0 and defender.currHP() > 0 and not retreat and round < maxRounds:
+        while self.attacker.currHP() > 0 and self.defender.currHP() > 0 and not retreat and round < maxRounds:
             attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
-            attackerHits = attacker.firstStrikeAttack(defender)
-            defenderHits = defender.firstStrikeDefend(attacker)
+            attackerHits = self.attacker.firstStrikeAttack(self.defender)
+            defenderHits = self.defender.firstStrikeDefend(self.attacker)
             attackerHitCount += len(attackerHits)
             defenderHitCount += len(defenderHits)
-            attacker.takeLosses(defenderHits)
-            defender.takeLosses(attackerHits)
+            self.attacker.takeLosses(defenderHits)
+            self.defender.takeLosses(attackerHits)
 
             # General Combat Phase
-            attackerHits = attacker.attack()
-            defenderHits = defender.defend()
+            attackerHits = self.attacker.attack()
+            defenderHits = self.defender.defend()
             attackerHitCount += len(attackerHits)
             defenderHitCount += len(defenderHits)
-            attacker.takeLosses(defenderHits)
-            defender.takeLosses(attackerHits)
+            self.attacker.takeLosses(defenderHits)
+            self.defender.takeLosses(attackerHits)
 
-            retreat = attacker.currHP() <= retreatThreshold
+            retreat = self.attacker.currHP() <= retreatThreshold
 
             if printBattle:
                 self.PrintBattleState(
-                    round, attacker, defender, attackerHitCount, defenderHitCount)
-                if not retreat and attacker.currHP() > 0 and defender.currHP() > 0:
+                    round, self.attacker, self.defender, attackerHitCount, defenderHitCount)
+                if not retreat and self.attacker.currHP() > 0 and self.defender.currHP() > 0:
                     userInput = input("Press Enter to continue, or type 'r' to retreat: ")
                     retreat = retreat if userInput == "" else True
 
         if printOutcome:
-            self.PrintBattleOutcome(attacker, defender)
-        return (attacker.currHP(), defender.currHP())
+            self.PrintBattleOutcome()
+        return (self.attacker.currHP(), self.defender.currHP())
 
     def PrintBattleState(self, round, attacker:UnitCollection, defender:UnitCollection, aH, dH):
         os.system('cls')
@@ -88,44 +86,40 @@ class Simulator:
         defender.PrintCollectionComparison()
         print()
 
-    def PrintBattleOutcome(self, attacker: UnitCollection, defender: UnitCollection):
-        if defender.currHP() == 0 and attacker.currHP() > 0:
-            print(f"Outcome: {Fmt.attHead}Attacker victory{Style.RESET_ALL}\n")
+    def PrintBattleOutcome(self):
+        if self.defender.currHP() == 0 and self.attacker.currHP() > 0:
+            print(f"Outcome: {Fmt.attHead}Attacker victory{Style.RESET_ALL}")
         else:
-            print(f"Outcome: {Fmt.defHead}Defender Victory{Style.RESET_ALL}\n")
+            print(f"Outcome: {Fmt.defHead}Defender Victory{Style.RESET_ALL}")
 
-        # print(f"{Fmt.att}Attacking{Style.RESET_ALL} Units Remaining: {attacker.unitCount()}")
-        # if attacker.currHP() > 0:
-        #     attacker.PrintGranularCollection()
-        # print()
-
-        # print(f"{Fmt.df}Defending{Style.RESET_ALL} Units Remaining: {defender.unitCount()}")
-        # if defender.currHP() > 0:
-        #     defender.PrintGranularCollection()
-        # print()
-
-        ipcSwing = attacker.valueDelta() - defender.valueDelta()
+        ipcSwing = self.attacker.valueDelta() - self.defender.valueDelta()
         print(f"{Fore.LIGHTMAGENTA_EX}IPC Swing (Attacker):{Style.RESET_ALL} {ipcSwing}\n")
 
-    def LoadUnitCollection(self, listName, profileName):
+    def LoadUnitCollection(listName, profileName):
         profile = pd.read_csv(
             f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
         unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
         units = UnitCollection(unitList[listName], profile)
         return units
+    
+    def LoadAttacker(self, listName, profileName):
+        self.attacker = Simulator.LoadUnitCollection(listName, profileName)
 
-    def GenerateBattleStats(self, attacker: UnitCollection, defender: UnitCollection, battleCount=10000):
+    def LoadDefender(self, listName, profileName):
+        self.defender = Simulator.LoadUnitCollection(listName, profileName)
+
+    def GenerateBattleStats(self, battleCount=10000):
         resultArr = []
-        attacker.reset()
-        defender.reset()
+        self.attacker.reset()
+        self.defender.reset()
         for i in range(battleCount):
-            (a, d) = self.SimulateBattle(attacker, defender)
+            (a, d) = self.SimulateBattle()
             attackerWon = 1 if a > d else 0
-            tuvSwing = attacker.valueDelta() - defender.valueDelta()
+            tuvSwing = self.attacker.valueDelta() - self.defender.valueDelta()
             results = [attackerWon, a, d, tuvSwing]
             resultArr.append(results)
-            attacker.reset()
-            defender.reset()
+            self.attacker.reset()
+            self.defender.reset()
         resultDf = pd.DataFrame(resultArr, columns=[
                                 "Attacker Won", "Remainder Attacker", "Remainder Defender", "Average IPC Swing (Attacker)"])
         attackWinRate = resultDf["Attacker Won"].mean()
@@ -135,55 +129,30 @@ class Simulator:
             ["Defender Won", "Attacker Won"], axis='index')
         victoryData["Units Remaining"] = victoryData[[
             "Remainder Attacker", "Remainder Defender"]].max(axis=1)
-
         victoryData = victoryData[[
             "Units Remaining", "Average IPC Swing (Attacker)"]]
         print(tabulate(victoryData, headers="keys", tablefmt="fancy_grid"))
-        # print(tabulate(resultDf.groupby("Attacker Won").mean().index.tolist(), tablefmt="fancy_grid"))
         print()
-        attacker.reset()
-        defender.reset()
+        self.attacker.reset()
+        self.defender.reset()
 
     def swapPlaces(attacker, defender):
         return (defender, attacker)
 
-    def simulateBattleWithStats(self, at, df, at_profile="Basic", df_profile="Basic",
+    def simulateBattleWithStats(self,
                                 at_lossProfile=UnitCollection.defaultLossPriority,
                                 df_lossProfile=UnitCollection.defaultLossPriority,
                                 simCount=1000):
         Unit.diceSize = 12
-        attacker = self.LoadUnitCollection(at, at_profile)
-        defender = self.LoadUnitCollection(df, df_profile)
-        attacker.defineLossPriority(at_lossProfile)
-        defender.defineLossPriority(df_lossProfile)
+        # self.LoadAttacker(at, at_profile)
+        # self.LoadDefender(df, df_profile)
+        self.attacker.defineLossPriority(at_lossProfile)
+        self.defender.defineLossPriority(df_lossProfile)
 
-        self.SimulateBattle(attacker, defender, printBattle=True, printOutcome=True)
+        self.SimulateBattle(printBattle=True, printOutcome=True)
 
         print(f"{Fmt.genHead}Statistics{Style.RESET_ALL}\n")
-        self.GenerateBattleStats(attacker, defender, simCount)
-
-        # Unit.diceSize = 6
-        # try:
-        #     attacker = sim.LoadUnitCollection("AttackerOriginal", "Original")
-        #     defender = sim.LoadUnitCollection("DefenderOriginal", "Original")
-        #     defender.defineLossPriority([AAA,Battleship,Infantry, MechInfantry, Artillery, InfArt, MechInfArt,
-        #                                 Tank, Submarine, Destroyer, TacticalBomber, Fighter,
-        #                                 FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier])
-        #     sim.GenerateBattleStats(attacker, defender, simCount)
-        # except:
-        #     pass
-        # Unit.diceSize = 12
-
-
-def testBattle(sim: Simulator, attacker, defender):
-    attacker.reset()
-    defender.reset()
-    sim.SimulateBattle(attacker, defender, printBattle=True)
-    attacker.reset()
-    defender.reset()
-    sim.GenerateBattleStats(attacker, defender, 5000)
-    attacker.reset()
-    defender.reset()
+        self.GenerateBattleStats(simCount)
 
 
 if __name__ == "__main__":
@@ -198,16 +167,4 @@ if __name__ == "__main__":
                            Tank, Submarine, Destroyer, TacticalBomber, Fighter,
                            FighterTactBomber, StratBomber, Cruiser, DamagedBattleship, Carrier]
 
-    # Russia on defense
-    # attacker = sim.LoadUnitCollection("Attacker", "Basic2")
-    # defender = sim.LoadUnitCollection("Defender", "Basic2")
     sim.simulateBattleWithStats("Attacker", "Defender")
-    # battleStats(sim, "Attacker", "Defender", "Basic", "Basic", attackerLossPriority, defenderLossPriority)
-    # print("Basic 2.0")
-    # battleStats(sim, "Attacker", "Defender", "Basic2", "Basic2", attackerLossPriority, defenderLossPriority)
-    # Unit.diceSize = 6
-    # print("Original")
-    # battleStats(sim, "Attacker", "Defender", "Original", "Original", attackerLossPriority, defenderLossPriority)
-    # # Russia on attack
-    # battleStats(sim, "RussianAttack", "Defender", "Russian", "Basic", russianLossPriority, defenderLossPriority)
-    # exit()
