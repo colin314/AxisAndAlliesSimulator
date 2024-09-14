@@ -64,11 +64,12 @@ class Simulator:
 
             retreat = attacker.currHP() <= retreatThreshold
 
-            if printBattle and not retreat and attacker.currHP() > 0 and defender.currHP() > 0:
+            if printBattle:
                 self.PrintBattleState(
                     round, attacker, defender, attackerHitCount, defenderHitCount)
-                userInput = input("Press Enter to continue, or type 'r' to retreat: ")
-                retreat = retreat if userInput == "" else True
+                if not retreat and attacker.currHP() > 0 and defender.currHP() > 0:
+                    userInput = input("Press Enter to continue, or type 'r' to retreat: ")
+                    retreat = retreat if userInput == "" else True
 
         if printOutcome:
             self.PrintBattleOutcome(attacker, defender)
@@ -88,22 +89,20 @@ class Simulator:
         print()
 
     def PrintBattleOutcome(self, attacker: UnitCollection, defender: UnitCollection):
-        os.system('cls')
-        print()
         if defender.currHP() == 0 and attacker.currHP() > 0:
             print(f"Outcome: {Fmt.attHead}Attacker victory{Style.RESET_ALL}\n")
         else:
             print(f"Outcome: {Fmt.defHead}Defender Victory{Style.RESET_ALL}\n")
 
-        print(f"{Fmt.att}Attacking{Style.RESET_ALL} Units Remaining: {attacker.unitCount()}")
-        if attacker.currHP() > 0:
-            attacker.PrintGranularCollection()
-        print()
+        # print(f"{Fmt.att}Attacking{Style.RESET_ALL} Units Remaining: {attacker.unitCount()}")
+        # if attacker.currHP() > 0:
+        #     attacker.PrintGranularCollection()
+        # print()
 
-        print(f"{Fmt.df}Defending{Style.RESET_ALL} Units Remaining: {defender.unitCount()}")
-        if defender.currHP() > 0:
-            defender.PrintGranularCollection()
-        print()
+        # print(f"{Fmt.df}Defending{Style.RESET_ALL} Units Remaining: {defender.unitCount()}")
+        # if defender.currHP() > 0:
+        #     defender.PrintGranularCollection()
+        # print()
 
         ipcSwing = attacker.valueDelta() - defender.valueDelta()
         print(f"{Fore.LIGHTMAGENTA_EX}IPC Swing (Attacker):{Style.RESET_ALL} {ipcSwing}\n")
