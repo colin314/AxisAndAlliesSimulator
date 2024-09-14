@@ -97,12 +97,12 @@ class Simulator:
 
         print(f"{Fmt.att}Attacking{Style.RESET_ALL} Units Remaining: {attacker.unitCount()}")
         if attacker.currHP() > 0:
-            attacker.PrintCollection()
+            attacker.PrintGranularCollection()
         print()
 
         print(f"{Fmt.df}Defending{Style.RESET_ALL} Units Remaining: {defender.unitCount()}")
         if defender.currHP() > 0:
-            defender.PrintCollection()
+            defender.PrintGranularCollection()
         print()
 
         ipcSwing = attacker.valueDelta() - defender.valueDelta()

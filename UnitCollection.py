@@ -137,9 +137,12 @@ class UnitCollection:
         return oldCount - newCount
 
     def _addUnit(self, unitType):
+        self._unitList.append(self._makeUnit(unitType))
+
+    def _makeUnit(self, unitType):
         unit = unitType(self.unitStrengths[unitType])
         unit.cost = self.unitCosts[unitType]
-        self._unitList.append(unit)
+        return unit
 
     def _makeComboUnits(self):
         # Inf & Art
@@ -165,6 +168,17 @@ class UnitCollection:
                 self._addUnit(TankTactBomber)
                 continue
             raise Exception("No fighter/tank removed when it should have been")
+
+    def _getGranularUnitList(self):
+        unitList = []
+        for u in self._unitList:
+            if isinstance(u, ComboUnit) and not isinstance(u, Battleship) and not isinstance(u, Carrier):
+                for t in u.priority:
+                    unitList.append(self._makeUnit(t))
+            else:
+                 unitList.append(u)
+        unitList.sort()
+        return unitList
 # endregion
 
 # region Magic methods
@@ -196,6 +210,14 @@ class UnitCollection:
     def PrintCollection(self):
         # print(f"Unit Count: {self.currHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
+        unitArr = [["Unit", "Count"]]
+        for objType, objCount in unitCounter.items():
+            unitArr.append([objType.__name__, objCount])
+        print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
+
+    def PrintGranularCollection(self):
+        unitList = self._getGranularUnitList()
+        unitCounter = Counter(type(obj) for obj in unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
@@ -406,7 +428,7 @@ class UnitCollection:
                 print(hitList)
 
     def _correctComboUnits(self, comboType):
-        self._addUnit(comboType.priority)
+        self._addUnit(comboType.priority[0])
         self._makeComboUnits()
 
     def _applyHit(self, hit: Hit):
@@ -422,14 +444,14 @@ class UnitCollection:
 
 if __name__ == "__main__":
     Unit.diceSize = 12
-    profileName = "Basic2"
+    profileName = "Basic"
     unitListsFile = "unitLists.csv"
     listName = "Attacker"
     profile = pd.read_csv(
         f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
     unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    units.PrintCollectionStats("Attacker", attack=True)
+    units.PrintGranularCollection()
     # units.generateHitCurve()
 
     # profileName = "Basic2"

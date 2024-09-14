@@ -8,7 +8,14 @@ class Unit:
     def __init__(self):
         self.cost = 0
 
-    pass
+    def __lt__(self, other):
+        return self.cost <= other.cost
+    
+    def __le__(self, other):
+        return self.cost <= other.cost
+    
+    def __gt__(self, other):
+        return self.cost > other.cost
 
 
 class LandUnit(Unit):
@@ -209,7 +216,7 @@ class DamagedCarrier(Warship):
 
 
 class Carrier(Warship, ComboUnit):
-    priority = DamagedCarrier
+    priority = [DamagedCarrier]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
@@ -221,7 +228,7 @@ class DamagedBattleship(Warship):
 
 
 class Battleship(Warship, ComboUnit):
-    priority = DamagedBattleship
+    priority = [DamagedBattleship]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
@@ -242,28 +249,28 @@ class Transport(SurfaceShip):
 
 
 class InfArt(ComboUnit, Infantry, Artillery):
-    priority = Artillery
+    priority = [Artillery,Infantry]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
 
 class MechInfArt(ComboUnit, MechInfantry, Artillery):
-    priority = Artillery
+    priority = [Artillery,MechInfantry]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
 
 class TankTactBomber(ComboUnit, Tank, TacticalBomber):
-    priority = TacticalBomber
+    priority = [TacticalBomber,Tank]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
 
 class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
-    priority = TacticalBomber
+    priority = [TacticalBomber,Fighter]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
