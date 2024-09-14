@@ -60,6 +60,7 @@ class UnitCollection:
         self._loadUnits(unitList)
         self._makeComboUnits()
         self.defineLossPriority(UnitCollection.defaultLossPriority)
+        self._unitList.sort()
 
         # Record original collection state to support resets
         self.originalCost = self.currCost()
@@ -209,6 +210,7 @@ class UnitCollection:
 
     def PrintCollection(self):
         # print(f"Unit Count: {self.currHP()}")
+        self._unitList.sort()
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -224,6 +226,7 @@ class UnitCollection:
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintCollectionComparison(self):
+        self._unitList.sort()
         # print(f"Current HP: {self.currHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
