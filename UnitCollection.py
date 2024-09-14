@@ -39,14 +39,14 @@ unitDict = {Units.Infantry: Infantry,
             Units.DamagedCarrier: DamagedCarrier
             }
 
-defaultLossPriority = [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
-                       TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-                       StratBomber, Cruiser, DamagedBattleship, Carrier]
 
 comboSeparator = "^"
 
 
 class UnitCollection:
+    defaultLossPriority = [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+                        TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
+                        StratBomber, Cruiser, DamagedBattleship, Carrier]
     """A group of units that will attack or defend together."""
 
 # region Initialization functions
@@ -59,7 +59,7 @@ class UnitCollection:
         self._loadUnitStrengths(unitProfiles)
         self._loadUnits(unitList)
         self._makeComboUnits()
-        self.defineLossPriority(defaultLossPriority)
+        self.defineLossPriority(UnitCollection.defaultLossPriority)
 
         # Record original collection state to support resets
         self.originalCost = self.currCost()
@@ -194,7 +194,7 @@ class UnitCollection:
 # region Printing Functions
 
     def PrintCollection(self):
-        print(f"Unit Count: {self.currHP()}")
+        # print(f"Unit Count: {self.currHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -202,7 +202,7 @@ class UnitCollection:
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintCollectionComparison(self):
-        print(f"Unit Count: {self.currHP()}")
+        # print(f"Current HP: {self.currHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -255,6 +255,12 @@ class UnitCollection:
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]
         ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
+
+    def unitCount(self):
+        unitCount = 0
+        for u in self._unitList:
+            unitCount += len(u.attackStrength)
+        return unitCount
 
     def currCost(self):
         totalCost = 0
