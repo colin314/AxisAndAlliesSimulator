@@ -34,7 +34,7 @@ class NonCombatUnit(Unit):
 
 
 class CombatUnit(Unit):
-    def __init__(self, strengthArr):
+    def __init__(self, strengthArr: list[tuple[int, ...]]):
         self.attackStrength, self.defenseStrength = strengthArr
         self.didFirstStrike = False
         self._setValidTargets()
@@ -49,10 +49,13 @@ class CombatUnit(Unit):
         if isinstance(self, Submarine):
             self.ValidTargets = [NavalUnit]
 
-    def _makeRolls(self, value):
-        """Roll the dice against the specified value."""
-        x = random.randint(1, self.diceSize)
-        return 1 if x <= value else 0
+    def _makeRolls(self, rollValues):
+        """Equivalent of _makeRoll for non-Combo units"""
+        hits = 0
+        for value in rollValues:
+            x = random.randint(1, Unit.diceSize)
+            hits += 1 if x <= value else 0
+        return hits
 
     def _doStandardCombat(self, strength):
         if not self._madeFirstStrike():
@@ -91,28 +94,14 @@ class ComboUnit(CombatUnit):
     """Represents combined arms effects of combining 2 (or more) units."""
 
     def __init__(self, strengthArr: list[tuple[int, ...]]):
-        self.attackVals, self.defenseVals = strengthArr
-        super().__init__([0, 0])
-
-    def _makeRolls(self, rollValues):
-        """Equivalent of _makeRoll for non-Combo units"""
-        hits = 0
-        for value in rollValues:
-            hits += super()._makeRolls(value)
-        return hits
-
-    def attack(self):
-        return self._doStandardCombat(self.attackVals)
-
-    def defend(self):
-        return self._doStandardCombat(self.defenseVals)
+        super().__init__(strengthArr)
 
     def unitHitDie(self, attack=True):
         die = H(Unit.diceSize)
         if attack:
-            strengthVals = self.attackVals
+            strengthVals = self.attackStrength
         else:
-            strengthVals = self.defenseVals
+            strengthVals = self.defenseStrength
 
         # Create a hit die for each unit in the combination
         dice = []

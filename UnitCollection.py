@@ -77,17 +77,14 @@ class UnitCollection:
             # It's critical that the index values of the data frame match the int value in the Units enum
             # Load the unit's strength
             unitType = unitDict[Units(index)]
-            if issubclass(unitType, ComboUnit):
-                strengths = []
-                for vals in (row["Attack"], row["Defense"]):
-                    strengthVals = [int(x) for x in str.split(vals,comboSeparator)]
-                    strengths.append(strengthVals)
-                strengthTup = tuple(strengths)
-                # Leaving this horrid nested list comprehension for posterity
-                # strengthTup = tuple([[int(x) for x in str.split(vals,comboSeparator)] for vals in (
-                #     row["Attack"], row["Defense"])])
-            else:
-                strengthTup = (int(row["Attack"]), int(row["Defense"]))
+            strengths = []
+            for vals in (row["Attack"], row["Defense"]):
+                strengthVals = [int(x) for x in str.split(vals,comboSeparator)]
+                strengths.append(strengthVals)
+            strengthTup = tuple(strengths)
+            # Leaving this horrid nested list comprehension for posterity
+            # strengthTup = tuple([[int(x) for x in str.split(vals,comboSeparator)] for vals in (
+            #     row["Attack"], row["Defense"])])
             self.unitStrengths[unitType] = strengthTup
 
             # Load the unit's cost
@@ -230,7 +227,7 @@ class UnitCollection:
         for u in self._unitList:
             print(label)
             if isinstance(u, ComboUnit):
-                print(type(u).__name__, u.attackVals, u.defenseVals)
+                print(type(u).__name__, u.attackStrength, u.defenseStrength)
             else:
                 print(type(u).__name__, u.attackStrength, u.defenseStrength)
             print()
