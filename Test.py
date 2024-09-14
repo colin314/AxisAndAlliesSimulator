@@ -1,10 +1,17 @@
-from dyce import H
-from Units import *
-import pandas as pd
-inf = Infantry((2,3))
+import argparse
 
-print(inf.unitHitDie())
-print(inf.unitHitDie(False))
 
-infArt = InfArt([(3,3),(4,4)])
-print(infArt.unitHitDie())
+class C:
+
+    pass
+
+
+c = C()
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--foo')
+
+parser.parse_args(namespace=c)
+
+print(c.foo)

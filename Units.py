@@ -10,10 +10,10 @@ class Unit:
 
     def __lt__(self, other):
         return self.cost <= other.cost
-    
+
     def __le__(self, other):
         return self.cost <= other.cost
-    
+
     def __gt__(self, other):
         return self.cost > other.cost
 
@@ -85,27 +85,8 @@ class CombatUnit(Unit):
 
     def unitHitDie(self, isAttack=True):
         """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
+        die = H(Unit.diceSize)
         if isAttack:
-            strength = self.attackStrength
-        else:
-            strength = self.defenseStrength
-        die = H(Unit.diceSize)
-        unitDie = H({
-            1: die.le(strength)[1],  # Hits
-            0: die.ge(strength + 1)[1]  # Misses
-        })
-        return unitDie
-
-
-class ComboUnit(CombatUnit):
-    """Represents combined arms effects of combining 2 (or more) units."""
-
-    def __init__(self, strengthArr: list[tuple[int, ...]]):
-        super().__init__(strengthArr)
-
-    def unitHitDie(self, attack=True):
-        die = H(Unit.diceSize)
-        if attack:
             strengthVals = self.attackStrength
         else:
             strengthVals = self.defenseStrength
@@ -120,6 +101,13 @@ class ComboUnit(CombatUnit):
             dice.append(hitDie)
 
         return sum(dice)
+
+
+class ComboUnit(CombatUnit):
+    """Represents combined arms effects of combining 2 (or more) units."""
+
+    def __init__(self, strengthArr: list[tuple[int, ...]]):
+        super().__init__(strengthArr)
 
 
 class FirstStrikeUnit(CombatUnit):
@@ -249,28 +237,28 @@ class Transport(SurfaceShip):
 
 
 class InfArt(ComboUnit, Infantry, Artillery):
-    priority = [Artillery,Infantry]
+    priority = [Artillery, Infantry]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
 
 class MechInfArt(ComboUnit, MechInfantry, Artillery):
-    priority = [Artillery,MechInfantry]
+    priority = [Artillery, MechInfantry]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
 
 class TankTactBomber(ComboUnit, Tank, TacticalBomber):
-    priority = [TacticalBomber,Tank]
+    priority = [TacticalBomber, Tank]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
 
 class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
-    priority = [TacticalBomber,Fighter]
+    priority = [TacticalBomber, Fighter]
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
