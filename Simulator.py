@@ -24,9 +24,8 @@ class Simulator:
         if printBattle:
             print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
             print(u'\u2550' * 50)
-        while attacker.collectionHP() > 0 and defender.collectionHP() > 0 and attacker.collectionHP() > retreatThreshold and round < maxRounds:
-            attackerHitCount = 0
-            defenderHitCount = 0
+        while attacker.currHP() > 0 and defender.currHP() > 0 and attacker.currHP() > retreatThreshold and round < maxRounds:
+            attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
             attackerHits = attacker.firstStrikeAttack(defender)
@@ -49,7 +48,7 @@ class Simulator:
                 input("Press Enter to continue...")
         if printOutcome:
             self.PrintCombatants(attacker, defender)
-        return (attacker.collectionHP(), defender.collectionHP())
+        return (attacker.currHP(), defender.currHP())
 
     def PrintBattleState(self, round, attacker, defender, aH, dH):
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
@@ -64,8 +63,10 @@ class Simulator:
 
     def PrintCombatants(self, attacker: UnitCollection, defender: UnitCollection):
         print("Attacker: ")
+        print(f"\tTUV Change: {attacker.valueDelta()}")
         attacker.PrintCollection()
         print("Defender: ")
+        print(f"\tTUV Change: {defender.valueDelta()}")
         defender.PrintCollection()
         print("\n")
 
@@ -76,7 +77,7 @@ class Simulator:
         units = UnitCollection(unitList[listName], profile)
         return units
 
-    def GenerateBattleStats(self, attacker, defender, battleCount=10000):
+    def GenerateBattleStats(self, attacker: UnitCollection, defender:UnitCollection, battleCount=10000):
         results = []
         unitsLeft = []
         for i in range(battleCount):
@@ -91,6 +92,7 @@ class Simulator:
         defArr = [x[1] for x in unitsLeft if x[1] > 0]
         attackingUnitsLeft = mean(attArr) if len(attArr) > 0 else 0
         defendingUnitsLeft = mean(defArr) if len(defArr) > 0 else 0
+
         print(f"Attacking units left if attacker won: {attackingUnitsLeft:.2f}")
         print(f"Defending units left if defender won: {defendingUnitsLeft:.2f}")
         print(f"Attacking units left on average: {mean([x[0] for x in unitsLeft]):.2f}")
@@ -155,7 +157,7 @@ if __name__ == "__main__":
     print("Basic")
     attacker = sim.LoadUnitCollection("Attacker", "Basic2")
     defender = sim.LoadUnitCollection("Defender","Basic2")
-    sim.SimulateBattle(attacker, defender, printBattle=True)
+    sim.SimulateBattle(attacker, defender, printBattle=False, printOutcome=True)
     # battleStats(sim, "Attacker", "Defender", "Basic", "Basic", attackerLossPriority, defenderLossPriority)
     # print("Basic 2.0")
     # battleStats(sim, "Attacker", "Defender", "Basic2", "Basic2", attackerLossPriority, defenderLossPriority)

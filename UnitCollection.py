@@ -62,6 +62,7 @@ class UnitCollection:
         self.defineLossPriority(defaultLossPriority)
 
         # Record original collection state to support resets
+        self.originalCost = self.currCost()
         self._originalLossPriority = self._lossPriority.copy()
         self._originalUnitList = self._unitList.copy()
         unitCounter = Counter(type(obj) for obj in self._unitList)
@@ -169,7 +170,7 @@ class UnitCollection:
 # region Magic methods
 
     def __str__(self):
-        collStr = "Units in collection: " + str(self.collectionHP()) + "\n"
+        collStr = "Units in collection: " + str(self.currHP()) + "\n"
         unitCount = Counter(type(obj) for obj in self._unitList)
         for objType, objCount in unitCount.items():
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
@@ -193,7 +194,7 @@ class UnitCollection:
 # region Printing Functions
 
     def PrintCollection(self):
-        print(f"Unit Count: {self.collectionHP()}")
+        print(f"Unit Count: {self.currHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -201,7 +202,7 @@ class UnitCollection:
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintCollectionComparison(self):
-        print(f"Unit Count: {self.collectionHP()}")
+        print(f"Unit Count: {self.currHP()}")
         unitCounter = Counter(type(obj) for obj in self._unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -235,10 +236,10 @@ class UnitCollection:
     def PrintCollectionStats(self, label: str, attack=True):
         print(label)
         genStats = {
-            "HP": self.collectionHP(),
-            "Total Cost": self.collectionCost(),
+            "HP": self.currHP(),
+            "Total Cost": self.currCost(),
             "Expected Hits": self.expectedHits(attack),
-            "IPC / Hit": self.collectionCost() / self.expectedHits(attack)
+            "IPC / Hit": self.currCost() / self.expectedHits(attack)
         }
         print(json.dumps(genStats, indent=4))
         stats = self.collectionEndurance(attack)
@@ -250,12 +251,12 @@ class UnitCollection:
 
 # region Collection stats functions
 
-    def collectionHP(self):
+    def currHP(self):
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]
         ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
 
-    def collectionCost(self):
+    def currCost(self):
         totalCost = 0
         for u in self._unitList:
             totalCost += u.cost
@@ -270,22 +271,22 @@ class UnitCollection:
 
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)
-        cost = self.collectionCost()
+        cost = self.currCost()
         return hits/cost * 10
 
     def collectionEndurance(self, attack=True):
         startingStrength = self.expectedHits(attack)
-        startingUnitCount = self.collectionHP()
-        startingCost = self.collectionCost()
+        startingUnitCount = self.currHP()
+        startingCost = self.currCost()
         halfStrength = 0.5 * startingStrength
         currStrength = startingStrength
         placeholderUnit = CombatUnit((0, 0))
         while len(self._unitList) > 0 and currStrength > halfStrength:
             self.takeLosses([Hit(placeholderUnit)])
             currStrength = self.expectedHits(attack)
-        endurance = startingUnitCount - self.collectionHP()
+        endurance = startingUnitCount - self.currHP()
         enduranceRatio = (float(endurance) / startingUnitCount)
-        remainingValue = self.collectionCost()
+        remainingValue = self.currCost()
         lostValue = startingCost - remainingValue
         relLostValue = float(lostValue) / startingCost
         costPerLostUnit = float(lostValue) / endurance
@@ -305,11 +306,14 @@ class UnitCollection:
         placeholderUnit = CombatUnit((0,0))
         curveList = []
         while len(self._unitList) > 0:
-            curveList.append([self.collectionHP(), self.expectedHits(isAttack)])
+            curveList.append([self.currHP(), self.expectedHits(isAttack)])
             self.takeLosses([Hit(placeholderUnit)])
         df = pd.DataFrame(curveList, columns=["HP", "Expected Hits"])
         plt.plot(df["HP"], df["Expected Hits"])
         plt.show()
+
+    def valueDelta(self):
+        return self.currCost() - self.originalCost
 
 
 # endregion
