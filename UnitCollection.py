@@ -327,7 +327,7 @@ class UnitCollection:
                 hits.extend(self._generateHit(u, success))
         return hits
     
-    def firstStrikeAttack(self, opponent:UnitCollection):
+    def firstStrikeAttack(self, opponent):
         hits = []
         for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:
             success = u._firstStrikeAttack(opponent)
@@ -343,7 +343,7 @@ class UnitCollection:
                 hits.extend(self._generateHit(u, success))
         return hits
 
-    def firstStrikeDefend(self, opponent:UnitCollection):
+    def firstStrikeDefend(self, opponent):
         hits = []
         for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:
             success = u._firstStrikeDefense(opponent)

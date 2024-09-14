@@ -1,6 +1,5 @@
 import random
 from dyce import H
-from UnitCollection import UnitCollection
 
 
 class Unit:
@@ -68,11 +67,11 @@ class CombatUnit(Unit):
 
     def attack(self):
         """Make an attack roll using the units attack strength."""
-        return self._makeRolls(self.attackStrength)
+        return self._doStandardCombat(self.attackStrength)
 
     def defend(self):
         """Make a defense roll using the units defense strength."""
-        return self._makeRolls(self.defenseStrength)
+        return self._doStandardCombat(self.defenseStrength)
 
     def unitHitDie(self, isAttack=True):
         """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
@@ -134,7 +133,7 @@ class FirstStrikeUnit(CombatUnit):
         super().__init__(strengthArr)
         self._counterUnits = []
 
-    def _doFirstStrikeCombat(self, strength, opponent: UnitCollection):
+    def _doFirstStrikeCombat(self, strength, opponent):
         countered = False
         for counter in self._counterUnits:
             countered = opponent._unitInstanceInList(counter)
@@ -146,10 +145,10 @@ class FirstStrikeUnit(CombatUnit):
         self.didFirstStrike = True
         return self._makeRolls(strength)
 
-    def _firstStrikeAttack(self, opponent: UnitCollection):
+    def _firstStrikeAttack(self, opponent):
         return self._doFirstStrikeCombat(self.attackStrength, opponent)
 
-    def _firstStrikeDefense(self, opponent: UnitCollection):
+    def _firstStrikeDefense(self, opponent):
         return self._doFirstStrikeCombat(self.defenseStrength, opponent)
 
 
@@ -202,7 +201,7 @@ class SurfaceShip(NavalUnit):
     pass
 
 
-class Submarine(NavalUnit, FirstStrikeUnit):
+class Submarine(FirstStrikeUnit, NavalUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
         # TODO: Figure out where to make this definition. Currently double defined

@@ -25,14 +25,27 @@ class Simulator:
             print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
             print(u'\u2550' * 50)
         while attacker.collectionHP() > 0 and defender.collectionHP() > 0 and attacker.collectionHP() > retreatThreshold and round < maxRounds:
+            attackerHitCount = 0
+            defenderHitCount = 0
             round += 1
+            # First Strike Phase
+            attackerHits = attacker.firstStrikeAttack(defender)
+            defenderHits = defender.firstStrikeDefend(attacker)
+            attackerHitCount += len(attackerHits)
+            defenderHitCount += len(defenderHits)
+            attacker.takeLosses(defenderHits)
+            defender.takeLosses(attackerHits)
+
+            # General Combat Phase
             attackerHits = attacker.attack()
             defenderHits = defender.defend()
+            attackerHitCount += len(attackerHits)
+            defenderHitCount += len(defenderHits)
             attacker.takeLosses(defenderHits)
             defender.takeLosses(attackerHits)
             if printBattle:
                 self.PrintBattleState(
-                    round, attacker, defender, attackerHits, defenderHits)
+                    round, attacker, defender, attackerHitCount, defenderHitCount)
                 input("Press Enter to continue...")
         if printOutcome:
             self.PrintCombatants(attacker, defender)
@@ -41,8 +54,8 @@ class Simulator:
     def PrintBattleState(self, round, attacker, defender, aH, dH):
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
         print(u'\u2500' * 40)
-        print(f"Attacker Hits: {len(aH)}")
-        print(f"Defender Hits: {len(dH)}")
+        print(f"Attacker Hits: {aH}")
+        print(f"Defender Hits: {dH}")
         print("Attacker: ")
         attacker.PrintCollectionComparison()
         print("Defender: ")
@@ -83,6 +96,8 @@ class Simulator:
         print(f"Attacking units left on average: {mean([x[0] for x in unitsLeft]):.2f}")
         print(f"Defending units left on average: {mean([x[1] for x in unitsLeft]):.2f}")
         print()
+        attacker.reset()
+        defender.reset()
 
     def swapPlaces(attacker, defender):
         return (defender, attacker)
@@ -138,7 +153,9 @@ if __name__ == "__main__":
 
     # Russia on defense
     print("Basic")
-    sim.SimulateBattle(sim.LoadUnitCollection("Attacker", "Basic2"), sim.LoadUnitCollection("Defender","Basic2"),printOutcome=True)
+    attacker = sim.LoadUnitCollection("Attacker", "Basic2")
+    defender = sim.LoadUnitCollection("Defender","Basic2")
+    sim.SimulateBattle(attacker, defender, printBattle=True)
     # battleStats(sim, "Attacker", "Defender", "Basic", "Basic", attackerLossPriority, defenderLossPriority)
     # print("Basic 2.0")
     # battleStats(sim, "Attacker", "Defender", "Basic2", "Basic2", attackerLossPriority, defenderLossPriority)
