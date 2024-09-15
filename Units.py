@@ -94,10 +94,13 @@ class CombatUnit(Unit):
         # Create a hit die for each unit in the combination
         dice = []
         for strength in strengthVals:
-            hitDie = H({
-                1: die.le(strength)[1],
-                0: die.ge(strength + 1)[1]
-            })
+            if strength > 0:
+                hitDie = H({
+                    1: die.le(strength)[1],
+                    0: die.ge(strength + 1)[1]
+                })
+            else:
+                hitDie = H({0: Unit.diceSize})
             dice.append(hitDie)
 
         return sum(dice)

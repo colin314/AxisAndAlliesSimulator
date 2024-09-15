@@ -1,17 +1,9 @@
-import argparse
+import pandas as pd
+from Simulator import Simulator
 
 
-class C:
+sim = Simulator()
+sim.LoadAttacker("Attacker", "Fodder")
+sim.LoadDefender("Defender", "Fodder")
 
-    pass
-
-
-c = C()
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('--foo')
-
-parser.parse_args(namespace=c)
-
-print(c.foo)
+sim.GenerateExtendedBattleStats(battleCount=500)

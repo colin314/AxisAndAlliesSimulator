@@ -293,10 +293,17 @@ class UnitCollection:
             totalCost += u.cost
         return totalCost
 
-    def expectedHits(self, attack=True):
+    def expectedHits(self, isAttack=True):
+        if len(self._unitList) > 0:
+            dice = [u.unitHitDie(isAttack) for u in self._unitList]
+            return sum(dice).mean()
+        else:
+            return H({0: 12}).mean()
+
+    def expectedCurve(self, attack=True) -> H:
         if len(self._unitList) > 0:
             dice = [u.unitHitDie(attack) for u in self._unitList]
-            return sum(dice).mean()
+            return sum(dice)
         else:
             return H({0: 12})
 
@@ -336,16 +343,15 @@ class UnitCollection:
     def generateHitCurve(self, isAttack=True):
         placeholderUnit = CombatUnit((0,0))
         curveList = []
+        originalHP = self.currHP()
         while len(self._unitList) > 0:
-            curveList.append([self.currHP(), self.expectedHits(isAttack)])
+            curveList.append([originalHP - self.currHP(), self.expectedHits(isAttack)])
             self.takeLosses([Hit(placeholderUnit)])
-        df = pd.DataFrame(curveList, columns=["HP", "Expected Hits"])
-        plt.plot(df["HP"], df["Expected Hits"])
-        plt.show()
+        df = pd.DataFrame(curveList, columns=["HP Lost", "Expected Hits"])
+        return df
 
     def valueDelta(self):
         return self.currCost() - self.originalCost
-
 
 # endregion
 

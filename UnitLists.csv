@@ -1,8 +1,8 @@
 Key,Unit,Attacker,Defender,Attacker2,Attacker3,Attacker4
-0,Infantry,7,6,5,3,1
+0,Infantry,10,0,5,3,1
 1,Mechanized Infantry,0,0,0,0,0
-2,Artillery,3,4,3,3,3
-3,Tank,1,0,2,3,4
+2,Artillery,0,0,3,3,3
+3,Tank,20,20,2,3,4
 4,AAA,0,0,0,0,0
 5,Fighter,0,0,0,0,0
 6,Tactical Bomber,0,0,0,0,0
