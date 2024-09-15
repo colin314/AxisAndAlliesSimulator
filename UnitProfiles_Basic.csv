@@ -19,3 +19,5 @@ Key,Unit,Cost,Attack,Defense
 17,Fighter^Tactical Bomber,21,6^8,8^6
 18,Damaged Battleship,20,8,8
 19,Damaged Carrier,16,0,4
+20,Conscript,1.5,0,0
+21,ConscriptPair,3,0,1

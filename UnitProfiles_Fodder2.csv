@@ -1,5 +1,5 @@
 Key,Unit,Cost,Attack,Defense
-0,Infantry,1,0,0
+0,Infantry,1.5,0,1
 1,Mechanized Infantry,3,2,3
 2,Artillery,4,3,4
 3,Tank,6,7,6

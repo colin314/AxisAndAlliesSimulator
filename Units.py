@@ -85,6 +85,7 @@ class CombatUnit(Unit):
 
     def unitHitDie(self, isAttack=True):
         """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
+        print(type(self))
         die = H(Unit.diceSize)
         if isAttack:
             strengthVals = self.attackStrength
@@ -102,7 +103,7 @@ class CombatUnit(Unit):
             else:
                 hitDie = H({0: Unit.diceSize})
             dice.append(hitDie)
-
+        print((sum(dice)).mean())
         return sum(dice)
 
 
@@ -143,6 +144,9 @@ class Infantry(CombatUnit, LandUnit):
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
 
+class Conscript(CombatUnit, LandUnit):
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 class MechInfantry(Infantry):
     def __init__(self, strengthArr):
@@ -238,6 +242,11 @@ class Destroyer(Warship):
 class Transport(SurfaceShip):
     pass
 
+class ConscriptPair(ComboUnit, Conscript):
+    priority=[Conscript, Conscript]
+
+    def __init__(self, strengthArr):
+        super().__init__(strengthArr)
 
 class InfArt(ComboUnit, Infantry, Artillery):
     priority = [Artillery, Infantry]

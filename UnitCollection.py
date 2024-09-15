@@ -36,7 +36,9 @@ unitDict = {Units.Infantry: Infantry,
             Units.TankTactBomber: TankTactBomber,
             Units.FighterTactBomber: FighterTactBomber,
             Units.DamagedBattleship: DamagedBattleship,
-            Units.DamagedCarrier: DamagedCarrier
+            Units.DamagedCarrier: DamagedCarrier,
+            Units.Conscript: Conscript,
+            Units.ConscriptPair: ConscriptPair
             }
 
 
@@ -44,7 +46,7 @@ comboSeparator = "^"
 
 
 class UnitCollection:
-    defaultLossPriority = [AAA, Battleship, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+    defaultLossPriority = [AAA, Battleship, Conscript, ConscriptPair, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
                         TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
                         StratBomber, Cruiser, DamagedBattleship, Carrier]
     """A group of units that will attack or defend together."""
@@ -78,7 +80,7 @@ class UnitCollection:
         for index, row in unitProfiles.iterrows():
             # It's critical that the index values of the data frame match the int value in the Units enum
             # Load the unit's strength
-            unitType = unitDict[Units(index)]
+            unitType = unitDict[Units(row["Key"])]
             strengths = []
             for vals in (row["Attack"], row["Defense"]):
                 strengthVals = [int(x) for x in str.split(vals,comboSeparator)]
@@ -92,12 +94,12 @@ class UnitCollection:
             # Load the unit's cost
             self.unitCosts[unitType] = int(row["Cost"])
 
-    def _loadUnits(self, unitList: pd.Series):
+    def _loadUnits(self, unitList: pd.DataFrame):
         """Use the given unit series to populate the collection with units."""
-        for index, row in unitList.items():
+        for index, row in unitList.iterrows():
             # Convert the int index to a Unit enum value, then get the type from the dictionary
-            unitType = unitDict[Units(index)]
-            for i in range(row):
+            unitType = unitDict[Units(row["Key"])]
+            for i in range(row.iloc[1]):
                 self._addUnit(unitType)
 
 # endregion
@@ -137,6 +139,9 @@ class UnitCollection:
         newCount = len(self._unitList)
         return oldCount - newCount
 
+    def _countUnitTypeInList(self, unitType):
+        return len([x for x in self._unitList if type(x) == unitType])
+
     def _addUnit(self, unitType):
         self._unitList.append(self._makeUnit(unitType))
 
@@ -169,6 +174,11 @@ class UnitCollection:
                 self._addUnit(TankTactBomber)
                 continue
             raise Exception("No fighter/tank removed when it should have been")
+        while self._countUnitTypeInList(Conscript) > 1:
+            if self._removeUnitType(Conscript, 2) != 2:
+                raise Exception("Error while creating conscript combo units")
+            self._addUnit(ConscriptPair)
+
 
     def _getGranularUnitList(self):
         unitList = []

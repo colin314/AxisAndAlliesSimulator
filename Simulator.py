@@ -158,7 +158,7 @@ class Simulator:
         profile = pd.read_csv(
             f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
         unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
-        units = UnitCollection(unitList[listName], profile)
+        units = UnitCollection(unitList[["Key",listName]], profile)
         return units
 
     def LoadAttacker(self, listName, profileName):
@@ -188,8 +188,8 @@ class Simulator:
         print(f"Attacker wins {Fore.RED}{attackWinRate:2.2%}{
               Style.RESET_ALL} percent of the time.")
         victoryData = resultDf.groupby("Attacker Won").mean()
-        victoryData = victoryData.set_axis(
-            ["Defender Won", "Attacker Won"], axis='index')
+        # victoryData = victoryData.set_axis(
+        #     ["Defender Won", "Attacker Won"], axis='index')
         victoryData["Units Remaining"] = victoryData[[
             "Remainder Attacker", "Remainder Defender"]].max(axis=1)
         victoryData = victoryData[[
@@ -203,6 +203,9 @@ class Simulator:
         roundStats = []
         for i in range(battleCount):
             runStats = self.SimulateBattleWithStats()
+            maxRound = len(runStats) - 1
+            for i in runStats:
+                i.append(maxRound)
             roundStats.extend(runStats)
             a = self.attacker.currHP()
             d = self.defender.currHP()
@@ -212,9 +215,11 @@ class Simulator:
             resultArr.append(results)
         headers = ["Round",
                    "Attacker HP", "Attacker TUV", "Attacker Expected Hits", "Attacker Actual Hits",
-                   "Defender HP", "Defender TUV", "Defender Expected Hits", "Defender Actual Hits"]
+                   "Defender HP", "Defender TUV", "Defender Expected Hits", "Defender Actual Hits",
+                   "Max Rounds"]
         roundsDf = pd.DataFrame(roundStats, columns=headers)
-        groupedDf = roundsDf.groupby("Round").aggregate({
+        # Granular Analysis
+        groupedDf = roundsDf.groupby(["Max Rounds", "Round"]).aggregate({
             'Round': 'size',
             'Attacker HP': 'mean',
             'Attacker TUV': 'mean',
@@ -227,8 +232,23 @@ class Simulator:
         })
         groupedDf.rename(columns={"Round": "Count"}, inplace=True)
         groupedDf.reset_index()
-        print(groupedDf)
         groupedDf.to_csv("tmp.csv", sep="\t")
+
+        # Group by round
+        groupedDf = roundsDf.groupby(["Round"]).aggregate({
+            'Round': 'size',
+            'Attacker HP': 'mean',
+            'Attacker TUV': 'mean',
+            'Attacker Expected Hits': 'mean',
+            'Attacker Actual Hits': 'mean',
+            'Defender HP': 'mean',
+            'Defender TUV': 'mean',
+            'Defender Expected Hits': 'mean',
+            'Defender Actual Hits': 'mean',
+        })
+        groupedDf.rename(columns={"Round": "Count"}, inplace=True)
+        groupedDf.reset_index()
+        groupedDf.to_csv("tmp2.csv", sep="\t")
         # }).reset_index(level=0, drop=True)
         # groupedDf.rename(columns={"Round": "Count"}, inplace=True)
         # print(groupedDf)
@@ -290,8 +310,7 @@ def standardComparison():
     sim.LoadAttacker(inputs.attacker, inputs.attProfile)
     sim.LoadDefender(inputs.defender, inputs.defProfile)
 
-    # sim.GenerateBattleStats(battleCount=3000)
-    sim.defender.PrintCollectionStats("Defender", attack=False)
+    sim.GenerateBattleStats(battleCount=3000)
 
 # Load in forces and then save off hit curves (expected hits as units are lost)
 
@@ -317,6 +336,24 @@ def saveOffHitCurves():
     df_a.to_csv(path_or_buf=f"{inputs.saveFile}_attacker.csv", sep="\t")
     df_d.to_csv(path_or_buf=f"{inputs.saveFile}_defender.csv", sep="\t")
 
+def RunSingSimulation():
+    # os.system('cls')
+    parser = argparse.ArgumentParser()
+    inputs = Inputs()
+    parser.add_argument('attacker')
+    parser.add_argument('attProfile')
+    parser.add_argument('defender')
+    parser.add_argument('defProfile')
+    parser.parse_args(namespace=inputs)
+
+    sim = Simulator()
+    sim.LoadAttacker(inputs.attacker, inputs.attProfile)
+    sim.LoadDefender(inputs.defender, inputs.defProfile)
+
+    print(sim.defender.expectedHits(isAttack=False))
+    input("Waiting...")
+
+    sim.SimulateBattle(printBattle=True, printOutcome=True)
 
 if __name__ == "__main__":
-    saveOffHitCurves()
+    RunSingSimulation()

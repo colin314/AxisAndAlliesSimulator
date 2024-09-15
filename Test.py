@@ -6,4 +6,5 @@ sim = Simulator()
 sim.LoadAttacker("Attacker", "Fodder")
 sim.LoadDefender("Defender", "Fodder")
 
-sim.GenerateExtendedBattleStats(battleCount=500)
+sim.GenerateBattleStats(battleCount=1000)
+# sim.GenerateExtendedBattleStats(battleCount=1000)
