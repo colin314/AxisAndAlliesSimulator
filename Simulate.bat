@@ -1,7 +1,7 @@
 cls
-@REM python .\Simulator.py Attacker Tank7 Defender Basic
-@REM python .\Simulator.py Attacker Tank7 Defender2 Basic
-@REM python .\Simulator.py Attacker Tank7 Defender3 Fodder2
-@REM python .\Simulator.py Attacker Tank7 Defender4 Fodder2
-@REM python .\Simulator.py Attacker Tank7 Defender5 Fodder3
-python .\Simulator.py Attacker Tank7 Defender6 Fodder4
+python .\Simulator.py Attacker1 Fodder Defender1 Fodder
+python .\Simulator.py Attacker1 Fodder Defender2 Fodder
+python .\Simulator.py Attacker1 Fodder Defender3 Fodder
+python .\Simulator.py Attacker1 Fodder Defender4 Fodder
+python .\Simulator.py Attacker1 Fodder Defender5 Fodder
+python .\Simulator.py Attacker1 Fodder Defender6 Fodder

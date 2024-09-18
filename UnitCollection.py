@@ -47,8 +47,8 @@ comboSeparator = "^"
 
 class UnitCollection:
     defaultLossPriority = [AAA, Battleship, Conscript, ConscriptPair, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
-                        TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-                        StratBomber, Cruiser, DamagedBattleship, Carrier]
+                           TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
+                           StratBomber, Cruiser, DamagedBattleship, Carrier]
     """A group of units that will attack or defend together."""
 
 # region Initialization functions
@@ -83,7 +83,8 @@ class UnitCollection:
             unitType = unitDict[Units(row["Key"])]
             strengths = []
             for vals in (row["Attack"], row["Defense"]):
-                strengthVals = [int(x) for x in str.split(vals,comboSeparator)]
+                strengthVals = [int(x)
+                                for x in str.split(vals, comboSeparator)]
                 strengths.append(strengthVals)
             strengthTup = tuple(strengths)
             # Leaving this horrid nested list comprehension for posterity
@@ -179,7 +180,6 @@ class UnitCollection:
                 raise Exception("Error while creating conscript combo units")
             self._addUnit(ConscriptPair)
 
-
     def _getGranularUnitList(self):
         unitList = []
         for u in self._unitList:
@@ -187,7 +187,7 @@ class UnitCollection:
                 for t in u.priority:
                     unitList.append(self._makeUnit(t))
             else:
-                 unitList.append(u)
+                unitList.append(u)
         unitList.sort()
         return unitList
 # endregion
@@ -270,11 +270,13 @@ class UnitCollection:
 
     def PrintCollectionStats(self, label: str, attack=True):
         print(label)
+        hits = self.expectedHits(attack)
         genStats = {
-            "HP": self.currHP(),
             "Total Cost": self.currCost(),
+            "HP": self.currHP(),
+            "IPC / HP": self.currCost() / self.currHP(),
             "Expected Hits": self.expectedHits(attack),
-            "IPC / Hit": self.currCost() / self.expectedHits(attack)
+            "IPC / Hit": self.currCost() / hits if hits > 0 else "Infinity",
         }
         print(json.dumps(genStats, indent=4))
         stats = self.collectionEndurance(attack)
@@ -324,6 +326,17 @@ class UnitCollection:
 
     def collectionEndurance(self, attack=True):
         startingStrength = self.expectedHits(attack)
+        if startingStrength == 0:
+            rv = {
+                "endurance": "N/A",
+                "enduranceRatio": "N/A",
+                "remainingUnits": "N/A",
+                "lostValue": "N/A",
+                "remainingValue": "N/A",
+                "% Value Lost": "N/A",
+                "Lost / Unit": "N/A",
+            }
+            return rv
         startingUnitCount = self.currHP()
         startingCost = self.currCost()
         halfStrength = 0.5 * startingStrength
@@ -351,11 +364,12 @@ class UnitCollection:
         return rv
 
     def generateHitCurve(self, isAttack=True):
-        placeholderUnit = CombatUnit((0,0))
+        placeholderUnit = CombatUnit((0, 0))
         curveList = []
         originalHP = self.currHP()
         while len(self._unitList) > 0:
-            curveList.append([originalHP - self.currHP(), self.expectedHits(isAttack)])
+            curveList.append([originalHP - self.currHP(),
+                             self.expectedHits(isAttack)])
             self.takeLosses([Hit(placeholderUnit)])
         df = pd.DataFrame(curveList, columns=["HP Lost", "Expected Hits"])
         return df
@@ -374,7 +388,7 @@ class UnitCollection:
             if success > 0:
                 hits.extend(self._generateHit(u, success))
         return hits
-    
+
     def firstStrikeAttack(self, opponent):
         hits = []
         for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:

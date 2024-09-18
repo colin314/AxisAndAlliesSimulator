@@ -85,7 +85,6 @@ class CombatUnit(Unit):
 
     def unitHitDie(self, isAttack=True):
         """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
-        print(type(self))
         die = H(Unit.diceSize)
         if isAttack:
             strengthVals = self.attackStrength
@@ -103,7 +102,6 @@ class CombatUnit(Unit):
             else:
                 hitDie = H({0: Unit.diceSize})
             dice.append(hitDie)
-        print((sum(dice)).mean())
         return sum(dice)
 
 

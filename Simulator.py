@@ -313,7 +313,20 @@ def standardComparison():
     sim.GenerateBattleStats(battleCount=3000)
 
 # Load in forces and then save off hit curves (expected hits as units are lost)
+def detailedComparison():
+    parser = argparse.ArgumentParser()
+    inputs = Inputs()
+    parser.add_argument('attacker')
+    parser.add_argument('attProfile')
+    parser.add_argument('defender')
+    parser.add_argument('defProfile')
+    parser.parse_args(namespace=inputs)
 
+    sim = Simulator()
+    sim.LoadAttacker(inputs.attacker, inputs.attProfile)
+    sim.LoadDefender(inputs.defender, inputs.defProfile)
+
+    sim.GenerateExtendedBattleStats(1000)
 
 def saveOffHitCurves():
     # os.system('cls')
@@ -355,5 +368,17 @@ def RunSingSimulation():
 
     sim.SimulateBattle(printBattle=True, printOutcome=True)
 
+def PrintCollectionStats():
+    # os.system('cls')
+    parser = argparse.ArgumentParser()
+    inputs = Inputs()
+    parser.add_argument('list')
+    parser.add_argument('profile')
+    parser.parse_args(namespace=inputs)
+    sim = Simulator()
+    sim.LoadAttacker(inputs.list,inputs.profile)
+    sim.attacker.PrintCollectionStats("Attack", True)
+    sim.attacker.PrintCollectionStats("Defense", False)
+
 if __name__ == "__main__":
-    RunSingSimulation()
+    standardComparison()
