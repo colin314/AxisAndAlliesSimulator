@@ -288,6 +288,19 @@ class UnitCollection:
 
 # region Collection stats functions
 
+    def GetCollectionStats(self, isAttack=True):
+        hits = self.expectedHits(isAttack)
+        genStats = {
+            "Total Cost": self.currCost(),
+            "HP": self.currHP(),
+            "IPC / HP": self.currCost() / self.currHP(),
+            "Expected Hits": self.expectedHits(isAttack),
+            "IPC / Hit": self.currCost() / hits if hits > 0 else "Infinity",
+        }
+        stats = self.collectionEndurance(isAttack)
+        stats = {**genStats,**stats}
+        return stats
+
     def currHP(self):
         return len(
             [u for u in self._unitList if not isinstance(u, ComboUnit)]

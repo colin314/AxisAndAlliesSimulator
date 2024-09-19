@@ -77,6 +77,61 @@ class Simulator:
             self.PrintBattleOutcome()
         return (self.attacker.currHP(), self.defender.currHP())
 
+    def SimulateBattleData(
+        self,
+        battleCount=1000,
+        retreatThreshold=0,
+        maxRounds=-1
+    ):
+        resultArr = []
+        self.reset()
+        for i in range(battleCount):
+            (a, d) = self.SimulateBattle()
+            attackerWon = 1 if a > d else 0
+            tuvSwing = self.attacker.valueDelta() - self.defender.valueDelta()
+            results = [attackerWon, a, d, tuvSwing]
+            resultArr.append(results)
+            self.attacker.reset()
+            self.defender.reset()
+
+        resultDf = pd.DataFrame(resultArr, columns=[
+                                "Attacker Won", "Remainder Attacker", "Remainder Defender", "Average IPC Swing (Attacker)"])
+        attackWinRate = resultDf["Attacker Won"].mean()
+        defenderWinRate = 1 - attackWinRate
+        victoryData = resultDf.groupby("Attacker Won").mean()
+
+        resultArr = [
+            attackWinRate,
+            victoryData["Remainder Attacker"][1] if 1 in victoryData.index else 0,
+            victoryData["Average IPC Swing (Attacker)"][1] if 1 in victoryData.index else 0,
+            defenderWinRate,
+            victoryData["Remainder Defender"][0] if 0 in victoryData.index else 0,
+            victoryData["Average IPC Swing (Attacker)"][0] if 0 in victoryData.index else 0,
+        ]
+        attackerStats = self.attacker.GetCollectionStats(True)
+        defenderStats = self.defender.GetCollectionStats(False)
+        resultArr.extend([
+            attackerStats["HP"],
+            attackerStats["IPC / HP"],
+            attackerStats["Expected Hits"],
+            attackerStats["IPC / Hit"],
+            attackerStats["endurance"],
+            attackerStats["enduranceRatio"],
+            attackerStats["lostValue"],
+            attackerStats["Lost / Unit"],
+        ])
+        resultArr.extend([
+            defenderStats["HP"],
+            defenderStats["IPC / HP"],
+            defenderStats["Expected Hits"],
+            defenderStats["IPC / Hit"],
+            defenderStats["endurance"],
+            defenderStats["enduranceRatio"],
+            defenderStats["lostValue"],
+            defenderStats["Lost / Unit"],
+        ])
+        return resultArr
+
     def _getRoundStats(self, round: int, attackerExpectedHits: float, defenderExpectedHits: float, attackerHitCount: int, defenderHitCount: int):
         dataRow = [round,
                    self.attacker.currHP(), self.attacker.currCost(),
@@ -158,7 +213,7 @@ class Simulator:
         profile = pd.read_csv(
             f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
         unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
-        units = UnitCollection(unitList[["Key",listName]], profile)
+        units = UnitCollection(unitList[["Key", listName]], profile)
         return units
 
     def LoadAttacker(self, listName, profileName):
@@ -313,6 +368,8 @@ def standardComparison():
     sim.GenerateBattleStats(battleCount=3000)
 
 # Load in forces and then save off hit curves (expected hits as units are lost)
+
+
 def detailedComparison():
     parser = argparse.ArgumentParser()
     inputs = Inputs()
@@ -327,6 +384,7 @@ def detailedComparison():
     sim.LoadDefender(inputs.defender, inputs.defProfile)
 
     sim.GenerateExtendedBattleStats(1000)
+
 
 def saveOffHitCurves():
     # os.system('cls')
@@ -349,6 +407,7 @@ def saveOffHitCurves():
     df_a.to_csv(path_or_buf=f"{inputs.saveFile}_attacker.csv", sep="\t")
     df_d.to_csv(path_or_buf=f"{inputs.saveFile}_defender.csv", sep="\t")
 
+
 def RunSingSimulation():
     # os.system('cls')
     parser = argparse.ArgumentParser()
@@ -368,6 +427,7 @@ def RunSingSimulation():
 
     sim.SimulateBattle(printBattle=True, printOutcome=True)
 
+
 def PrintCollectionStats():
     # os.system('cls')
     parser = argparse.ArgumentParser()
@@ -376,9 +436,61 @@ def PrintCollectionStats():
     parser.add_argument('profile')
     parser.parse_args(namespace=inputs)
     sim = Simulator()
-    sim.LoadAttacker(inputs.list,inputs.profile)
+    sim.LoadAttacker(inputs.list, inputs.profile)
     sim.attacker.PrintCollectionStats("Attack", True)
     sim.attacker.PrintCollectionStats("Defense", False)
 
+
+def MultipleStatsComparison():
+    inputs = Inputs()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input')
+    parser.parse_args(namespace=inputs)
+
+    # os.system('cls')
+    parser2 = argparse.ArgumentParser()
+    parser2.add_argument('attacker')
+    parser2.add_argument('attProfile')
+    parser2.add_argument('defender')
+    parser2.add_argument('defProfile')
+    df = pd.read_csv(inputs.input, sep='\t')
+    df.reset_index()
+    sim = Simulator()
+    results = []
+    for index, row in df.iterrows():
+        inputs2 = Inputs()
+        parser2.parse_args(args=row.to_list(), namespace=inputs2)
+        rv = [inputs2.attacker, inputs2.attProfile, inputs2.defender, inputs2.defProfile]
+        sim.LoadAttacker(rv[0], rv[1])
+        sim.LoadDefender(rv[2], rv[3])
+        rv.extend(sim.SimulateBattleData(1000))
+        results.append(rv)
+
+    headers = ["Attacker List", "Attacker Profile", "Defender List", "Defender Profile", "Attacker Win Rate",
+               "Attacking Units Left",
+               "IPC Swing",
+               "Defender Win Rate",
+               "Defending Units Left",
+               "IPC Swing",
+               "Attacker HP",
+               "Attacker IPC / HP",
+               "Attacker Expected Hits",
+               "Attacker IPC / Hit",
+               "Attacker endurance",
+               "Attacker enduranceRatio",
+               "Attacker lostValue",
+               "Attacker Lost / Unit",
+               "Defender HP",
+               "Defender IPC / HP",
+               "Defender Expected Hits",
+               "Defender IPC / Hit",
+               "Defender endurance",
+               "Defender enduranceRatio",
+               "Defender lostValue",
+               "Defender Lost / Unit",]
+    df = pd.DataFrame(data=results, columns=headers)
+    df.to_excel("MultiSimulate.xlsx")
+
+
 if __name__ == "__main__":
-    standardComparison()
+    MultipleStatsComparison()
