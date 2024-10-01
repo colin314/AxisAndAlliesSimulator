@@ -1,0 +1,15 @@
+Key,Unit,Attacker1,Attacker2,Attacker3,Attacker4,Attacker5,Attacker6,Attacker7,Defender1,Defender2,Defender3,Defender4,Defender5,Defender6,Defender7,Defender8,Defender9,Defender10,Defender11
+0,Infantry,15,15,11,11,11,7,15,12,8,12,10,28,8,12,10,28,1,1
+1,Mechanized Infantry,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2,Artillery,12,9,9,6,3,3,15,6,6,10,7,0,6,10,7,0,0,0
+3,Tank,2,4,6,8,10,12,0,0,0,0,0,0,0,0,0,0,0,0
+4,AAA,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+5,Fighter,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+6,Tactical Bomber,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+7,Strategic Bomber,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+8,Submarine,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9,Destroyer,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+10,Cruiser,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+11,Battleship,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+12,Carrier,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+20,Conscript,0,0,0,0,0,0,0,12,18,4,13,0,18,4,13,0,0,0

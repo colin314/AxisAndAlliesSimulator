@@ -1,5 +1,5 @@
 Key,Unit,Cost,Attack,Defense
-0,Infantry,1.5,0,1
+0,Infantry,3,2,3
 1,Mechanized Infantry,3,2,3
 2,Artillery,4,3,4
 3,Tank,6,7,6
@@ -13,11 +13,11 @@ Key,Unit,Cost,Attack,Defense
 11,Battleship,20,8,8
 12,Carrier,16,0,4
 13,Transport,7,0,0
-14,Infantry^Artillery,7,0^3,0^4
+14,Infantry^Artillery,7,3^3,4^4
 15,Mechanized Infantry^Artillery,8,3^3,4^4
 16,Tank^Tactical Bomber,17,6^8,5^6
 17,Fighter^Tactical Bomber,21,6^8,8^6
 18,Damaged Battleship,20,8,8
 19,Damaged Carrier,16,0,4
-20,Conscript,1.5,0,0
-21,ConscriptPair,3,0,1
+20,Conscript,2,0,0
+21,ConscriptPair,4,0,0

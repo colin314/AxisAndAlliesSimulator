@@ -464,6 +464,9 @@ def MultipleStatsComparison():
         sim.LoadAttacker(rv[0], rv[1])
         sim.LoadDefender(rv[2], rv[3])
         rv.extend(sim.SimulateBattleData(1000))
+        attCumStr = sim.attacker.generateHitCurve(True).sum()["Expected Hits"]
+        defCumStr = sim.defender.generateHitCurve(False).sum()["Expected Hits"]
+        rv.extend([attCumStr,defCumStr])
         results.append(rv)
 
     headers = ["Attacker List", "Attacker Profile", "Defender List", "Defender Profile", "Attacker Win Rate",
@@ -487,10 +490,74 @@ def MultipleStatsComparison():
                "Defender endurance",
                "Defender enduranceRatio",
                "Defender lostValue",
-               "Defender Lost / Unit",]
+               "Defender Lost / Unit",
+               "Attacker Cumulative Strength",
+               "Defender Cumulative Strength",]
     df = pd.DataFrame(data=results, columns=headers)
     df.to_excel("MultiSimulate.xlsx")
 
+def MultipleHitCurves():
+    inputs = Inputs()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input')
+    parser.parse_args(namespace=inputs)
+
+    # os.system('cls')
+    parser2 = argparse.ArgumentParser()
+    parser2.add_argument('unitList')
+    parser2.add_argument('profile')
+    parser2.add_argument('isAttack')
+    df = pd.read_csv(inputs.input, sep='\t')
+    df.reset_index()
+    sim = Simulator()
+    rv = pd.DataFrame([])
+    for index, row in df.iterrows():
+        inputs2 = Inputs()
+        parser2.parse_args(args=row.to_list(), namespace=inputs2)
+        isAttack = inputs2.isAttack == '1'
+        if isAttack:
+            sim.LoadAttacker(inputs2.unitList, inputs2.profile)
+            curve = sim.attacker.generateHitCurve(isAttack=True)
+        else:
+            sim.LoadDefender(inputs2.unitList, inputs2.profile)
+            curve = sim.defender.generateHitCurve(isAttack=False)
+        columnMap = { c:c+f"_{index}" for c in curve.columns.values}
+        curve.rename(columnMap)
+        rv = pd.concat([rv, curve],axis=1)
+    rv.fillna(0)
+    rv.to_excel("test.xlsx")
+
+def HitSummaries():
+    inputs = Inputs()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input')
+    parser.parse_args(namespace=inputs)
+
+    # os.system('cls')
+    parser2 = argparse.ArgumentParser()
+    parser2.add_argument('unitList')
+    parser2.add_argument('profile')
+    parser2.add_argument('isAttack')
+    df = pd.read_csv(inputs.input, sep='\t')
+    df.reset_index()
+    sim = Simulator()
+    rv = pd.DataFrame([])
+    for index, row in df.iterrows():
+        inputs2 = Inputs()
+        parser2.parse_args(args=row.to_list(), namespace=inputs2)
+        isAttack = inputs2.isAttack == '1'
+        if isAttack:
+            sim.LoadAttacker(inputs2.unitList, inputs2.profile)
+            curve = sim.attacker.generateHitCurve(isAttack=True)
+        else:
+            sim.LoadDefender(inputs2.unitList, inputs2.profile)
+            curve = sim.defender.generateHitCurve(isAttack=False)
+        columnMap = { c:f"{c}_{index + 1}" for c in curve.columns.values}
+        curve = curve.rename(columnMap, axis="columns")
+        rv = pd.concat([rv, curve[f"Expected Hits_{index + 1}"]],axis=1)
+    rv = rv.fillna(0)
+    rv.sum
+    rv.sum().to_excel("test.xlsx")
 
 if __name__ == "__main__":
     MultipleStatsComparison()

@@ -381,7 +381,7 @@ class UnitCollection:
         curveList = []
         originalHP = self.currHP()
         while len(self._unitList) > 0:
-            curveList.append([originalHP - self.currHP(),
+            curveList.append([self.currHP(),
                              self.expectedHits(isAttack)])
             self.takeLosses([Hit(placeholderUnit)])
         df = pd.DataFrame(curveList, columns=["HP Lost", "Expected Hits"])

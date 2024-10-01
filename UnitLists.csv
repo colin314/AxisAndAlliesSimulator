@@ -1,15 +1,15 @@
-Key,Unit,Attacker1,Attacker2,Attacker3,Attacker4,Attacker5,Attacker6,Defender1,Defender2,Defender3,Defender4,Defender5,Defender6
-0,Infantry,12,14,16,18,20,22,28,12,10,6,4,0
-1,Mechanized Infantry,0,0,0,0,0,0,0,0,0,0,0,0
-2,Artillery,5,6,7,8,9,10,0,12,9,6,3,0
-3,Tank,6,6,6,6,6,6,0,0,0,0,0,0
-4,AAA,0,0,0,0,0,0,0,0,0,0,0,0
-5,Fighter,0,0,0,0,0,0,0,0,0,0,0,0
-6,Tactical Bomber,0,0,0,0,0,0,0,0,0,0,0,0
-7,Strategic Bomber,0,0,0,0,0,0,0,0,0,0,0,0
-8,Submarine,0,0,0,0,0,0,0,0,0,0,0,0
-9,Destroyer,0,0,0,0,0,0,0,0,0,0,0,0
-10,Cruiser,0,0,0,0,0,0,0,0,0,0,0,0
-11,Battleship,0,0,0,0,0,0,0,0,0,0,0,0
-12,Carrier,0,0,0,0,0,0,0,0,0,0,0,0
-20,Conscript,0,0,0,0,0,0,0,0,9,21,30,42
+Key,Unit,Attacker1,Attacker2,Defender1,Defender2,Defender3,Defender4,Defender5,Germany,Russia,RussiaOriginal
+0,Infantry,10,10,12,8,12,8,12,25,34,70
+1,Mechanized Infantry,0,0,0,0,0,0,0,2,1,1
+2,Artillery,10,7,0,3,3,6,0,13,18,0
+3,Tank,0,2,0,0,0,0,0,33,2,2
+4,AAA,0,0,0,0,0,0,0,0,4,4
+5,Fighter,0,0,0,0,0,0,0,0,3,3
+6,Tactical Bomber,0,0,0,0,0,0,0,3,1,1
+7,Strategic Bomber,0,0,0,0,0,0,0,0,0,0
+8,Submarine,0,0,0,0,0,0,0,0,0,0
+9,Destroyer,0,0,0,0,0,0,0,0,0,0
+10,Cruiser,0,0,0,0,0,0,0,0,0,0
+11,Battleship,0,0,0,0,0,0,0,0,0,0
+12,Carrier,0,0,0,0,0,0,0,0,0,0
+20,Conscript,0,0,16,16,8,8,16,0,24,0
