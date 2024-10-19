@@ -3,6 +3,7 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
+
 def GetUnitList(isLand:bool):
     global root
     imagesDirectory = '.\\Resources\\Neutral'
