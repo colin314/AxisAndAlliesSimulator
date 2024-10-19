@@ -38,7 +38,10 @@ unitDict = {Units.Infantry: Infantry,
             Units.DamagedBattleship: DamagedBattleship,
             Units.DamagedCarrier: DamagedCarrier,
             Units.Conscript: Conscript,
-            Units.ConscriptPair: ConscriptPair
+            Units.ConscriptPair: ConscriptPair,
+            Units.InfArt2: InfArt2,
+            Units.InfMechInfArt: InfMechInfArt,
+            Units.MechInfArt2: MechInfArt2,
             }
 
 
@@ -164,6 +167,26 @@ class UnitCollection:
                 self._addUnit(InfArt)
                 continue
             raise Exception("No infantry removed when it should have been")
+
+        # TODO: Wrap this in conditional so only advanced artillery powers get this
+        while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and (self._unitTypeInList(InfArt) or self._unitTypeInList(MechInfArt)):
+            if self._removeUnitType(MechInfArt) == 1:
+                if self._removeUnitType(MechInfantry) == 1:
+                    self._addUnit(MechInfArt2)
+                    continue
+                if self._removeUnitType(Infantry) == 1:
+                    self._addUnit(InfMechInfArt)
+                    continue
+            elif self._removeUnitType(InfArt) == 1:
+                if self._removeUnitType(MechInfantry) == 1:
+                    self._addUnit(InfMechInfArt)
+                    continue
+                if self._removeUnitType(Infantry) == 1:
+                    self._addUnit(InfArt2)
+                    continue
+            raise Exception("Error building advanced artillery support")
+
+        # Tactical bomber combined arms
         while self._unitTypeInList(TacticalBomber) and (self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)):
             if self._removeUnitType(TacticalBomber) == 0:
                 raise Exception(
@@ -182,10 +205,20 @@ class UnitCollection:
 
     def _getGranularUnitList(self):
         unitList = []
+
+        # recursive function to break up combo units into non-combo units
+        def breakUpComboUnit(unit):
+            if not isinstance(unit, ComboUnit):
+                return [unit]
+            units = []
+            for t in unit.priority:
+                subUnit = self._makeUnit(t)
+                units.extend(breakUpComboUnit(subUnit))
+            return units
+
         for u in self._unitList:
             if isinstance(u, ComboUnit) and not isinstance(u, Battleship) and not isinstance(u, Carrier):
-                for t in u.priority:
-                    unitList.append(self._makeUnit(t))
+                unitList.extend(breakUpComboUnit(u))
             else:
                 unitList.append(u)
         unitList.sort()
@@ -298,7 +331,7 @@ class UnitCollection:
             "IPC / Hit": self.currCost() / hits if hits > 0 else "Infinity",
         }
         stats = self.collectionEndurance(isAttack)
-        stats = {**genStats,**stats}
+        stats = {**genStats, **stats}
         return stats
 
     def currHP(self):

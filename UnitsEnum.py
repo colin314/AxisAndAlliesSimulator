@@ -24,3 +24,13 @@ class Units(Enum):
     DamagedCarrier = 19
     Conscript = 20
     ConscriptPair = 21
+    InfArt2 = 22
+    InfMechInfArt = 23
+    MechInfArt2 = 24
+
+
+class Tech(Enum):
+    AdvArt = 0
+    AdvMI = 1
+    HB = 2
+    

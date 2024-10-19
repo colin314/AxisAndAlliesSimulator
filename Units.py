@@ -272,3 +272,12 @@ class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
 
     def __init__(self, strengthArr):
         super().__init__(strengthArr)
+
+class InfArt2(ComboUnit, Artillery, Infantry):
+    priority = [InfArt, Infantry]
+
+class MechInfArt2(MechInfArt):
+    priority = [MechInfArt, MechInfantry]
+
+class InfMechInfArt(InfArt, MechInfArt):
+    priority = [MechInfArt, Infantry]
