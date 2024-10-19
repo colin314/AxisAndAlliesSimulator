@@ -3,6 +3,14 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
+class Combatant:
+    def __init__(self,power:str, units:dict[str, dict[str:int]]):
+        self.power = power
+        self.units = units
+
+    def __str__(self):
+        return self.power + "\n" + str(self.units)
+
 
 def GetUnitList(isLand:bool):
     global root
@@ -163,7 +171,8 @@ def GetUnitList(isLand:bool):
         valDict = {}
         for key,value in dic.items():
             valDict[key] = value.get()
-        rv[side] = valDict
+        rv[side] = Combatant(var1.get(), valDict)
+
     return rv
 
 if __name__ == "__main__":
