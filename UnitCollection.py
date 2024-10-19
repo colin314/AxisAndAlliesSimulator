@@ -153,7 +153,7 @@ class UnitCollection:
 
     def _makeComboUnits(self):
         # Inf & Art
-        while self._unitTypeInList(Infantry) and self._unitTypeInList(Artillery):
+        while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and self._unitTypeInList(Artillery):
             if self._removeUnitType(Artillery) == 0:
                 raise Exception(
                     "No artillery removed when it should have been")
