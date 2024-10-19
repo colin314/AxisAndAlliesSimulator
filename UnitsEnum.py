@@ -28,10 +28,3 @@ class Units(Enum):
     InfMechInfArt = 23
     MechInfArt2 = 24
     MechInfTank = 25
-
-
-class Tech(Enum):
-    AdvArt = 0
-    AdvMI = 1
-    HB = 2
-    

@@ -50,9 +50,10 @@ comboSeparator = "^"
 
 
 class UnitCollection:
-    defaultLossPriority = [AAA, Battleship, Conscript, ConscriptPair, Infantry, MechInfantry, InfArt, MechInfArt, Artillery, Tank,
+    defaultLossPriority = [AAA, Battleship, Conscript, ConscriptPair, Infantry, InfArt2, InfMechInfArt,
+                           InfArt, Artillery, MechInfArt2, MechInfArt, MechInfantry, Tank, MechInfTank,
                            TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-                           StratBomber, Cruiser, DamagedBattleship, Carrier]
+                           StratBomber, Cruiser, DamagedBattleship, Carrier, DamagedCarrier]
     """A group of units that will attack or defend together."""
 
 # region Initialization functions
@@ -156,12 +157,13 @@ class UnitCollection:
         return unit
 
     def _makeComboUnits(self):
-        #TODO: Wrap this in conditional so only advanced mech inf powers get it
+        # TODO: Wrap this in conditional so only advanced mech inf powers get it
         while self._unitTypeInList(MechInfantry) and self._unitTypeInList(Tank):
             if self._removeUnitType(Tank) == 0:
                 raise Exception("No tank removed when it should have been")
             if self._removeUnitType(MechInfantry) == 0:
-                raise Exception("No mechanized infantry removed when it should have been")
+                raise Exception(
+                    "No mechanized infantry removed when it should have been")
             self._addUnit(MechInfTank)
 
         # Inf & Art
