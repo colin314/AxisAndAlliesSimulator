@@ -25,8 +25,9 @@ def GetUnitList(isLand:bool):
             5: "tactical_bomber",
             6: "bomber",
             7: "aaGun",
-            8: "cruiser",
-            9: "battleship",
+            8: "conscript",
+            9: "cruiser",
+            10: "battleship",
         }
     else:
         unitDict = {
