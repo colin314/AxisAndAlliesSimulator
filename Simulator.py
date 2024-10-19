@@ -214,6 +214,7 @@ class Simulator:
         profile = pd.read_csv(
             f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
         unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+        
         units = UnitCollection(unitList[["Key", listName]], profile)
         return units
 

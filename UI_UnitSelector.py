@@ -55,9 +55,9 @@ def GetUnitList(isLand:bool):
         return file_dict
 
     def resetBoxes():
-        for row in range(2):
-            for col in range(UNITCOUNT):
-                spinBoxVals[row][col].set(0)
+        for x,y in spinBoxVals.items():
+            for k,v in y.items():
+                v.set(0)
 
 
     imageFileDict = get_file_paths(imagesDirectory)
