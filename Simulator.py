@@ -406,5 +406,6 @@ if __name__ == "__main__":
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
+    attacker.PrintCollection()
     sim.SimulateBattle(printBattle=True, printOutcome=True)
 

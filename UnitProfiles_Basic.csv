@@ -24,3 +24,4 @@ Key,Unit,Cost,Attack,Defense
 22,Infantry^Infantry^Artillery,10,3^3^4,4^4^4
 23,Infantry^Mech Infantry^Artillery,11,3^3^4,4^4^4
 24,Mech Infantry^Mech Infantry^Artillery,12,3^3^4,4^4^4
+25,Mech Infantry^Tank,10,4^6,4^6

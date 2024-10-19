@@ -42,6 +42,7 @@ unitDict = {Units.Infantry: Infantry,
             Units.InfArt2: InfArt2,
             Units.InfMechInfArt: InfMechInfArt,
             Units.MechInfArt2: MechInfArt2,
+            Units.MechInfTank: MechInfTank
             }
 
 
@@ -155,6 +156,14 @@ class UnitCollection:
         return unit
 
     def _makeComboUnits(self):
+        #TODO: Wrap this in conditional so only advanced mech inf powers get it
+        while self._unitTypeInList(MechInfantry) and self._unitTypeInList(Tank):
+            if self._removeUnitType(Tank) == 0:
+                raise Exception("No tank removed when it should have been")
+            if self._removeUnitType(MechInfantry) == 0:
+                raise Exception("No mechanized infantry removed when it should have been")
+            self._addUnit(MechInfTank)
+
         # Inf & Art
         while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and self._unitTypeInList(Artillery):
             if self._removeUnitType(Artillery) == 0:

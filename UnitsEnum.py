@@ -27,6 +27,7 @@ class Units(Enum):
     InfArt2 = 22
     InfMechInfArt = 23
     MechInfArt2 = 24
+    MechInfTank = 25
 
 
 class Tech(Enum):

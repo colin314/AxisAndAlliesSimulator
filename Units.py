@@ -281,3 +281,6 @@ class MechInfArt2(MechInfArt):
 
 class InfMechInfArt(InfArt, MechInfArt):
     priority = [MechInfArt, Infantry]
+
+class MechInfTank(ComboUnit, MechInfantry, Tank):
+    priority = [Tank, MechInfantry]
