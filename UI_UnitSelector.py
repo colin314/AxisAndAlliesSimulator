@@ -96,7 +96,7 @@ def GetUnitList(isLand:bool):
         valDict = {}
         for col in range(UNITCOUNT):
             # Spin Boxes
-            var = tk.IntVar(value=0, name=unitDict[col])
+            var = tk.IntVar(value=0)
             valDict[unitDict[col]] = var
             spinboxes[row][col] = tk.Spinbox(
                 root, from_=0, to=100, width=5, font=('Arial', 14), textvariable=var)
