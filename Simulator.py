@@ -13,7 +13,27 @@ import sys
 from tabulate import tabulate
 from UI_UnitSelector import GetUnitList
 unitListsFile = "unitLists.csv"
+from UnitsEnum import Units
 
+UnitUIMap = {
+            "infantry":Units.Infantry,
+            "mech_infantry": Units.MechInfantry,
+            "artillery": Units.Artillery ,
+            "armour": Units.Tank ,
+            "fighter": Units.Fighter ,
+            "tactical_bomber": Units.TacticalBomber ,
+            "bomber": Units.StratBomber ,
+            "aaGun": Units.AAA ,
+            "conscript": Units.Conscript ,
+            "cruiser": Units.Cruiser ,
+            "battleship": Units.Battleship ,
+            "submarine": Units.Submarine ,
+            "destroyer": Units.Destroyer ,
+            "carrier": Units.Carrier ,
+            "battleship_hit": Units.DamagedBattleship ,
+            "carrier_hit": Units.DamagedCarrier ,
+            "transport": Units.Transport ,
+}
 
 class Fmt:
     attHead = f"{Back.RED}{Style.BRIGHT}{Fore.WHITE}"
@@ -214,9 +234,18 @@ class Simulator:
         profile = pd.read_csv(
             f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
         unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
-        
+
         units = UnitCollection(unitList[["Key", listName]], profile)
         return units
+
+    def LoadUnitCollectionFromUI(unitList:dict[str,int], profileName):
+        headers = ["Key", "ListName"]
+        units = [[UnitUIMap[unit].value, val] for unit,val in unitList.items()]
+        unitList = pd.DataFrame(units, columns=headers)
+        profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding="utf-8", delimiter=",")
+        units = UnitCollection(unitList, profile)
+        return units
+
 
     def LoadAttacker(self, listName, profileName):
         self.attacker = Simulator.LoadUnitCollection(listName, profileName)
@@ -350,12 +379,6 @@ class Simulator:
 class Inputs:
     pass
 
-# Just load forces in an simulate a bunch of battles
-
-
-
-
-
 def RunSingSimulation():
     # os.system('cls')
     parser = argparse.ArgumentParser()
@@ -377,4 +400,11 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    print(GetUnitList(True))
+    lists = GetUnitList(True)
+    attacker = Simulator.LoadUnitCollectionFromUI(lists["attacker"].units, "Basic")
+    defender = Simulator.LoadUnitCollectionFromUI(lists["defender"].units, "Basic")
+    sim = Simulator()
+    sim.attacker = attacker
+    sim.defender = defender
+    sim.SimulateBattle(printBattle=True, printOutcome=True)
+
