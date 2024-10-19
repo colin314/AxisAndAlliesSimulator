@@ -440,6 +440,36 @@ def PrintCollectionStats():
     sim.attacker.PrintCollectionStats("Attack", True)
     sim.attacker.PrintCollectionStats("Defense", False)
 
+def CumulativeStrengthComparison():
+    inputs = Inputs()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input')
+    parser.parse_args(namespace=inputs)
+
+    # os.system('cls')
+    parser2 = argparse.ArgumentParser()
+    parser2.add_argument('unitList')
+    parser2.add_argument('profile')
+    parser2.add_argument('isAttack')
+    df = pd.read_csv(inputs.input, sep='\t')
+    df.reset_index()
+    sim = Simulator()
+    rv = []
+    for index, row in df.iterrows():
+        inputs2 = Inputs()
+        parser2.parse_args(args=row.to_list(), namespace=inputs2)
+        isAttack = inputs2.isAttack == '1'
+        if isAttack:
+            sim.LoadAttacker(inputs2.unitList, inputs2.profile)
+            # sim.attacker.generateHitCurve(True).sum()["Expected Hits"]
+            curve = sim.attacker.generateHitCurve(isAttack=True).sum()["Expected Hits"]
+        else:
+            sim.LoadDefender(inputs2.unitList, inputs2.profile)
+            curve = sim.defender.generateHitCurve(isAttack=False).sum()["Expected Hits"]
+        curve = [inputs2.unitList, curve]
+        rv.append(curve)
+    rv = pd.DataFrame(rv, columns=["List", "Cumulative Strength"])
+    rv.to_excel("CumulativeStrengthComparison.xlsx")
 
 def MultipleStatsComparison():
     inputs = Inputs()
@@ -560,4 +590,4 @@ def HitSummaries():
     rv.sum().to_excel("test.xlsx")
 
 if __name__ == "__main__":
-    MultipleStatsComparison()
+    standardComparison()
