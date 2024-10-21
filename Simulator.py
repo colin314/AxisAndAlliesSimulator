@@ -401,12 +401,13 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    lists = GetUnitList(False)
+    lists = GetUnitList(True)
     attacker = Simulator.LoadUnitCollectionFromUI(lists["attacker"], "Basic")
     defender = Simulator.LoadUnitCollectionFromUI(lists["defender"], "Basic")
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
     attacker.PrintCollection()
+    exit()
     sim.SimulateBattle(printBattle=True, printOutcome=True)
 
