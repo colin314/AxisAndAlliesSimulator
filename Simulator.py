@@ -11,7 +11,7 @@ from statistics import mean, median
 from Resources import bcolors
 import sys
 from tabulate import tabulate
-from UI_UnitSelector import GetUnitList
+from UI_UnitSelector import GetUnitList, Combatant
 unitListsFile = "unitLists.csv"
 from UnitsEnum import Units
 
@@ -238,12 +238,13 @@ class Simulator:
         units = UnitCollection(unitList[["Key", listName]], profile)
         return units
 
-    def LoadUnitCollectionFromUI(unitList:dict[str,int], profileName):
+    def LoadUnitCollectionFromUI(combatant:Combatant, profileName):
         headers = ["Key", "ListName"]
+        unitList = combatant.units
         units = [[UnitUIMap[unit].value, val] for unit,val in unitList.items()]
         unitList = pd.DataFrame(units, columns=headers)
         profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding="utf-8", delimiter=",")
-        units = UnitCollection(unitList, profile)
+        units = UnitCollection(unitList, profile, combatant.power)
         return units
 
 
@@ -400,9 +401,9 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    lists = GetUnitList(True)
-    attacker = Simulator.LoadUnitCollectionFromUI(lists["attacker"].units, "Basic")
-    defender = Simulator.LoadUnitCollectionFromUI(lists["defender"].units, "Basic")
+    lists = GetUnitList(False)
+    attacker = Simulator.LoadUnitCollectionFromUI(lists["attacker"], "Basic")
+    defender = Simulator.LoadUnitCollectionFromUI(lists["defender"], "Basic")
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender

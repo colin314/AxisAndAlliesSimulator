@@ -11,6 +11,7 @@ from Resources import bcolors
 from dyce import H
 import json
 from matplotlib import pyplot as plt
+from TechMapping import *
 
 # This is just to keep pandas from complaining
 pd.set_option('future.no_silent_downcasting', True)
@@ -57,13 +58,16 @@ class UnitCollection:
     """A group of units that will attack or defend together."""
 
 # region Initialization functions
-    def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame):
+    def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame, power:str="Neutral"):
         self._unitList = []
         self.unitStrengths = {}
         self.unitCosts = {}
+        self.power = power
+        self.Techs = TechMapping.GetTechs(power)
 
         # Call initialization functions (load units, etc.)
         self._loadUnitStrengths(unitProfiles)
+        # self._loadTechs()
         self._loadUnits(unitList)
         self._makeComboUnits()
         self.defineLossPriority(UnitCollection.defaultLossPriority)
@@ -99,6 +103,13 @@ class UnitCollection:
 
             # Load the unit's cost
             self.unitCosts[unitType] = int(row["Cost"])
+
+    # def _loadTechs(self):
+    #     if Tech.SuperSubs in self.Techs:
+    #         attack, defense = self.unitStrengths[Submarine]
+    #         attack = [x + 2 for x in attack]
+    #         self.unitStrengths[Units.Submarine] = (attack, defense)
+    #         print(self.unitStrengths[Units.Submarine])
 
     def _loadUnits(self, unitList: pd.DataFrame):
         """Use the given unit series to populate the collection with units."""
@@ -152,7 +163,7 @@ class UnitCollection:
         self._unitList.append(self._makeUnit(unitType))
 
     def _makeUnit(self, unitType):
-        unit = unitType(self.unitStrengths[unitType])
+        unit = unitType(self.unitStrengths[unitType], self.Techs)
         unit.cost = self.unitCosts[unitType]
         return unit
 

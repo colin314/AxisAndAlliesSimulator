@@ -1,12 +1,13 @@
 import random
 from dyce import H
-
+from TechMapping import Tech
 
 class Unit:
     diceSize = 12
 
-    def __init__(self):
+    def __init__(self, tech:list[Tech] = []):
         self.cost = 0
+        self.tech = tech
 
     def __lt__(self, other):
         return self.cost <= other.cost
@@ -29,8 +30,7 @@ class AirUnit(Unit):
 
 
 class NavalUnit(Unit):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class NonCombatUnit(Unit):
@@ -41,11 +41,12 @@ class NonCombatUnit(Unit):
 
 
 class CombatUnit(Unit):
-    def __init__(self, strengthArr: list[tuple[int, ...]]):
+    def __init__(self, strengthArr: list[tuple[int, ...]], tech:list[Tech] = []):
+        super().__init__(tech)
         self.attackStrength, self.defenseStrength = strengthArr
         self.didFirstStrike = False
         self._setValidTargets()
-        super().__init__()
+        self.applyTech()
 
     def _setValidTargets(self):
         """All special unit hit restrictions are defined here, rather than in the specific classes."""
@@ -104,19 +105,21 @@ class CombatUnit(Unit):
             dice.append(hitDie)
         return sum(dice)
 
+    def applyTech(self):
+        pass
 
 class ComboUnit(CombatUnit):
     """Represents combined arms effects of combining 2 (or more) units."""
 
-    def __init__(self, strengthArr: list[tuple[int, ...]]):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr: list[tuple[int, ...]], tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class FirstStrikeUnit(CombatUnit):
     """Represents units that make their combat rolls in the first strike phase (i.e. submarines)"""
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
         self._counterUnits = []
 
     def _doFirstStrikeCombat(self, strength, opponent):
@@ -139,51 +142,51 @@ class FirstStrikeUnit(CombatUnit):
 
 
 class Infantry(CombatUnit, LandUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 class Conscript(CombatUnit, LandUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 class MechInfantry(Infantry):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Artillery(CombatUnit, LandUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Tank(CombatUnit, LandUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class AAA(FirstStrikeUnit, LandUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Fighter(CombatUnit, AirUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Bomber(CombatUnit, AirUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class TacticalBomber(Bomber):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class StratBomber(Bomber):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class SurfaceShip(NavalUnit):
@@ -191,50 +194,54 @@ class SurfaceShip(NavalUnit):
 
 
 class Submarine(FirstStrikeUnit, NavalUnit):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
         # TODO: Figure out where to make this definition. Currently double defined
         self.ValidTargets = [NavalUnit]
         self._counterUnits.append(Destroyer)
 
+    def applyTech(self):
+        if Tech.SuperSubs in self.tech:
+            self.attackStrength = [x + 2 for x in self.attackStrength]
+
 
 class Warship(CombatUnit, SurfaceShip):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class DamagedCarrier(Warship):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Carrier(Warship, ComboUnit):
     priority = [DamagedCarrier]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class DamagedBattleship(Warship):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Battleship(Warship, ComboUnit):
     priority = [DamagedBattleship]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Cruiser(Warship):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Destroyer(Warship):
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class Transport(SurfaceShip):
@@ -243,35 +250,35 @@ class Transport(SurfaceShip):
 class ConscriptPair(ComboUnit, Conscript):
     priority=[Conscript, Conscript]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 class InfArt(ComboUnit, Infantry, Artillery):
     priority = [Artillery, Infantry]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class MechInfArt(ComboUnit, MechInfantry, Artillery):
     priority = [Artillery, MechInfantry]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class TankTactBomber(ComboUnit, Tank, TacticalBomber):
     priority = [TacticalBomber, Tank]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 
 class FighterTactBomber(ComboUnit, Fighter, TacticalBomber):
     priority = [TacticalBomber, Fighter]
 
-    def __init__(self, strengthArr):
-        super().__init__(strengthArr)
+    def __init__(self, strengthArr, tech:list[Tech] = []):
+        super().__init__(strengthArr, tech)
 
 class InfArt2(ComboUnit, Artillery, Infantry):
     priority = [InfArt, Infantry]
