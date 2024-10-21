@@ -169,13 +169,14 @@ class UnitCollection:
 
     def _makeComboUnits(self):
         # TODO: Wrap this in conditional so only advanced mech inf powers get it
-        while self._unitTypeInList(MechInfantry) and self._unitTypeInList(Tank):
-            if self._removeUnitType(Tank) == 0:
-                raise Exception("No tank removed when it should have been")
-            if self._removeUnitType(MechInfantry) == 0:
-                raise Exception(
-                    "No mechanized infantry removed when it should have been")
-            self._addUnit(MechInfTank)
+        if Tech.AdvancedMechInfantry in self.Techs:
+            while self._unitTypeInList(MechInfantry) and self._unitTypeInList(Tank):
+                if self._removeUnitType(Tank) == 0:
+                    raise Exception("No tank removed when it should have been")
+                if self._removeUnitType(MechInfantry) == 0:
+                    raise Exception(
+                        "No mechanized infantry removed when it should have been")
+                self._addUnit(MechInfTank)
 
         # Inf & Art
         while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and self._unitTypeInList(Artillery):
@@ -190,23 +191,23 @@ class UnitCollection:
                 continue
             raise Exception("No infantry removed when it should have been")
 
-        # TODO: Wrap this in conditional so only advanced artillery powers get this
-        while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and (self._unitTypeInList(InfArt) or self._unitTypeInList(MechInfArt)):
-            if self._removeUnitType(MechInfArt) == 1:
-                if self._removeUnitType(MechInfantry) == 1:
-                    self._addUnit(MechInfArt2)
-                    continue
-                if self._removeUnitType(Infantry) == 1:
-                    self._addUnit(InfMechInfArt)
-                    continue
-            elif self._removeUnitType(InfArt) == 1:
-                if self._removeUnitType(MechInfantry) == 1:
-                    self._addUnit(InfMechInfArt)
-                    continue
-                if self._removeUnitType(Infantry) == 1:
-                    self._addUnit(InfArt2)
-                    continue
-            raise Exception("Error building advanced artillery support")
+        if Tech.AdvancedArtillery in self.Techs:
+            while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and (self._unitTypeInList(InfArt) or self._unitTypeInList(MechInfArt)):
+                if self._removeUnitType(MechInfArt) == 1:
+                    if self._removeUnitType(MechInfantry) == 1:
+                        self._addUnit(MechInfArt2)
+                        continue
+                    if self._removeUnitType(Infantry) == 1:
+                        self._addUnit(InfMechInfArt)
+                        continue
+                elif self._removeUnitType(InfArt) == 1:
+                    if self._removeUnitType(MechInfantry) == 1:
+                        self._addUnit(InfMechInfArt)
+                        continue
+                    if self._removeUnitType(Infantry) == 1:
+                        self._addUnit(InfArt2)
+                        continue
+                raise Exception("Error building advanced artillery support")
 
         # Tactical bomber combined arms
         while self._unitTypeInList(TacticalBomber) and (self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)):
