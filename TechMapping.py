@@ -14,7 +14,7 @@ class TechMapping():
             case "GERMANS":
                 return [Tech.AdvancedMechInfantry, Tech.JetFighters, Tech.SuperSubs]
             case "AMERICANS": 
-                return [Tech.AdvancedArtillery, Tech.AdvancedMechInfantry, Tech.Radar]
+                return [Tech.AdvancedArtillery, Tech.AdvancedMechInfantry, Tech.Radar, Tech.HeavyBombers]
             case "RUSSIANS":
                 return [Tech.AdvancedArtillery]
             case "BRITISH":

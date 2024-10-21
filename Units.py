@@ -8,6 +8,7 @@ class Unit:
     def __init__(self, tech:list[Tech] = []):
         self.cost = 0
         self.tech = tech
+        self.advantage = False
 
     def __lt__(self, other):
         return self.cost <= other.cost
@@ -20,13 +21,11 @@ class Unit:
 
 
 class LandUnit(Unit):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class AirUnit(Unit):
-    def __init__(self):
-        super().__init__()
+    pass
 
 
 class NavalUnit(Unit):
@@ -62,6 +61,10 @@ class CombatUnit(Unit):
         hits = 0
         for value in rollValues:
             x = random.randint(1, Unit.diceSize)
+            print(f"first roll: {x}")
+            if self.advantage:
+                x = min(x,random.randint(1, Unit.diceSize))
+                print(f"second roll: {x}")
             hits += 1 if x <= value else 0
         return hits
 
@@ -187,6 +190,8 @@ class TacticalBomber(Bomber):
 class StratBomber(Bomber):
     def __init__(self, strengthArr, tech:list[Tech] = []):
         super().__init__(strengthArr, tech)
+        if Tech.HeavyBombers in self.tech:
+            self.advantage = True
 
 
 class SurfaceShip(NavalUnit):
