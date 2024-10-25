@@ -75,6 +75,7 @@ class Simulator:
             and not retreat
             and round < maxRounds
         ):
+            os.system("cls")
             attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
@@ -86,16 +87,18 @@ class Simulator:
             self.defender.takeLosses(attackerHits)
 
             # General Combat Phase
+            print(f"{Fmt.AttackerHead}")
             attackerHits = self.attacker.attack()
-            defenderHits = self.defender.defend()
             attackerHitCount += len(attackerHits)
+            defUnits = UICasualties.GetUnitCasualties(isLand, self.defender.generateUnitDict(isLand=isLand), attackerHitCount)
+            
+            print(f"{Fmt.DefenderHead}")
+            defenderHits = self.defender.defend()
             defenderHitCount += len(defenderHits)
-            units = UICasualties.GetUnitCasualties(isLand, self.defender.generateUnitDict(isLand=isLand), attackerHitCount)
-            self.defender.reloadUnitsFromDict(units)
-            units = UICasualties.GetUnitCasualties(isLand, self.attacker.generateUnitDict(isLand=isLand), defenderHitCount)
-            self.attacker.reloadUnitsFromDict(units)
-            # self.attacker.takeLosses(defenderHits)
-            # self.defender.takeLosses(attackerHits)
+            attUnits = UICasualties.GetUnitCasualties(isLand, self.attacker.generateUnitDict(isLand=isLand), defenderHitCount)
+            
+            self.attacker.reloadUnitsFromDict(attUnits)
+            self.defender.reloadUnitsFromDict(defUnits)
 
             retreat = self.attacker.currHP() <= retreatThreshold
 
@@ -121,75 +124,6 @@ class Simulator:
             self.PrintBattleOutcome()
         return (self.attacker.currHP(), self.defender.currHP())
 
-    def SimulateBattleData(self, battleCount=1000, retreatThreshold=0, maxRounds=-1):
-        resultArr = []
-        self.reset()
-        for i in range(battleCount):
-            (a, d) = self.SimulateBattle()
-            attackerWon = 1 if a > d else 0
-            tuvSwing = self.attacker.valueDelta() - self.defender.valueDelta()
-            results = [attackerWon, a, d, tuvSwing]
-            resultArr.append(results)
-            self.attacker.reset()
-            self.defender.reset()
-
-        resultDf = pd.DataFrame(
-            resultArr,
-            columns=[
-                "Attacker Won",
-                "Remainder Attacker",
-                "Remainder Defender",
-                "Average IPC Swing (Attacker)",
-            ],
-        )
-        attackWinRate = resultDf["Attacker Won"].mean()
-        defenderWinRate = 1 - attackWinRate
-        victoryData = resultDf.groupby("Attacker Won").mean()
-
-        resultArr = [
-            attackWinRate,
-            victoryData["Remainder Attacker"][1] if 1 in victoryData.index else 0,
-            (
-                victoryData["Average IPC Swing (Attacker)"][1]
-                if 1 in victoryData.index
-                else 0
-            ),
-            defenderWinRate,
-            victoryData["Remainder Defender"][0] if 0 in victoryData.index else 0,
-            (
-                victoryData["Average IPC Swing (Attacker)"][0]
-                if 0 in victoryData.index
-                else 0
-            ),
-        ]
-        attackerStats = self.attacker.GetCollectionStats(True)
-        defenderStats = self.defender.GetCollectionStats(False)
-        resultArr.extend(
-            [
-                attackerStats["HP"],
-                attackerStats["IPC / HP"],
-                attackerStats["Expected Hits"],
-                attackerStats["IPC / Hit"],
-                attackerStats["endurance"],
-                attackerStats["enduranceRatio"],
-                attackerStats["lostValue"],
-                attackerStats["Lost / Unit"],
-            ]
-        )
-        resultArr.extend(
-            [
-                defenderStats["HP"],
-                defenderStats["IPC / HP"],
-                defenderStats["Expected Hits"],
-                defenderStats["IPC / Hit"],
-                defenderStats["endurance"],
-                defenderStats["enduranceRatio"],
-                defenderStats["lostValue"],
-                defenderStats["Lost / Unit"],
-            ]
-        )
-        return resultArr
-
     def _getRoundStats(
         self,
         round: int,
@@ -211,77 +145,9 @@ class Simulator:
         ]
         return dataRow
 
-    def SimulateBattleWithStats(
-        self,
-        retreatThreshold=0,
-        maxRounds=-1,
-    ):
-        maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
-        self.reset()
-        round = 0
-        headers = [
-            "Attacker HP",
-            "Attacker TUV",
-            "Attacker Expected Hits",
-            "Attacker Actual Hits",
-            "Defender HP",
-            "Defender TUV",
-            "Defender Expected Hits",
-            "Defender Actual Hits",
-        ]
-        roundStats = []
-        attackerExpected = self.attacker.expectedHits(isAttack=True)
-        defenderExpected = self.defender.expectedHits(isAttack=False)
-        roundStats.append(
-            self._getRoundStats(round, attackerExpected, defenderExpected, 0, 0)
-        )
-        retreat = False
-        while (
-            self.attacker.currHP() > 0
-            and self.defender.currHP() > 0
-            and not retreat
-            and round < maxRounds
-        ):
-            round += 1
-            attackerHitCount = 0
-            defenderHitCount = 0
-            attackerExpected = self.attacker.expectedHits(isAttack=True)
-            defenderExpected = self.defender.expectedHits(isAttack=False)
-
-            # First Strike Phase
-            attackerHits = self.attacker.firstStrikeAttack(self.defender)
-            defenderHits = self.defender.firstStrikeDefend(self.attacker)
-            attackerHitCount = len(attackerHits)
-            defenderHitCount = len(defenderHits)
-            self.attacker.takeLosses(defenderHits)
-            self.defender.takeLosses(attackerHits)
-
-            # General Combat Phase
-            attackerHits = self.attacker.attack()
-            defenderHits = self.defender.defend()
-            attackerHitCount += len(attackerHits)
-            defenderHitCount += len(defenderHits)
-            self.attacker.takeLosses(defenderHits)
-            self.defender.takeLosses(attackerHits)
-
-            roundStats.append(
-                self._getRoundStats(
-                    round,
-                    attackerExpected,
-                    defenderExpected,
-                    attackerHitCount,
-                    defenderHitCount,
-                )
-            )
-
-            retreat = self.attacker.currHP() <= retreatThreshold
-
-        return roundStats
-
     def PrintBattleState(
         self, round, attacker: UnitCollection, defender: UnitCollection, aH, dH
     ):
-        os.system("cls")
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
         print("\u2500" * 40)
         print(f"{Fmt.Attacker} Hits: {aH}")

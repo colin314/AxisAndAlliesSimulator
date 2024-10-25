@@ -36,9 +36,6 @@ class NonCombatUnit(Unit):
     def __init__(self):
         super().__init__()
 
-# TODO: Refactor to use lists for attackStrength and defenseStrength
-
-
 class CombatUnit(Unit):
     def __init__(self, strengthArr: list[tuple[int, ...]], tech:list[Tech] = []):
         super().__init__(tech)
@@ -61,11 +58,12 @@ class CombatUnit(Unit):
         hits = 0
         for value in rollValues:
             x = random.randint(1, Unit.diceSize)
-            print(f"first roll: {x}")
+            # print(f"first roll: {x}")
             if self.advantage:
                 x = min(x,random.randint(1, Unit.diceSize))
-                print(f"second roll: {x}")
+                # print(f"second roll: {x}")
             hits += 1 if x <= value else 0
+            print(f"{f"{self.__class__.__name__}:":<15} {f"{x} / {value}:":>8} {"HIT" if x <= value else "-"}")
         return hits
 
     def _doStandardCombat(self, strength):
