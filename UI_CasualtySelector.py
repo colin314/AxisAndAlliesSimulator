@@ -122,6 +122,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         return origUnitCnt - newUnitCnt
 
     def loseUnit(unit):
+        print(f"Losing {unit}")
         # Get tk vars
         lostVar = spinboxValDict[unit]
         lostUnits = numUnitsLost(unit)
@@ -139,6 +140,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         remainingVar.set(str(remainingUnits - 1))
 
     def unloseUnit(unit):
+        print(f"Unlosing {unit}")
         originalCnt = currentUnits[unit]
         currentCnt = getUnitsLeft(unit)
         lostUnitCnt = numUnitsLost(unit)
@@ -151,16 +153,29 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         lostVar.set(lostUnitCnt - 1)
         remainingVar.set(str(currentCnt + 1))
 
-    # def updateCasualtyLabel(spinboxNum, value):
-    #     # Get old value
-    #     val = currentUnits[unitDict[spinboxNum]]
-    #     newVal = val - int(value)
-    #     # Validate
-    #     if newVal < 0:
-    #         spinboxVals[spinboxNum].set(spinboxVals[spinboxNum].get() - 1)
-    #         newVal = 0
-    #     casualtyVals[spinboxNum].set(f"{newVal}")
-    #     print(getTotalCasualties())
+    def updateCasualtyLabel(spinboxNum, value):
+        # Get old value
+        unit = unitDict[spinboxNum]
+        originalCnt = currentUnits[unit]
+        remaining = getUnitsLeft(unit)
+        lost = originalCnt - remaining
+        if lost == (value + 1):
+            spinboxValDict[unit].set(lost)
+            unloseUnit(unit)
+        elif lost == (value - 1):
+            spinboxValDict[unit].set(lost)
+            loseUnit(unit)
+        else:
+            raise Exception("Whoopsie")
+        
+        # val = currentUnits[unitDict[spinboxNum]]
+        # newVal = val - int(value)
+        # # Validate
+        # if newVal < 0:
+        #     spinboxVals[spinboxNum].set(spinboxVals[spinboxNum].get() - 1)
+        #     newVal = 0
+        # casualtyVals[spinboxNum].set(f"{newVal}")
+        # print(getTotalCasualties())
 
     for col in range(UNITCOUNT):
         # Current unit counts
@@ -172,7 +187,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         spinboxValDict[unitDict[col]] = var
         spinboxVals[col] = var
         spinboxes[col] = tk.Spinbox(
-            root, from_=0, to=100, width=5, font=('Arial', 14), textvariable=var, command=lambda i=col: updateCasualtyLabel(i, spinboxes[i].get()))
+            root, from_=0, to=100, width=5, font=('Arial', 14), textvariable=var, command=lambda i=col: updateCasualtyLabel(i, spinboxVals[i].get()))
         spinboxes[col].grid(row=3, column=col, padx=5, pady=5)
         spinboxes[col].bind("<FocusIn>", select_all)
         # Override arrow behavior
