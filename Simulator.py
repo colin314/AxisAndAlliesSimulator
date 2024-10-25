@@ -90,20 +90,24 @@ class Simulator:
             print(f"{Fmt.AttackerHead}")
             attackerHits = self.attacker.attack()
             attackerHitCount += len(attackerHits)
+            # Assign hits
+            attackerHits = len(attackerHits)
             defUnits = self.defender.generateUnitDict(isLand=isLand)
-            if attackerHitCount > 0:
-                if attackerHitCount < self.defender.currHP():
-                    defUnits = UICasualties.GetUnitCasualties(isLand, defUnits, attackerHitCount)
+            if attackerHits > 0:
+                if attackerHits < self.defender.currHP():
+                    defUnits = UICasualties.GetUnitCasualties(isLand, defUnits, attackerHits)
                 else:
                     defUnits = {}
             
             print(f"{Fmt.DefenderHead}")
             defenderHits = self.defender.defend()
             defenderHitCount += len(defenderHits)
+            # Assign hits to attacker
+            defenderHits = len(defenderHits)
             attUnits = self.attacker.generateUnitDict(isLand=isLand)
-            if defenderHitCount > 0:
-                if defenderHitCount < self.attacker.currHP():
-                    attUnits = UICasualties.GetUnitCasualties(isLand, attUnits, defenderHitCount)
+            if defenderHits > 0:
+                if defenderHits < self.attacker.currHP():
+                    attUnits = UICasualties.GetUnitCasualties(isLand, attUnits, defenderHits)
                 else:
                     attUnits = {}
             
@@ -378,7 +382,8 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    lists = GetUnitList(isLand=True)
+    isLand = False
+    lists = GetUnitList(isLand=isLand)
     print(lists)
     attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
         lists["attacker"], "Basic"
@@ -387,4 +392,4 @@ if __name__ == "__main__":
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
-    sim.SimulateBattle(printBattle=True, printOutcome=True)
+    sim.SimulateBattle(printBattle=True, printOutcome=True,isLand=isLand)

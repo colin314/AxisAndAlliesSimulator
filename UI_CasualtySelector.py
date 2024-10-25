@@ -58,7 +58,6 @@ class UICasualties:
                 7: "bomber",
                 8: "battleship_hit",
                 9: "carrier_hit",
-                10: "transport",
             }
             lossOrder = defaultLossOrder_Naval
             # Just create the "hit" version of 2 HP units
