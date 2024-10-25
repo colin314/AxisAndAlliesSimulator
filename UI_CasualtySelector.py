@@ -272,9 +272,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     submit_button = tk.Button(
         rootCas, text="Submit", command=rootCas.destroy, font=("Arial", 14)
     )
+    rootCas.bind("<Return>",lambda e:rootCas.destroy())
     submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
-    resetButton = tk.Button(rootCas, text="Reset", command=resetBoxes, font=("Arial", 14))
-    resetButton.grid(row=9, columnspan=UNITCOUNT // 2, pady=10, column=UNITCOUNT // 2)
 
     # Start the Tkinter event loop
     rootCas.mainloop()

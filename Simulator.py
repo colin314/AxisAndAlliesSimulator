@@ -329,27 +329,6 @@ class Simulator:
         groupedDf.rename(columns={"Round": "Count"}, inplace=True)
         groupedDf.reset_index()
         groupedDf.to_csv("tmp2.csv", sep="\t")
-        # }).reset_index(level=0, drop=True)
-        # groupedDf.rename(columns={"Round": "Count"}, inplace=True)
-        # print(groupedDf)
-        # groupedDf.index.name = "Round"
-        # print(groupedDf)
-
-        # resultDf = pd.DataFrame(resultArr, columns=[
-        #                         "Attacker Won", "Remainder Attacker", "Remainder Defender", "Average IPC Swing (Attacker)"])
-        # attackWinRate = resultDf["Attacker Won"].mean()
-        # print(f"Attacker wins {Fore.RED}{attackWinRate:2.2%}{
-        #       Style.RESET_ALL} percent of the time.")
-        # victoryData = resultDf.groupby("Attacker Won").mean()
-        # victoryData = victoryData.set_axis(
-        #     ["Defender Won", "Attacker Won"], axis='index')
-        # victoryData["Units Remaining"] = victoryData[[
-        #     "Remainder Attacker", "Remainder Defender"]].max(axis=1)
-        # victoryData = victoryData[[
-        #     "Units Remaining", "Average IPC Swing (Attacker)"]]
-        # print(tabulate(victoryData, headers="keys", tablefmt="fancy_grid"))
-        # print()
-        # self.reset()
 
     def swapPlaces(attacker, defender):
         return (defender, attacker)
