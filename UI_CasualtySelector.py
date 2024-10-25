@@ -3,16 +3,30 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
-defaultLossOrder_Ground = ["conscript",
-                           "aaGun",
-                           "infantry",
-                           "mech_infantry",
-                           "artillery",
-                           "armour",
-                           "fighter",
-                           "tactical_bomber",
-                           "bomber",
-                           ]
+defaultLossOrder_Ground = [
+    "conscript",
+    "aaGun",
+    "infantry",
+    "mech_infantry",
+    "artillery",
+    "armour",
+    "fighter",
+    "tactical_bomber",
+    "bomber",
+]
+
+defaultLossOrder_Naval = [
+    "battleship",
+    "carrier",
+    "submarine",
+    "destroyer",
+    "cruiser",
+    "fighter",
+    "tactical_bomber",
+    "bomber",
+    "carrier_hit",
+    "battleship_hit",
+]
 
 
 class Combatant:
@@ -26,7 +40,7 @@ class Combatant:
 
 def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
     global root
-    imagesDirectory = '.\\Resources\\Neutral'
+    imagesDirectory = ".\\Resources\\Neutral"
     if isLand:
         unitDict = {
             0: "infantry",
@@ -38,9 +52,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
             6: "bomber",
             7: "aaGun",
             8: "conscript",
-            9: "cruiser",
-            10: "battleship",
         }
+        lossOrder = defaultLossOrder_Ground
     else:
         unitDict = {
             0: "submarine",
@@ -55,6 +68,14 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
             9: "carrier_hit",
             10: "transport",
         }
+        lossOrder = defaultLossOrder_Naval
+        # Just create the "hit" version of 2 HP units
+        currentUnits["carrier_hit"] = (
+            currentUnits["carrier_hit"] + currentUnits["carrier"]
+        )
+        currentUnits["battleship_hit"] = (
+            currentUnits["battleship_hit"] + currentUnits["carrier"]
+        )
     UNITCOUNT = len(unitDict)
 
     def get_file_paths(directory):
@@ -105,15 +126,15 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
     def leftToSelect():
         return numHits - getTotalCasualties()
 
-    def getUnitsLeft(unit:str):
+    def getUnitsLeft(unit: str):
         return int(casualtyValDict[unit].get())
 
-    def numUnitsLost(unit:str):
+    def numUnitsLost(unit: str):
         return spinboxValDict[unit].get()
 
     def assignDefaultCasualties(numHits):
         assignedHits = 0
-        for unit in defaultLossOrder_Ground:
+        for unit in lossOrder:
             unitsLeft = getUnitsLeft(unit)
             while unitsLeft > 0 and assignedHits < numHits:
                 loseUnit(unit)
@@ -122,15 +143,12 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
             if assignedHits >= numHits:
                 break
 
-
-
     def getTotalCasualties():
         origUnitCnt = sum(currentUnits.values())
         newUnitCnt = sum([int(i.get()) for i in casualtyVals])
         return origUnitCnt - newUnitCnt
 
     def loseUnit(unit):
-        print(f"Losing {unit}")
         if leftToSelect() == 0:
             return
         # Get tk vars
@@ -144,21 +162,20 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         # If no units left, do nothing
         if remainingUnits == 0:
             return
-        
+
         # Update labels
         lostVar.set(lostUnits + 1)
         remainingVar.set(str(remainingUnits - 1))
         updateMainLbl()
 
     def unloseUnit(unit):
-        print(f"Unlosing {unit}")
         originalCnt = currentUnits[unit]
         currentCnt = getUnitsLeft(unit)
         lostUnitCnt = numUnitsLost(unit)
 
         if currentCnt == originalCnt:
             return
-        
+
         lostVar = spinboxValDict[unit]
         remainingVar = casualtyValDict[unit]
         lostVar.set(lostUnitCnt - 1)
@@ -184,15 +201,21 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     for col in range(UNITCOUNT):
         # Current unit counts
-        lbl = tk.Label(root, text=str(
-            currentUnits[unitDict[col]]), font=('Arial', 14))
+        lbl = tk.Label(root, text=str(currentUnits[unitDict[col]]), font=("Arial", 14))
         lbl.grid(row=2, column=col, padx=5, pady=5)
         # Spin Boxes
         var = tk.IntVar(value=0)
         spinboxValDict[unitDict[col]] = var
         spinboxVals[col] = var
         spinboxes[col] = tk.Spinbox(
-            root, from_=0, to=10000, width=5, font=('Arial', 14), textvariable=var, command=lambda i=col: updateCasualtyLabel(i, spinboxVals[i].get()))
+            root,
+            from_=0,
+            to=10000,
+            width=5,
+            font=("Arial", 14),
+            textvariable=var,
+            command=lambda i=col: updateCasualtyLabel(i, spinboxVals[i].get()),
+        )
         spinboxes[col].grid(row=3, column=col, padx=5, pady=5)
         spinboxes[col].bind("<FocusIn>", select_all)
         # Override arrow behavior
@@ -207,7 +230,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         lbl.grid(row=1, column=col, padx=5, pady=5)
 
         strVar = tk.StringVar(value=str(currentUnits[unitDict[col]]))
-        lbl = tk.Label(root, textvariable=strVar, font=('Arial', 14))
+        lbl = tk.Label(root, textvariable=strVar, font=("Arial", 14))
         lbl.grid(row=4, column=col, padx=5, pady=5)
         casualtyLabels[col] = lbl
         casualtyVals[col] = strVar
@@ -217,12 +240,11 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     # Create a Submit button
     submit_button = tk.Button(
-        root, text="Submit", command=root.destroy, font=('Arial', 14))
-    submit_button.grid(row=9, columnspan=UNITCOUNT//2, pady=10)
-    resetButton = tk.Button(
-        root, text="Reset", command=resetBoxes, font=('Arial', 14))
-    resetButton.grid(row=9, columnspan=UNITCOUNT//2,
-                     pady=10, column=UNITCOUNT//2)
+        root, text="Submit", command=root.destroy, font=("Arial", 14)
+    )
+    submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
+    resetButton = tk.Button(root, text="Reset", command=resetBoxes, font=("Arial", 14))
+    resetButton.grid(row=9, columnspan=UNITCOUNT // 2, pady=10, column=UNITCOUNT // 2)
 
     # Start the Tkinter event loop
     root.mainloop()
@@ -243,19 +265,32 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
 
 if __name__ == "__main__":
+    # currentUnits = {
+    #     "infantry": 60,
+    #     "mech_infantry": 16,
+    #     "artillery": 300,
+    #     "armour": 5000,
+    #     "fighter": 3,
+    #     "tactical_bomber": 1,
+    #     "bomber": 2,
+    #     "aaGun": 5,
+    #     "conscript": 500,
+    #     "cruiser": 0,
+    #     "battleship": 0,
+    # }
     currentUnits = {
-        "infantry": 60,
-        "mech_infantry": 16,
-        "artillery": 300,
-        "armour": 5000,
-        "fighter": 3,
+        "submarine": 2,
+        "destroyer": 1,
+        "cruiser": 1,
+        "battleship": 1,
+        "carrier": 1,
+        "fighter": 1,
         "tactical_bomber": 1,
-        "bomber": 2,
-        "aaGun": 0,
-        "conscript": 0,
-        "cruiser": 0,
-        "battleship": 0,
+        "bomber": 1,
+        "battleship_hit": 1,
+        "carrier_hit": 1,
+        "transport": 0,
     }
-    vals = GetUnitCasualties(True, currentUnits, 3516)
+    vals = GetUnitCasualties(False, currentUnits, 3)
 
     print(vals)
