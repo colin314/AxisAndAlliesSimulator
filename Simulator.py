@@ -12,6 +12,7 @@ from Resources import bcolors
 import sys
 from tabulate import tabulate
 from UI_UnitSelector import GetUnitList, Combatant
+from UI_CasualtySelector import UICasualties
 
 unitListsFile = "unitLists.csv"
 from UnitsEnum import Units
@@ -58,6 +59,7 @@ class Simulator:
         maxRounds=-1,
         printOutcome=False,
         printBattle=False,
+        isLand:bool=True
     ):
         maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
         self.attacker.reset()
@@ -88,8 +90,12 @@ class Simulator:
             defenderHits = self.defender.defend()
             attackerHitCount += len(attackerHits)
             defenderHitCount += len(defenderHits)
-            self.attacker.takeLosses(defenderHits)
-            self.defender.takeLosses(attackerHits)
+            units = UICasualties.GetUnitCasualties(isLand, self.defender.generateUnitDict(isLand=isLand), attackerHitCount)
+            self.defender.reloadUnitsFromDict(units)
+            units = UICasualties.GetUnitCasualties(isLand, self.attacker.generateUnitDict(isLand=isLand), defenderHitCount)
+            self.attacker.reloadUnitsFromDict(units)
+            # self.attacker.takeLosses(defenderHits)
+            # self.defender.takeLosses(attackerHits)
 
             retreat = self.attacker.currHP() <= retreatThreshold
 
@@ -496,7 +502,7 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    lists = GetUnitList(isLand=False)
+    lists = GetUnitList(isLand=True)
     attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
         lists["attacker"], "Basic"
     )
@@ -504,10 +510,4 @@ if __name__ == "__main__":
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
-    unitDict = attacker.generateUnitDict(isLand=False)
-    attacker.PrintCollection()
-    unitDict["fighter"] = 1
-    attacker.reloadUnitsFromDict(unitDict)
-    attacker.PrintCollection()
-    exit()
     sim.SimulateBattle(printBattle=True, printOutcome=True)
