@@ -79,39 +79,42 @@ class Simulator:
             attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
-            print(f"{Fmt.Attacker} Submarines:")
-            attackerHits = self.attacker.firstStrikeAttack(self.defender)
-            print(f"{Fmt.Defender} Submarines:")
-            defenderHits = self.defender.firstStrikeDefend(self.attacker)
-            attackerHitCount += len(attackerHits)
-            defenderHitCount += len(defenderHits)
-            self.attacker.takeLosses(defenderHits)
-            self.defender.takeLosses(attackerHits)
+            if self.attacker.CanFirstStrike():
+                print(f"{Fmt.Attacker} Submarines:")
+                attackerHits = self.attacker.firstStrikeAttack(self.defender)
+                attackerHitCount += len(attackerHits)
+                defUnits = self._getCasualties(self.defender, len(attackerHits), isLand, "Defender")
+
+            if self.defender.CanFirstStrike():
+                print(f"{Fmt.Defender} Submarines:")
+                defenderHits = self.defender.firstStrikeDefend(self.attacker)
+                defenderHitCount += len(defenderHits)
+                attUnits = self._getCasualties(self.attacker, len(defenderHits), isLand,"Attacker")
+
+            if self.attacker.CanFirstStrike():
+                self.defender.reloadUnitsFromDict(defUnits)
+                for u in self.defender._unitList:
+                    if isinstance(u, FirstStrikeUnit):
+                        u.didFirstStrike = True
+
+            if self.defender.CanFirstStrike():
+                self.attacker.reloadUnitsFromDict(attUnits)
+                for u in self.attacker._unitList:
+                    if isinstance(u, FirstStrikeUnit):
+                        u.didFirstStrike = True
 
             # General Combat Phase
             print(f"{Fmt.AttackerHead}")
             attackerHits = self.attacker.attack()
             attackerHitCount += len(attackerHits)
             # Assign hits
-            attackerHits = len(attackerHits)
-            defUnits = self.defender.generateUnitDict(isLand=isLand)
-            if attackerHits > 0:
-                if attackerHits < self.defender.currHP():
-                    defUnits = GetUnitCasualties(isLand, defUnits, attackerHits)
-                else:
-                    defUnits = {}
+            defUnits = self._getCasualties(self.defender, len(attackerHits),isLand,"Defender")
             
             print(f"{Fmt.DefenderHead}")
             defenderHits = self.defender.defend()
             defenderHitCount += len(defenderHits)
             # Assign hits to attacker
-            defenderHits = len(defenderHits)
-            attUnits = self.attacker.generateUnitDict(isLand=isLand)
-            if defenderHits > 0:
-                if defenderHits < self.attacker.currHP():
-                    attUnits = GetUnitCasualties(isLand, attUnits, defenderHits)
-                else:
-                    attUnits = {}
+            attUnits = self._getCasualties(self.attacker, len(defenderHits),isLand,"Attacker")
             
             self.attacker.reloadUnitsFromDict(attUnits)
             self.defender.reloadUnitsFromDict(defUnits)
@@ -139,6 +142,16 @@ class Simulator:
         if printOutcome:
             self.PrintBattleOutcome()
         return (self.attacker.currHP(), self.defender.currHP())
+
+    def _getCasualties(self, combatant:UnitCollection, numHits:int, isLand:bool, side:str):
+            unitDict = combatant.generateUnitDict(isLand=isLand)
+            if numHits > 0:
+                if numHits < combatant.currHP():
+                    unitDict = GetUnitCasualties(isLand, unitDict, numHits, side)
+                else:
+                    unitDict = {}
+            
+            return unitDict
 
     def _getRoundStats(
         self,
@@ -384,9 +397,8 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    isLand = False
+    isLand = True
     lists = GetUnitList(isLand=isLand)
-    print(lists)
     attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
         lists["attacker"], "Basic"
     )

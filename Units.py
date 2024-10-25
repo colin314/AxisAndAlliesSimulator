@@ -321,7 +321,7 @@ class InfArt2(ComboUnit, Artillery, Infantry):
     priority = [InfArt, Infantry]
 
 class MechInfArt2(MechInfArt):
-    priority = [MechInfArt, MechInfantry]
+    priority = [MechInfArt, MechInfantry, MechInfantry]
 
 class InfMechInfArt(InfArt, MechInfArt):
     priority = [MechInfArt, Infantry]

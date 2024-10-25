@@ -413,9 +413,7 @@ class UnitCollection:
         return stats
 
     def currHP(self):
-        return len(
-            [u for u in self._unitList if not isinstance(u, ComboUnit)]
-        ) + 2 * len([u for u in self._unitList if isinstance(u, ComboUnit)])
+        return len(self._getGranularUnitList())
 
     def unitCount(self):
         unitCount = 0

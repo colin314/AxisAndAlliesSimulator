@@ -30,7 +30,7 @@ defaultLossOrder_Naval = [
 ]
 
 
-def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
+def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:str):
     isNaval = not isLand
     imagesDirectory = ".\\Resources\\Neutral"
     if isLand:
@@ -101,7 +101,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
     casualtyValDict = {}
     returnDict = {}
 
-    mainLblVar = tk.StringVar(value=f"Select 0 more casualties (of {numHits})")
+    mainLblVar = tk.StringVar(value=f"{side}: Select 0 more casualties (of {numHits})")
     label = tk.Label(rootCas, font=("Arial", 14), textvariable=mainLblVar)
     label.grid(row=0, columnspan=UNITCOUNT, pady=10)
 
