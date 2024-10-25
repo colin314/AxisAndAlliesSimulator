@@ -192,7 +192,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         spinboxValDict[unitDict[col]] = var
         spinboxVals[col] = var
         spinboxes[col] = tk.Spinbox(
-            root, from_=0, to=100, width=5, font=('Arial', 14), textvariable=var, command=lambda i=col: updateCasualtyLabel(i, spinboxVals[i].get()))
+            root, from_=0, to=10000, width=5, font=('Arial', 14), textvariable=var, command=lambda i=col: updateCasualtyLabel(i, spinboxVals[i].get()))
         spinboxes[col].grid(row=3, column=col, padx=5, pady=5)
         spinboxes[col].bind("<FocusIn>", select_all)
         # Override arrow behavior
