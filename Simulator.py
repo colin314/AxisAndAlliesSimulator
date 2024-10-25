@@ -90,16 +90,16 @@ class Simulator:
             print(f"{Fmt.AttackerHead}")
             attackerHits = self.attacker.attack()
             attackerHitCount += len(attackerHits)
-            defUnits = {}
+            defUnits = self.defender.generateUnitDict(isLand=isLand)
             if attackerHitCount > 0:
-                defUnits = UICasualties.GetUnitCasualties(isLand, self.defender.generateUnitDict(isLand=isLand), attackerHitCount)
+                defUnits = UICasualties.GetUnitCasualties(isLand, defUnits, attackerHitCount)
             
             print(f"{Fmt.DefenderHead}")
             defenderHits = self.defender.defend()
             defenderHitCount += len(defenderHits)
-            attUnits = {}
+            attUnits = self.attacker.generateUnitDict(isLand=isLand)
             if defenderHitCount > 0:
-                attUnits = UICasualties.GetUnitCasualties(isLand, self.attacker.generateUnitDict(isLand=isLand), defenderHitCount)
+                attUnits = UICasualties.GetUnitCasualties(isLand, attUnits, defenderHitCount)
             
             self.attacker.reloadUnitsFromDict(attUnits)
             self.defender.reloadUnitsFromDict(defUnits)

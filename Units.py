@@ -1,6 +1,24 @@
 import random
 from dyce import H
 from TechMapping import Tech
+from tqdm import tqdm
+import sys
+from colorama import Style
+from colorama import Back
+from colorama import Fore
+from colorama import init as colorama_init
+
+class UFmt:
+    attHead = f"{Back.RED}{Style.BRIGHT}{Fore.WHITE}"
+    tmp = f"{Back.RED}{Fore.WHITE}"
+    defHead = f"{Back.BLUE}{Style.BRIGHT}{Fore.WHITE}"
+    att = f"{Fore.LIGHTRED_EX}"
+    df = f"{Fore.LIGHTBLUE_EX}"
+    genHead = f"{Back.WHITE}{Fore.BLACK}"
+    Attacker = f"{att}Attacker{Style.RESET_ALL}"
+    Defender = f"{df}Defender{Style.RESET_ALL}"
+    AttackerHead = f"{attHead}Attacker{Style.RESET_ALL}"
+    DefenderHead = f"{defHead}Defender{Style.RESET_ALL}"
 
 class Unit:
     diceSize = 12
@@ -18,6 +36,21 @@ class Unit:
 
     def __gt__(self, other):
         return self.cost > other.cost
+
+    def _getRollStr(roll, strength):
+        adjStr = (13 - strength)
+        adjRoll = (13 - roll)
+        length = 12
+        if roll <= strength:
+            p1 = Fore.GREEN + '█' * roll
+            p2 = Fore.BLACK + '█' * (strength - roll) 
+            p3 = Style.RESET_ALL + '-' * (length - strength)
+        else:
+            p1 = Fore.LIGHTRED_EX + '█' * strength
+            p2 = Fore.RED + '█' * (roll-strength)
+            p3 = Style.RESET_ALL + '-' * (length - roll)
+        bar = p1 + p2 + p3
+        return f'|{bar}| {roll} / {strength}'
 
 
 class LandUnit(Unit):
@@ -63,7 +96,8 @@ class CombatUnit(Unit):
                 x = min(x,random.randint(1, Unit.diceSize))
                 # print(f"second roll: {x}")
             hits += 1 if x <= value else 0
-            print(f"{f"{self.__class__.__name__}:":<15} {f"{x} / {value}:":>8} {"HIT" if x <= value else "-"}")
+            sys.stdout.write(f"{f"{self.__class__.__name__}:":<15} {Unit._getRollStr(x,value)} {"HIT" if x <= value else ""}\n")
+            sys.stdout.flush()
         return hits
 
     def _doStandardCombat(self, strength):
