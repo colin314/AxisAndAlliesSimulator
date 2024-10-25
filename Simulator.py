@@ -12,7 +12,7 @@ from Resources import bcolors
 import sys
 from tabulate import tabulate
 from UI_UnitSelector import GetUnitList, Combatant
-from UI_CasualtySelector import UICasualties
+from UI_CasualtySelector import GetUnitCasualties
 
 unitListsFile = "unitLists.csv"
 from UnitsEnum import Units
@@ -79,7 +79,9 @@ class Simulator:
             attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
+            print(f"{Fmt.Attacker} Submarines:")
             attackerHits = self.attacker.firstStrikeAttack(self.defender)
+            print(f"{Fmt.Defender} Submarines:")
             defenderHits = self.defender.firstStrikeDefend(self.attacker)
             attackerHitCount += len(attackerHits)
             defenderHitCount += len(defenderHits)
@@ -95,7 +97,7 @@ class Simulator:
             defUnits = self.defender.generateUnitDict(isLand=isLand)
             if attackerHits > 0:
                 if attackerHits < self.defender.currHP():
-                    defUnits = UICasualties.GetUnitCasualties(isLand, defUnits, attackerHits)
+                    defUnits = GetUnitCasualties(isLand, defUnits, attackerHits)
                 else:
                     defUnits = {}
             
@@ -107,7 +109,7 @@ class Simulator:
             attUnits = self.attacker.generateUnitDict(isLand=isLand)
             if defenderHits > 0:
                 if defenderHits < self.attacker.currHP():
-                    attUnits = UICasualties.GetUnitCasualties(isLand, attUnits, defenderHits)
+                    attUnits = GetUnitCasualties(isLand, attUnits, defenderHits)
                 else:
                     attUnits = {}
             

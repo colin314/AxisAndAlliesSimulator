@@ -589,6 +589,9 @@ class UnitCollection:
                 )
                 print(hitList)
 
+    def CanFirstStrike(self):
+        return self._unitInstanceInList(FirstStrikeUnit)
+
     def _correctComboUnits(self, comboType):
         self._addUnit(comboType.priority[0])
         self._makeComboUnits()
