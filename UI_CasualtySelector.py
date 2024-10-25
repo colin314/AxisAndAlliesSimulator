@@ -248,8 +248,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
     for col in range(UNITCOUNT):
         # Current unit counts
-        lbl = tk.Label(rootCas, text=str(currentUnits[unitDict[col]]), font=("Arial", 14))
-        lbl.grid(row=2, column=col, padx=5, pady=5)
+        topLbl = tk.Label(rootCas, text=str(currentUnits[unitDict[col]]), font=("Arial", 14))
+        topLbl.grid(row=2, column=col, padx=5, pady=5)
         # Spin Boxes
         var = tk.IntVar(value=0)
         spinboxValDict[unitDict[col]] = var
@@ -275,16 +275,23 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         images.append(image)
         photo = ImageTk.PhotoImage(image)
         photos.append(photo)
-        lbl = tk.Label(rootCas, image=photo)
+        imageLbl = tk.Label(rootCas, image=photo)
         # spinboxes[row][col] = tk.Label(rootCas, text="Hello " + str(col), font=("arial",10))
-        lbl.grid(row=1, column=col, padx=5, pady=5)
+        imageLbl.grid(row=1, column=col, padx=5, pady=5)
+        
 
         strVar = tk.StringVar(value=str(currentUnits[unitDict[col]]))
-        lbl = tk.Label(rootCas, textvariable=strVar, font=("Arial", 14))
-        lbl.grid(row=4, column=col, padx=5, pady=5)
-        casualtyLabels[col] = lbl
+        botLbl = tk.Label(rootCas, textvariable=strVar, font=("Arial", 14))
+        botLbl.grid(row=4, column=col, padx=5, pady=5)
+        casualtyLabels[col] = botLbl
         casualtyVals[col] = strVar
         casualtyValDict[unitDict[col]] = strVar
+        
+        if currentUnits[unitDict[col]] == 0:
+            topLbl.grid_forget()
+            imageLbl.grid_forget()
+            spinbox.grid_forget()
+            botLbl.grid_forget()
 
     assignDefaultCasualties(numHits)
 
