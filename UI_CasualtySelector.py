@@ -3,6 +3,17 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
+defaultLossOrder_Ground = ["conscript",
+                           "aaGun",
+                           "infantry",
+                           "mech_infantry",
+                           "artillery",
+                           "armour",
+                           "fighter",
+                           "tactical_bomber",
+                           "bomber",
+                           ]
+
 
 class Combatant:
     def __init__(self, power: str, units: dict[str, dict[str:int]]):
@@ -55,7 +66,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         return file_dict
 
     def resetBoxes():
-        for x, y in spinBoxVals.items():
+        for x, y in returnDict.items():
             for k, v in y.items():
                 v.set(0)
 
@@ -71,8 +82,10 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     # Create a 2D list to hold Spinbox widgets
     spinboxes = [None for _ in range(UNITCOUNT)]
+    spinboxVals = [None for _ in range(UNITCOUNT)]
     casualtyLabels = [None for _ in range(UNITCOUNT)]
-    spinBoxVals = {}
+    casualtyVals = [None for _ in range(UNITCOUNT)]
+    returnDict = {}
 
     label = tk.Label(root, font=("Arial", 14), text="Select Casualties")
     label.grid(row=0, columnspan=UNITCOUNT, pady=10)
@@ -85,14 +98,19 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     def getTotalCasualties():
         origUnitCnt = sum(currentUnits.values())
-        newUnitCnt = sum([int(i.get()) for i in casualtyLabels])
+        newUnitCnt = sum([int(i.get()) for i in casualtyVals])
         return origUnitCnt - newUnitCnt
+
 
     def updateCasualtyLabel(spinboxNum, value):
         # Get old value
         val = currentUnits[unitDict[spinboxNum]]
         newVal = val - int(value)
-        casualtyLabels[spinboxNum].config(text=f"{newVal}")
+        # Validate
+        if newVal < 0:
+            spinboxVals[spinboxNum].set(spinboxVals[spinboxNum].get() - 1)
+            newVal = 0
+        casualtyVals[spinboxNum].set(f"{newVal}")
         print(getTotalCasualties())
 
     for col in range(UNITCOUNT):
@@ -103,6 +121,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         # Spin Boxes
         var = tk.IntVar(value=0)
         valDict[unitDict[col]] = var
+        spinboxVals[col] = var
         spinboxes[col] = tk.Spinbox(
             root, from_=0, to=100, width=5, font=('Arial', 14), textvariable=var, command=lambda i=col: updateCasualtyLabel(i, spinboxes[i].get()))
         spinboxes[col].grid(row=3, column=col, padx=5, pady=5)
@@ -118,12 +137,10 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         lbl.grid(row=1, column=col, padx=5, pady=5)
 
         strVar = tk.StringVar(value=str(currentUnits[unitDict[col]]))
-        lbl = tk.Label(root, text=str(
-            currentUnits[unitDict[col]]), font=('Arial', 14))
+        lbl = tk.Label(root, textvariable=strVar, font=('Arial', 14))
         lbl.grid(row=4, column=col, padx=5, pady=5)
         casualtyLabels[col] = lbl
-
-
+        casualtyVals[col] = strVar
 
     # Create a Submit button
     submit_button = tk.Button(
@@ -138,12 +155,12 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
     root.mainloop()
 
     # # Retrieve values from Spinboxes and store them in a 2D list
-    # values = [[spinBoxVals[row][col].get() for col in range(UNITCOUNT)]
+    # values = [[returnDict[row][col].get() for col in range(UNITCOUNT)]
     #         for row in range(2)]
     # # Show the collected values in a message box
     # messagebox.showinfo("Submitted Values", str(values))
     rv = {}
-    for side, dic in spinBoxVals.items():
+    for side, dic in returnDict.items():
         valDict = {}
         for key, value in dic.items():
             valDict[key] = value.get()
