@@ -40,7 +40,7 @@ class Combatant:
 
 
 def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
-    global root
+    isNaval = not isLand
     imagesDirectory = ".\\Resources\\Neutral"
     if isLand:
         unitDict = {
@@ -295,11 +295,13 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
     # # Show the collected values in a message box
     # messagebox.showinfo("Submitted Values", str(values))
     rv = {}
-    for side, dic in returnDict.items():
-        valDict = {}
-        for key, value in dic.items():
-            valDict[key] = value.get()
-        rv[side] = Combatant(var1.get(), valDict)
+    if isNaval:  # Correct damaged battleship and carrier numbers
+        battleships = getUnitsLeft("battleship")
+        currentUnits["battleship_hit"] = currentUnits["battleship_hit"] - battleships
+        carriers = getUnitsLeft("carrier")
+        currentUnits["carrier_hit"] = currentUnits["carrier_hit"] - carriers
+    for unit, var in spinboxValDict.items():
+        rv[unit] = currentUnits[unit] - var.get()
 
     return rv
 
@@ -322,15 +324,15 @@ if __name__ == "__main__":
         "submarine": 2,
         "destroyer": 1,
         "cruiser": 1,
-        "battleship": 1,
-        "carrier": 1,
+        "battleship": 2,
+        "carrier": 2,
         "fighter": 1,
         "tactical_bomber": 1,
         "bomber": 1,
-        "battleship_hit": 1,
-        "carrier_hit": 1,
+        "battleship_hit": 0,
+        "carrier_hit": 0,
         "transport": 0,
     }
-    vals = GetUnitCasualties(False, currentUnits, 3)
-
+    print(currentUnits)
+    vals = GetUnitCasualties(False, currentUnits, 4)
     print(vals)
