@@ -12,6 +12,17 @@ class Combatant:
     def __str__(self):
         return self.power + "\n" + str(self.units)
 
+powers = [
+              "Americans",
+              "ANZAC",
+              "British",
+              "Chinese",
+              "French",
+              "Germans",
+              "Italians",
+              "Japanese",
+              "Russians"
+              ]
 
 def GetUnitList(isLand: bool):
     global root
@@ -59,7 +70,10 @@ def GetUnitList(isLand: bool):
             for k, v in y.items():
                 v.set(0)
 
-    imageFileDict = get_file_paths(imagesDirectory)
+
+    imageFileDict = {}
+    for power in powers:
+        imageFileDict[power] = get_file_paths(".\\Resources\\" + power)
 
     def submit_values():
         # Retrieve values from Spinboxes and store them in a 2D list
@@ -90,29 +104,6 @@ def GetUnitList(isLand: bool):
     images = []
     photos = []
 
-    for row in range(2):
-        label = "attacker" if row == 0 else "defender"
-        valDict = {}
-        for col in range(UNITCOUNT):
-            # Spin Boxes
-            var = tk.IntVar(value=0)
-            valDict[unitDict[col]] = var
-            spinboxes[row][col] = tk.Spinbox(
-                root, from_=0, to=100, width=5, font=("Arial", 14), textvariable=var
-            )
-            spinboxes[row][col].grid(row=row * 4 + 3, column=col, padx=5, pady=5)
-            spinboxes[row][col].bind("<FocusIn>", select_all)
-
-            # Images
-            image = Image.open(imageFileDict[unitDict[col] + ".png"])
-            images.append(image)
-            photo = ImageTk.PhotoImage(image)
-            photos.append(photo)
-            lbl = tk.Label(root, image=photo)
-            # spinboxes[row][col] = tk.Label(root, text="Hello " + str(col), font=("arial",10))
-            lbl.grid(row=row * 4 + 2, column=col, padx=5, pady=5)
-        spinBoxVals[label] = valDict
-
     def getFlagPhoto(filePath):
         photo = ImageTk.PhotoImage(
             Image.open(r".\Resources\Flags\\" + filePath + ".png")
@@ -120,11 +111,20 @@ def GetUnitList(isLand: bool):
         photos.append(photo)
         return photo
 
+    def getUnitImage(i, power):
+        if isinstance(i,int):
+            i = unitDict[i]
+        image = Image.open(imageFileDict[power][i + ".png"])
+        #FIXME: Memory leak, this array will just grow and grow
+        images.append(image)
+        return image
+
     def addPhotoButton(var: tk.StringVar, val: str, row: int, col: int):
         global root
         image = getFlagPhoto(val)
         radio = tk.Radiobutton(root, image=image, variable=var, value=val)
         radio.grid(row=row, column=col, padx=5, pady=5)
+
 
     def CreateRadioButtons(var: tk.StringVar, label: str, rowRoot: int, colRoot: int):
         addPhotoButton(var, "Germans", rowRoot, colRoot)
@@ -139,15 +139,34 @@ def GetUnitList(isLand: bool):
         addPhotoButton(var, "Neutral", rowRoot, colRoot + 9)
 
     # Attacker Radio Button Selector
-    var1 = tk.StringVar(value="Germans")  # Default Value
-    CreateRadioButtons(var1, "Attacker", 1, 0)
+    attPower = tk.StringVar(value="Germans")  # Default Value
+    CreateRadioButtons(attPower, "Attacker", 1, 0)
 
     # Defender Radio Button Selector
-    var2 = tk.StringVar(value="Russians")
-    CreateRadioButtons(var2, "Defender", 5, 0)
+    defPower = tk.StringVar(value="Russians")
+    CreateRadioButtons(defPower, "Defender", 5, 0)
 
-    def submitTest():
-        print(var1.get())
+    for row in range(2):
+        label = "attacker" if row == 0 else "defender"
+        valDict = {}
+        for col in range(UNITCOUNT):
+            # Spin Boxes
+            var = tk.IntVar(value=0)
+            valDict[unitDict[col]] = var
+            spinboxes[row][col] = tk.Spinbox(
+                root, from_=0, to=100, width=5, font=("Arial", 14), textvariable=var
+            )
+            spinboxes[row][col].grid(row=row * 4 + 3, column=col, padx=5, pady=5)
+            spinboxes[row][col].bind("<FocusIn>", select_all)
+
+            # Images
+            image = getUnitImage(col, attPower.get() if row==0 else defPower.get())
+            photo = ImageTk.PhotoImage(image)
+            photos.append(photo)
+            lbl = tk.Label(root, image=photo)
+            # spinboxes[row][col] = tk.Label(root, text="Hello " + str(col), font=("arial",10))
+            lbl.grid(row=row * 4 + 2, column=col, padx=5, pady=5)
+        spinBoxVals[label] = valDict
 
     # Create a Submit button
     submit_button = tk.Button(
@@ -170,7 +189,7 @@ def GetUnitList(isLand: bool):
         valDict = {}
         for key, value in dic.items():
             valDict[key] = value.get()
-        power = var1.get() if side == "attacker" else var2.get()
+        power = attPower.get() if side == "attacker" else defPower.get()
         rv[side] = Combatant(power, valDict)
 
     return rv
