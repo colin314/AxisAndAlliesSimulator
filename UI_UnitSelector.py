@@ -170,7 +170,8 @@ def GetUnitList(isLand: bool):
         valDict = {}
         for key, value in dic.items():
             valDict[key] = value.get()
-        rv[side] = Combatant(var1.get(), valDict)
+        power = var1.get() if side == "attacker" else var2.get()
+        rv[side] = Combatant(power, valDict)
 
     return rv
 

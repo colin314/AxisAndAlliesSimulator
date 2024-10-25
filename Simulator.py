@@ -373,6 +373,7 @@ def RunSingSimulation():
 
 if __name__ == "__main__":
     lists = GetUnitList(isLand=True)
+    print(lists)
     attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
         lists["attacker"], "Basic"
     )
