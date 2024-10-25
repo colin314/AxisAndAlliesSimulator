@@ -16,6 +16,26 @@ from TechMapping import *
 # This is just to keep pandas from complaining
 pd.set_option("future.no_silent_downcasting", True)
 
+UnitUIMap = {
+    "infantry": Units.Infantry,
+    "mech_infantry": Units.MechInfantry,
+    "artillery": Units.Artillery,
+    "armour": Units.Tank,
+    "fighter": Units.Fighter,
+    "tactical_bomber": Units.TacticalBomber,
+    "bomber": Units.StratBomber,
+    "aaGun": Units.AAA,
+    "conscript": Units.Conscript,
+    "cruiser": Units.Cruiser,
+    "battleship": Units.Battleship,
+    "submarine": Units.Submarine,
+    "destroyer": Units.Destroyer,
+    "carrier": Units.Carrier,
+    "battleship_hit": Units.DamagedBattleship,
+    "carrier_hit": Units.DamagedCarrier,
+    "transport": Units.Transport,
+}
+
 # This dictionary defines the mapping between the unit type enum
 # and specific unit types.
 unitDict = {
@@ -586,31 +606,38 @@ class UnitCollection:
         # Need to
         unitList = self._getGranularUnitList()
         unitCounter = Counter(type(obj) for obj in unitList)
-        unitDict = {}
+        _unitDict = {}
         for objType, objCount in unitCounter.items():
-            unitDict[objType.__name__] = objCount
+            _unitDict[objType.__name__] = objCount
         if isLand:
-            rv["conscript"] = unitDict["Conscript"]
-            rv["aaGun"] = unitDict["AAA"]
-            rv["infantry"] = unitDict["Infantry"]
-            rv["mech_infantry"] = unitDict["MechInfantry"]
-            rv["artillery"] = unitDict["Artillery"]
-            rv["armour"] = unitDict["Tank"]
-            rv["fighter"] = unitDict["Fighter"]
-            rv["tactical_bomber"] = unitDict["TacticalBomber"]
-            rv["bomber"] = unitDict["StratBomber"]
+            rv["conscript"] = _unitDict["Conscript"] if "Conscript" in _unitDict.keys() else 0
+            rv["aaGun"] = _unitDict["AAA"] if "AAA" in _unitDict.keys() else 0
+            rv["infantry"] = _unitDict["Infantry"] if "Infantry" in _unitDict.keys() else 0
+            rv["mech_infantry"] = _unitDict["MechInfantry"] if "MechInfantry" in _unitDict.keys() else 0
+            rv["artillery"] = _unitDict["Artillery"] if "Artillery" in _unitDict.keys() else 0
+            rv["armour"] = _unitDict["Tank"] if "Tank" in _unitDict.keys() else 0
+            rv["fighter"] = _unitDict["Fighter"] if "Fighter" in _unitDict.keys() else 0
+            rv["tactical_bomber"] = _unitDict["TacticalBomber"] if "TacticalBomber" in _unitDict.keys() else 0
+            rv["bomber"] = _unitDict["StratBomber"] if "StratBomber" in _unitDict.keys() else 0
         elif isNaval:
-            rv["battleship"] = unitDict["Battleship"]
-            rv["carrier"] = unitDict["Carrier"]
-            rv["submarine"] = unitDict["Submarine"]
-            rv["destroyer"] = unitDict["Destroyer"]
-            rv["cruiser"] = unitDict["Cruiser"]
-            rv["fighter"] = unitDict["Fighter"]
-            rv["tactical_bomber"] = unitDict["TacticalBomber"]
-            rv["bomber"] = unitDict["StratBomber"]
-            rv["carrier_hit"] = unitDict["DamagedCarrier"]
-            rv["battleship_hit"] = unitDict["DamagedBattleship"]
+            rv["battleship"] = _unitDict["Battleship"] if "Battleship" in _unitDict.keys() else 0
+            rv["carrier"] = _unitDict["Carrier"] if "Carrier" in _unitDict.keys() else 0
+            rv["submarine"] = _unitDict["Submarine"] if "Submarine" in _unitDict.keys() else 0
+            rv["destroyer"] = _unitDict["Destroyer"] if "Destroyer" in _unitDict.keys() else 0
+            rv["cruiser"] = _unitDict["Cruiser"] if "Cruiser" in _unitDict.keys() else 0
+            rv["fighter"] = _unitDict["Fighter"] if "Fighter" in _unitDict.keys() else 0
+            rv["tactical_bomber"] = _unitDict["TacticalBomber"] if "TacticalBomber" in _unitDict.keys() else 0
+            rv["bomber"] = _unitDict["StratBomber"] if "StratBomber" in _unitDict.keys() else 0
+            rv["carrier_hit"] = _unitDict["DamagedCarrier"] if "DamagedCarrier" in _unitDict.keys() else 0
+            rv["battleship_hit"] = _unitDict["DamagedBattleship"] if "DamagedBattleship" in _unitDict.keys() else 0
         return rv
+
+    def reloadUnitsFromDict(self, newUnits: dict[str:int]):
+        self._unitList.clear()
+        for key, value in newUnits.items():
+            for i in range(value):
+                self._addUnit(unitDict[UnitUIMap[key]])
+        self._makeComboUnits()
 
 
 # endregion

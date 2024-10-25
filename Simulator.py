@@ -497,11 +497,17 @@ def RunSingSimulation():
 
 if __name__ == "__main__":
     lists = GetUnitList(isLand=False)
-    attacker = Simulator.LoadUnitCollectionFromUI(lists["attacker"], "Basic")
+    attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
+        lists["attacker"], "Basic"
+    )
     defender = Simulator.LoadUnitCollectionFromUI(lists["defender"], "Basic")
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
-    print(attacker.generateUnitDict(isLand=False))
+    unitDict = attacker.generateUnitDict(isLand=False)
+    attacker.PrintCollection()
+    unitDict["fighter"] = 1
+    attacker.reloadUnitsFromDict(unitDict)
+    attacker.PrintCollection()
     exit()
     sim.SimulateBattle(printBattle=True, printOutcome=True)
