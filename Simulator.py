@@ -147,7 +147,7 @@ class Simulator:
             unitDict = combatant.generateUnitDict(isLand=isLand)
             if numHits > 0:
                 if numHits < combatant.currHP():
-                    unitDict = GetUnitCasualties(isLand, unitDict, numHits, side)
+                    unitDict = GetUnitCasualties(isLand, unitDict, numHits, side, combatant.power)
                 else:
                     unitDict = {}
             

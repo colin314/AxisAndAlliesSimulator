@@ -29,10 +29,21 @@ defaultLossOrder_Naval = [
     "battleship_hit",
 ]
 
+powers = [
+              "Americans",
+              "ANZAC",
+              "British",
+              "Chinese",
+              "French",
+              "Germans",
+              "Italians",
+              "Japanese",
+              "Russians",
+              "Neutral"
+              ]
 
-def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:str):
+def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:str, power:str="Neutral"):
     isNaval = not isLand
-    imagesDirectory = ".\\Resources\\Neutral"
     if isLand:
         unitDict = {
             0: "infantry",
@@ -69,6 +80,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         )
     UNITCOUNT = len(unitDict)
 
+
     def get_file_paths(directory):
         file_dict = {}
         for filename in os.listdir(directory):
@@ -76,13 +88,13 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
             if os.path.isfile(file_path):
                 file_dict[filename] = file_path
         return file_dict
+    
+    imageFileDict = get_file_paths(".\\Resources\\" + power)
 
     def resetBoxes():
         for x, y in returnDict.items():
             for k, v in y.items():
                 v.set(0)
-
-    imageFileDict = get_file_paths(imagesDirectory)
 
     # Create the main window
     rootCas = tk.Tk()
@@ -198,6 +210,14 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
             messagebox.showerror("Error", "Unhandled case with spinbox button press")
             raise Exception("Whoopsie")
 
+    def getUnitImage(i):
+        if isinstance(i,int):
+            i = unitDict[i]
+        image = Image.open(imageFileDict[i + ".png"])
+        #FIXME: Memory leak, this array will just grow and grow
+        images.append(image)
+        return image
+
     def spinboxFocusOut(event):
         spinbox = event.widget
         i = spinboxDict[spinbox]
@@ -251,7 +271,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         # Override arrow behavior
 
         # Images
-        image = Image.open(imageFileDict[unitDict[col] + ".png"])
+        image = getUnitImage(col)
         images.append(image)
         photo = ImageTk.PhotoImage(image)
         photos.append(photo)
@@ -278,11 +298,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     # Start the Tkinter event loop
     rootCas.mainloop()
 
-    # # Retrieve values from Spinboxes and store them in a 2D list
-    # values = [[returnDict[row][col].get() for col in range(UNITCOUNT)]
-    #         for row in range(2)]
-    # # Show the collected values in a message box
-    # messagebox.showinfo("Submitted Values", str(values))
     rv = {}
     if isNaval:  # Correct damaged battleship and carrier numbers
         battleships = getUnitsLeft("battleship")
