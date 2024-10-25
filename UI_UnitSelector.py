@@ -3,8 +3,9 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
+
 class Combatant:
-    def __init__(self,power:str, units:dict[str, dict[str:int]]):
+    def __init__(self, power: str, units: dict[str, dict[str:int]]):
         self.power = power
         self.units = units
 
@@ -12,9 +13,9 @@ class Combatant:
         return self.power + "\n" + str(self.units)
 
 
-def GetUnitList(isLand:bool):
+def GetUnitList(isLand: bool):
     global root
-    imagesDirectory = '.\\Resources\\Neutral'
+    imagesDirectory = ".\\Resources\\Neutral"
     if isLand:
         unitDict = {
             0: "infantry",
@@ -41,10 +42,9 @@ def GetUnitList(isLand:bool):
             7: "bomber",
             8: "battleship_hit",
             9: "carrier_hit",
-            10: "transport",
+            # 10: "transport",
         }
     UNITCOUNT = len(unitDict)
-
 
     def get_file_paths(directory):
         file_dict = {}
@@ -55,29 +55,28 @@ def GetUnitList(isLand:bool):
         return file_dict
 
     def resetBoxes():
-        for x,y in spinBoxVals.items():
-            for k,v in y.items():
+        for x, y in spinBoxVals.items():
+            for k, v in y.items():
                 v.set(0)
-
 
     imageFileDict = get_file_paths(imagesDirectory)
 
-
     def submit_values():
         # Retrieve values from Spinboxes and store them in a 2D list
-        values = [[spinBoxVals[row][col].get() for col in range(UNITCOUNT)]
-                for row in range(2)]
+        values = [
+            [spinBoxVals[row][col].get() for col in range(UNITCOUNT)]
+            for row in range(2)
+        ]
         # Show the collected values in a message box
         messagebox.showinfo("Submitted Values", str(values))
-
 
     # Create the main window
     root = tk.Tk()
     root.title("Spinbox Grid")
 
-    def select_all(event : tk.Event):
-        wid:tk.Spinbox = event.widget
-        wid.selection_range(0,tk.END)
+    def select_all(event: tk.Event):
+        wid: tk.Spinbox = event.widget
+        wid.selection_range(0, tk.END)
 
     # Create a 2D list to hold Spinbox widgets
     spinboxes = [[None for _ in range(UNITCOUNT)] for _ in range(2)]
@@ -99,8 +98,9 @@ def GetUnitList(isLand:bool):
             var = tk.IntVar(value=0)
             valDict[unitDict[col]] = var
             spinboxes[row][col] = tk.Spinbox(
-                root, from_=0, to=100, width=5, font=('Arial', 14), textvariable=var)
-            spinboxes[row][col].grid(row=row*4+3, column=col, padx=5, pady=5)
+                root, from_=0, to=100, width=5, font=("Arial", 14), textvariable=var
+            )
+            spinboxes[row][col].grid(row=row * 4 + 3, column=col, padx=5, pady=5)
             spinboxes[row][col].bind("<FocusIn>", select_all)
 
             # Images
@@ -110,15 +110,15 @@ def GetUnitList(isLand:bool):
             photos.append(photo)
             lbl = tk.Label(root, image=photo)
             # spinboxes[row][col] = tk.Label(root, text="Hello " + str(col), font=("arial",10))
-            lbl.grid(row=row*4+2, column=col, padx=5, pady=5)
+            lbl.grid(row=row * 4 + 2, column=col, padx=5, pady=5)
         spinBoxVals[label] = valDict
 
     def getFlagPhoto(filePath):
-        photo = ImageTk.PhotoImage(Image.open(
-            r".\Resources\Flags\\" + filePath + ".png"))
+        photo = ImageTk.PhotoImage(
+            Image.open(r".\Resources\Flags\\" + filePath + ".png")
+        )
         photos.append(photo)
         return photo
-
 
     def addPhotoButton(var: tk.StringVar, val: str, row: int, col: int):
         global root
@@ -126,8 +126,7 @@ def GetUnitList(isLand:bool):
         radio = tk.Radiobutton(root, image=image, variable=var, value=val)
         radio.grid(row=row, column=col, padx=5, pady=5)
 
-
-    def CreateRadioButtons(var: tk.StringVar, label:str, rowRoot: int, colRoot: int):
+    def CreateRadioButtons(var: tk.StringVar, label: str, rowRoot: int, colRoot: int):
         addPhotoButton(var, "Germans", rowRoot, colRoot)
         addPhotoButton(var, "Russians", rowRoot, colRoot + 1)
         addPhotoButton(var, "Japanese", rowRoot, colRoot + 2)
@@ -150,14 +149,13 @@ def GetUnitList(isLand:bool):
     def submitTest():
         print(var1.get())
 
-
     # Create a Submit button
     submit_button = tk.Button(
-        root, text="Submit", command=root.destroy, font=('Arial', 14))
-    submit_button.grid(row=9, columnspan=UNITCOUNT//2, pady=10)
-    resetButton = tk.Button(
-        root, text="Reset", command=resetBoxes, font=('Arial', 14))
-    resetButton.grid(row=9, columnspan=UNITCOUNT//2, pady=10, column=UNITCOUNT//2)
+        root, text="Submit", command=root.destroy, font=("Arial", 14)
+    )
+    submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
+    resetButton = tk.Button(root, text="Reset", command=resetBoxes, font=("Arial", 14))
+    resetButton.grid(row=9, columnspan=UNITCOUNT // 2, pady=10, column=UNITCOUNT // 2)
 
     # Start the Tkinter event loop
     root.mainloop()
@@ -168,13 +166,14 @@ def GetUnitList(isLand:bool):
     # # Show the collected values in a message box
     # messagebox.showinfo("Submitted Values", str(values))
     rv = {}
-    for side,dic in spinBoxVals.items():
+    for side, dic in spinBoxVals.items():
         valDict = {}
-        for key,value in dic.items():
+        for key, value in dic.items():
             valDict[key] = value.get()
         rv[side] = Combatant(var1.get(), valDict)
 
     return rv
+
 
 if __name__ == "__main__":
     vals = GetUnitList(False)

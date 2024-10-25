@@ -14,51 +14,77 @@ from matplotlib import pyplot as plt
 from TechMapping import *
 
 # This is just to keep pandas from complaining
-pd.set_option('future.no_silent_downcasting', True)
+pd.set_option("future.no_silent_downcasting", True)
 
 # This dictionary defines the mapping between the unit type enum
 # and specific unit types.
-unitDict = {Units.Infantry: Infantry,
-            Units.MechInfantry: MechInfantry,
-            Units.Artillery: Artillery,
-            Units.Tank: Tank,
-            Units.AAA: AAA,
-            Units.Fighter: Fighter,
-            Units.TacticalBomber: TacticalBomber,
-            Units.StratBomber: StratBomber,
-            Units.Submarine: Submarine,
-            Units.Destroyer: Destroyer,
-            Units.Cruiser: Cruiser,
-            Units.Battleship: Battleship,
-            Units.Carrier: Carrier,
-            Units.Transport: Transport,
-            Units.InfArt: InfArt,
-            Units.MechInfArt: MechInfArt,
-            Units.TankTactBomber: TankTactBomber,
-            Units.FighterTactBomber: FighterTactBomber,
-            Units.DamagedBattleship: DamagedBattleship,
-            Units.DamagedCarrier: DamagedCarrier,
-            Units.Conscript: Conscript,
-            Units.ConscriptPair: ConscriptPair,
-            Units.InfArt2: InfArt2,
-            Units.InfMechInfArt: InfMechInfArt,
-            Units.MechInfArt2: MechInfArt2,
-            Units.MechInfTank: MechInfTank
-            }
+unitDict = {
+    Units.Infantry: Infantry,
+    Units.MechInfantry: MechInfantry,
+    Units.Artillery: Artillery,
+    Units.Tank: Tank,
+    Units.AAA: AAA,
+    Units.Fighter: Fighter,
+    Units.TacticalBomber: TacticalBomber,
+    Units.StratBomber: StratBomber,
+    Units.Submarine: Submarine,
+    Units.Destroyer: Destroyer,
+    Units.Cruiser: Cruiser,
+    Units.Battleship: Battleship,
+    Units.Carrier: Carrier,
+    Units.Transport: Transport,
+    Units.InfArt: InfArt,
+    Units.MechInfArt: MechInfArt,
+    Units.TankTactBomber: TankTactBomber,
+    Units.FighterTactBomber: FighterTactBomber,
+    Units.DamagedBattleship: DamagedBattleship,
+    Units.DamagedCarrier: DamagedCarrier,
+    Units.Conscript: Conscript,
+    Units.ConscriptPair: ConscriptPair,
+    Units.InfArt2: InfArt2,
+    Units.InfMechInfArt: InfMechInfArt,
+    Units.MechInfArt2: MechInfArt2,
+    Units.MechInfTank: MechInfTank,
+}
 
 
 comboSeparator = "^"
 
 
 class UnitCollection:
-    defaultLossPriority = [AAA, Battleship, Conscript, ConscriptPair, Infantry, InfArt2, InfMechInfArt,
-                           InfArt, Artillery, MechInfArt2, MechInfArt, MechInfantry, Tank, MechInfTank,
-                           TankTactBomber, Submarine, Destroyer, Fighter, TacticalBomber, FighterTactBomber,
-                           StratBomber, Cruiser, DamagedBattleship, Carrier, DamagedCarrier]
+    defaultLossPriority = [
+        AAA,
+        Battleship,
+        Conscript,
+        ConscriptPair,
+        Infantry,
+        InfArt2,
+        InfMechInfArt,
+        InfArt,
+        Artillery,
+        MechInfArt2,
+        MechInfArt,
+        MechInfantry,
+        Tank,
+        MechInfTank,
+        TankTactBomber,
+        Submarine,
+        Destroyer,
+        Fighter,
+        TacticalBomber,
+        FighterTactBomber,
+        StratBomber,
+        Cruiser,
+        DamagedBattleship,
+        Carrier,
+        DamagedCarrier,
+    ]
     """A group of units that will attack or defend together."""
 
-# region Initialization functions
-    def __init__(self, unitList: pd.Series, unitProfiles: pd.DataFrame, power:str="Neutral"):
+    # region Initialization functions
+    def __init__(
+        self, unitList: pd.Series, unitProfiles: pd.DataFrame, power: str = "Neutral"
+    ):
         self._unitList = []
         self.unitStrengths = {}
         self.unitCosts = {}
@@ -92,8 +118,7 @@ class UnitCollection:
             unitType = unitDict[Units(row["Key"])]
             strengths = []
             for vals in (row["Attack"], row["Defense"]):
-                strengthVals = [int(x)
-                                for x in str.split(vals, comboSeparator)]
+                strengthVals = [int(x) for x in str.split(vals, comboSeparator)]
                 strengths.append(strengthVals)
             strengthTup = tuple(strengths)
             # Leaving this horrid nested list comprehension for posterity
@@ -119,9 +144,9 @@ class UnitCollection:
             for i in range(row.iloc[1]):
                 self._addUnit(unitType)
 
-# endregion
+    # endregion
 
-# region Private helper functions
+    # region Private helper functions
     def _unitTypeInList(self, unitType):
         return any(type(unit) == unitType for unit in self._unitList)
 
@@ -175,14 +200,16 @@ class UnitCollection:
                     raise Exception("No tank removed when it should have been")
                 if self._removeUnitType(MechInfantry) == 0:
                     raise Exception(
-                        "No mechanized infantry removed when it should have been")
+                        "No mechanized infantry removed when it should have been"
+                    )
                 self._addUnit(MechInfTank)
 
         # Inf & Art
-        while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and self._unitTypeInList(Artillery):
+        while (
+            self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)
+        ) and self._unitTypeInList(Artillery):
             if self._removeUnitType(Artillery) == 0:
-                raise Exception(
-                    "No artillery removed when it should have been")
+                raise Exception("No artillery removed when it should have been")
             if self._removeUnitType(MechInfantry) == 1:
                 self._addUnit(MechInfArt)
                 continue
@@ -192,7 +219,9 @@ class UnitCollection:
             raise Exception("No infantry removed when it should have been")
 
         if Tech.AdvancedArtillery in self.Techs:
-            while (self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)) and (self._unitTypeInList(InfArt) or self._unitTypeInList(MechInfArt)):
+            while (
+                self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)
+            ) and (self._unitTypeInList(InfArt) or self._unitTypeInList(MechInfArt)):
                 if self._removeUnitType(MechInfArt) == 1:
                     if self._removeUnitType(MechInfantry) == 1:
                         self._addUnit(MechInfArt2)
@@ -210,10 +239,11 @@ class UnitCollection:
                 raise Exception("Error building advanced artillery support")
 
         # Tactical bomber combined arms
-        while self._unitTypeInList(TacticalBomber) and (self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)):
+        while self._unitTypeInList(TacticalBomber) and (
+            self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)
+        ):
             if self._removeUnitType(TacticalBomber) == 0:
-                raise Exception(
-                    "No tactical bomber removed when it should have been")
+                raise Exception("No tactical bomber removed when it should have been")
             if self._removeUnitType(Fighter) == 1:
                 self._addUnit(FighterTactBomber)
                 continue
@@ -240,15 +270,20 @@ class UnitCollection:
             return units
 
         for u in self._unitList:
-            if isinstance(u, ComboUnit) and not isinstance(u, Battleship) and not isinstance(u, Carrier):
+            if (
+                isinstance(u, ComboUnit)
+                and not isinstance(u, Battleship)
+                and not isinstance(u, Carrier)
+            ):
                 unitList.extend(breakUpComboUnit(u))
             else:
                 unitList.append(u)
         unitList.sort()
         return unitList
-# endregion
 
-# region Magic methods
+    # endregion
+
+    # region Magic methods
 
     def __str__(self):
         collStr = "Units in collection: " + str(self.currHP()) + "\n"
@@ -257,9 +292,9 @@ class UnitCollection:
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
         return collStr + "\n"
 
-# endregion
+    # endregion
 
-# region Collection modification functions
+    # region Collection modification functions
 
     def reset(self):
         self._unitList = self._originalUnitList.copy()
@@ -270,9 +305,9 @@ class UnitCollection:
         self._lossPriority = unitTypeList
         self._originalLossPriority = unitTypeList.copy()
 
-# endregion
+    # endregion
 
-# region Printing Functions
+    # region Printing Functions
 
     def PrintCollection(self):
         # print(f"Unit Count: {self.currHP()}")
@@ -300,7 +335,7 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         df1 = self._unitStrArrToDf(self.oldTable)
         df2 = self._unitStrArrToDf(unitArr)
-        dfJoin = pd.concat([df1, df2], axis=1, join='outer')
+        dfJoin = pd.concat([df1, df2], axis=1, join="outer")
         printArr = [["Unit", "Before", "After"]]
         df = dfJoin.infer_objects(copy=False).fillna(0).reset_index()
         df.Count = df.Count.astype(int)
@@ -340,9 +375,9 @@ class UnitCollection:
         self.PrintCollection()
         print()
 
-# endregion
+    # endregion
 
-# region Collection stats functions
+    # region Collection stats functions
 
     def GetCollectionStats(self, isAttack=True):
         hits = self.expectedHits(isAttack)
@@ -391,7 +426,7 @@ class UnitCollection:
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)
         cost = self.currCost()
-        return hits/cost * 10
+        return hits / cost * 10
 
     def collectionEndurance(self, attack=True):
         startingStrength = self.expectedHits(attack)
@@ -415,7 +450,7 @@ class UnitCollection:
             self.takeLosses([Hit(placeholderUnit)])
             currStrength = self.expectedHits(attack)
         endurance = startingUnitCount - self.currHP()
-        enduranceRatio = (float(endurance) / startingUnitCount)
+        enduranceRatio = float(endurance) / startingUnitCount
         remainingValue = self.currCost()
         lostValue = startingCost - remainingValue
         relLostValue = float(lostValue) / startingCost
@@ -427,7 +462,7 @@ class UnitCollection:
             "lostValue": lostValue,
             "remainingValue": remainingValue,
             "% Value Lost": f"{relLostValue:.1%}",
-            "Lost / Unit": f"{costPerLostUnit:.2f}"
+            "Lost / Unit": f"{costPerLostUnit:.2f}",
         }
         self.reset()
         return rv
@@ -437,8 +472,7 @@ class UnitCollection:
         curveList = []
         originalHP = self.currHP()
         while len(self._unitList) > 0:
-            curveList.append([self.currHP(),
-                             self.expectedHits(isAttack)])
+            curveList.append([self.currHP(), self.expectedHits(isAttack)])
             self.takeLosses([Hit(placeholderUnit)])
         df = pd.DataFrame(curveList, columns=["HP Lost", "Expected Hits"])
         return df
@@ -446,9 +480,9 @@ class UnitCollection:
     def valueDelta(self):
         return self.currCost() - self.originalCost
 
-# endregion
+    # endregion
 
-# region Combat functions
+    # region Combat functions
 
     def attack(self):
         hits = []
@@ -500,7 +534,9 @@ class UnitCollection:
                 break  # All units killed, no need to apply further hits
             for unitType in self._lossPriority:
                 removed = 0
-                if self._unitTypeInList(unitType) and hit.UnitTypeIsValidTarget(unitType):
+                if self._unitTypeInList(unitType) and hit.UnitTypeIsValidTarget(
+                    unitType
+                ):
                     removed = self._removeUnitType(unitType, 1)
                     if removed > 0 and issubclass(unitType, ComboUnit):
                         self._correctComboUnits(unitType)
@@ -512,8 +548,10 @@ class UnitCollection:
                 leftOver.append(hit)
 
         if len(leftOver) > 0:
-            print(f"{bcolors.RED}ERROR: Units exist outside of the loss priority{
-                  bcolors.ENDC}")
+            print(
+                f"{bcolors.RED}ERROR: Units exist outside of the loss priority{
+                  bcolors.ENDC}"
+            )
             print(leftOver)
             hitList = []  # just keep track of hits that couldn't be applied at all
             for hit in leftOver:
@@ -525,8 +563,10 @@ class UnitCollection:
                 if removedUnit != None and isinstance(removedUnit, ComboUnit):
                     self._correctComboUnits(type(removedUnit))
             if len(hitList) > 0:
-                print(f"{bcolors.RED}ERROR: Some hits could not be applied{
-                      bcolors.ENDC}")
+                print(
+                    f"{bcolors.RED}ERROR: Some hits could not be applied{
+                      bcolors.ENDC}"
+                )
                 print(hitList)
 
     def _correctComboUnits(self, comboType):
@@ -535,11 +575,43 @@ class UnitCollection:
 
     def _applyHit(self, hit: Hit):
         """Applies the hit with no regard for loss priority"""
-        unit = next(
-            (x for x in self._unitList if hit.UnitIsValidTarget(x)), None)
+        unit = next((x for x in self._unitList if hit.UnitIsValidTarget(x)), None)
         if unit != None:
             self._unitList.remove(unit)
         return unit
+
+    def generateUnitDict(self, isLand: bool = True):
+        rv = {}
+        isNaval = not isLand
+        # Need to
+        unitList = self._getGranularUnitList()
+        unitCounter = Counter(type(obj) for obj in unitList)
+        unitDict = {}
+        for objType, objCount in unitCounter.items():
+            unitDict[objType.__name__] = objCount
+        if isLand:
+            rv["conscript"] = unitDict["Conscript"]
+            rv["aaGun"] = unitDict["AAA"]
+            rv["infantry"] = unitDict["Infantry"]
+            rv["mech_infantry"] = unitDict["MechInfantry"]
+            rv["artillery"] = unitDict["Artillery"]
+            rv["armour"] = unitDict["Tank"]
+            rv["fighter"] = unitDict["Fighter"]
+            rv["tactical_bomber"] = unitDict["TacticalBomber"]
+            rv["bomber"] = unitDict["StratBomber"]
+        elif isNaval:
+            rv["battleship"] = unitDict["Battleship"]
+            rv["carrier"] = unitDict["Carrier"]
+            rv["submarine"] = unitDict["Submarine"]
+            rv["destroyer"] = unitDict["Destroyer"]
+            rv["cruiser"] = unitDict["Cruiser"]
+            rv["fighter"] = unitDict["Fighter"]
+            rv["tactical_bomber"] = unitDict["TacticalBomber"]
+            rv["bomber"] = unitDict["StratBomber"]
+            rv["carrier_hit"] = unitDict["DamagedCarrier"]
+            rv["battleship_hit"] = unitDict["DamagedBattleship"]
+        return rv
+
 
 # endregion
 
@@ -550,8 +622,9 @@ if __name__ == "__main__":
     unitListsFile = "unitLists.csv"
     listName = "Attacker"
     profile = pd.read_csv(
-        f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
-    unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+        f"UnitProfiles_{profileName}.csv", encoding="utf-8", delimiter=","
+    )
+    unitList = pd.read_csv(unitListsFile, encoding="utf-8", delimiter=",")
     units = UnitCollection(unitList[listName], profile)
     units.PrintGranularCollection()
     # units.generateHitCurve()

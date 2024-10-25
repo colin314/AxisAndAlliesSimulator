@@ -12,28 +12,30 @@ from Resources import bcolors
 import sys
 from tabulate import tabulate
 from UI_UnitSelector import GetUnitList, Combatant
+
 unitListsFile = "unitLists.csv"
 from UnitsEnum import Units
 
 UnitUIMap = {
-            "infantry":Units.Infantry,
-            "mech_infantry": Units.MechInfantry,
-            "artillery": Units.Artillery ,
-            "armour": Units.Tank ,
-            "fighter": Units.Fighter ,
-            "tactical_bomber": Units.TacticalBomber ,
-            "bomber": Units.StratBomber ,
-            "aaGun": Units.AAA ,
-            "conscript": Units.Conscript ,
-            "cruiser": Units.Cruiser ,
-            "battleship": Units.Battleship ,
-            "submarine": Units.Submarine ,
-            "destroyer": Units.Destroyer ,
-            "carrier": Units.Carrier ,
-            "battleship_hit": Units.DamagedBattleship ,
-            "carrier_hit": Units.DamagedCarrier ,
-            "transport": Units.Transport ,
+    "infantry": Units.Infantry,
+    "mech_infantry": Units.MechInfantry,
+    "artillery": Units.Artillery,
+    "armour": Units.Tank,
+    "fighter": Units.Fighter,
+    "tactical_bomber": Units.TacticalBomber,
+    "bomber": Units.StratBomber,
+    "aaGun": Units.AAA,
+    "conscript": Units.Conscript,
+    "cruiser": Units.Cruiser,
+    "battleship": Units.Battleship,
+    "submarine": Units.Submarine,
+    "destroyer": Units.Destroyer,
+    "carrier": Units.Carrier,
+    "battleship_hit": Units.DamagedBattleship,
+    "carrier_hit": Units.DamagedCarrier,
+    "transport": Units.Transport,
 }
+
 
 class Fmt:
     attHead = f"{Back.RED}{Style.BRIGHT}{Fore.WHITE}"
@@ -63,9 +65,14 @@ class Simulator:
         round = 0
         if printBattle:
             print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
-            print(u'\u2550' * 50)
+            print("\u2550" * 50)
         retreat = False
-        while self.attacker.currHP() > 0 and self.defender.currHP() > 0 and not retreat and round < maxRounds:
+        while (
+            self.attacker.currHP() > 0
+            and self.defender.currHP() > 0
+            and not retreat
+            and round < maxRounds
+        ):
             attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
@@ -88,22 +95,27 @@ class Simulator:
 
             if printBattle:
                 self.PrintBattleState(
-                    round, self.attacker, self.defender, attackerHitCount, defenderHitCount)
-                if not retreat and self.attacker.currHP() > 0 and self.defender.currHP() > 0:
+                    round,
+                    self.attacker,
+                    self.defender,
+                    attackerHitCount,
+                    defenderHitCount,
+                )
+                if (
+                    not retreat
+                    and self.attacker.currHP() > 0
+                    and self.defender.currHP() > 0
+                ):
                     userInput = input(
-                        "Press Enter to continue, or type 'r' to retreat: ")
+                        "Press Enter to continue, or type 'r' to retreat: "
+                    )
                     retreat = retreat if userInput == "" else True
 
         if printOutcome:
             self.PrintBattleOutcome()
         return (self.attacker.currHP(), self.defender.currHP())
 
-    def SimulateBattleData(
-        self,
-        battleCount=1000,
-        retreatThreshold=0,
-        maxRounds=-1
-    ):
+    def SimulateBattleData(self, battleCount=1000, retreatThreshold=0, maxRounds=-1):
         resultArr = []
         self.reset()
         for i in range(battleCount):
@@ -115,8 +127,15 @@ class Simulator:
             self.attacker.reset()
             self.defender.reset()
 
-        resultDf = pd.DataFrame(resultArr, columns=[
-                                "Attacker Won", "Remainder Attacker", "Remainder Defender", "Average IPC Swing (Attacker)"])
+        resultDf = pd.DataFrame(
+            resultArr,
+            columns=[
+                "Attacker Won",
+                "Remainder Attacker",
+                "Remainder Defender",
+                "Average IPC Swing (Attacker)",
+            ],
+        )
         attackWinRate = resultDf["Attacker Won"].mean()
         defenderWinRate = 1 - attackWinRate
         victoryData = resultDf.groupby("Attacker Won").mean()
@@ -124,41 +143,66 @@ class Simulator:
         resultArr = [
             attackWinRate,
             victoryData["Remainder Attacker"][1] if 1 in victoryData.index else 0,
-            victoryData["Average IPC Swing (Attacker)"][1] if 1 in victoryData.index else 0,
+            (
+                victoryData["Average IPC Swing (Attacker)"][1]
+                if 1 in victoryData.index
+                else 0
+            ),
             defenderWinRate,
             victoryData["Remainder Defender"][0] if 0 in victoryData.index else 0,
-            victoryData["Average IPC Swing (Attacker)"][0] if 0 in victoryData.index else 0,
+            (
+                victoryData["Average IPC Swing (Attacker)"][0]
+                if 0 in victoryData.index
+                else 0
+            ),
         ]
         attackerStats = self.attacker.GetCollectionStats(True)
         defenderStats = self.defender.GetCollectionStats(False)
-        resultArr.extend([
-            attackerStats["HP"],
-            attackerStats["IPC / HP"],
-            attackerStats["Expected Hits"],
-            attackerStats["IPC / Hit"],
-            attackerStats["endurance"],
-            attackerStats["enduranceRatio"],
-            attackerStats["lostValue"],
-            attackerStats["Lost / Unit"],
-        ])
-        resultArr.extend([
-            defenderStats["HP"],
-            defenderStats["IPC / HP"],
-            defenderStats["Expected Hits"],
-            defenderStats["IPC / Hit"],
-            defenderStats["endurance"],
-            defenderStats["enduranceRatio"],
-            defenderStats["lostValue"],
-            defenderStats["Lost / Unit"],
-        ])
+        resultArr.extend(
+            [
+                attackerStats["HP"],
+                attackerStats["IPC / HP"],
+                attackerStats["Expected Hits"],
+                attackerStats["IPC / Hit"],
+                attackerStats["endurance"],
+                attackerStats["enduranceRatio"],
+                attackerStats["lostValue"],
+                attackerStats["Lost / Unit"],
+            ]
+        )
+        resultArr.extend(
+            [
+                defenderStats["HP"],
+                defenderStats["IPC / HP"],
+                defenderStats["Expected Hits"],
+                defenderStats["IPC / Hit"],
+                defenderStats["endurance"],
+                defenderStats["enduranceRatio"],
+                defenderStats["lostValue"],
+                defenderStats["Lost / Unit"],
+            ]
+        )
         return resultArr
 
-    def _getRoundStats(self, round: int, attackerExpectedHits: float, defenderExpectedHits: float, attackerHitCount: int, defenderHitCount: int):
-        dataRow = [round,
-                   self.attacker.currHP(), self.attacker.currCost(),
-                   attackerExpectedHits, attackerHitCount,
-                   self.defender.currHP(), self.defender.currCost(),
-                   defenderExpectedHits, defenderHitCount]
+    def _getRoundStats(
+        self,
+        round: int,
+        attackerExpectedHits: float,
+        defenderExpectedHits: float,
+        attackerHitCount: int,
+        defenderHitCount: int,
+    ):
+        dataRow = [
+            round,
+            self.attacker.currHP(),
+            self.attacker.currCost(),
+            attackerExpectedHits,
+            attackerHitCount,
+            self.defender.currHP(),
+            self.defender.currCost(),
+            defenderExpectedHits,
+            defenderHitCount,
+        ]
         return dataRow
 
     def SimulateBattleWithStats(
@@ -169,15 +213,29 @@ class Simulator:
         maxRounds = sys.maxsize if maxRounds < 0 else maxRounds
         self.reset()
         round = 0
-        headers = ["Attacker HP", "Attacker TUV", "Attacker Expected Hits", "Attacker Actual Hits",
-                   "Defender HP", "Defender TUV", "Defender Expected Hits", "Defender Actual Hits"]
+        headers = [
+            "Attacker HP",
+            "Attacker TUV",
+            "Attacker Expected Hits",
+            "Attacker Actual Hits",
+            "Defender HP",
+            "Defender TUV",
+            "Defender Expected Hits",
+            "Defender Actual Hits",
+        ]
         roundStats = []
         attackerExpected = self.attacker.expectedHits(isAttack=True)
         defenderExpected = self.defender.expectedHits(isAttack=False)
-        roundStats.append(self._getRoundStats(
-            round, attackerExpected, defenderExpected, 0, 0))
+        roundStats.append(
+            self._getRoundStats(round, attackerExpected, defenderExpected, 0, 0)
+        )
         retreat = False
-        while self.attacker.currHP() > 0 and self.defender.currHP() > 0 and not retreat and round < maxRounds:
+        while (
+            self.attacker.currHP() > 0
+            and self.defender.currHP() > 0
+            and not retreat
+            and round < maxRounds
+        ):
             round += 1
             attackerHitCount = 0
             defenderHitCount = 0
@@ -200,17 +258,26 @@ class Simulator:
             self.attacker.takeLosses(defenderHits)
             self.defender.takeLosses(attackerHits)
 
-            roundStats.append(self._getRoundStats(
-                round, attackerExpected, defenderExpected, attackerHitCount, defenderHitCount))
+            roundStats.append(
+                self._getRoundStats(
+                    round,
+                    attackerExpected,
+                    defenderExpected,
+                    attackerHitCount,
+                    defenderHitCount,
+                )
+            )
 
             retreat = self.attacker.currHP() <= retreatThreshold
 
         return roundStats
 
-    def PrintBattleState(self, round, attacker: UnitCollection, defender: UnitCollection, aH, dH):
-        os.system('cls')
+    def PrintBattleState(
+        self, round, attacker: UnitCollection, defender: UnitCollection, aH, dH
+    ):
+        os.system("cls")
         print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
-        print(u'\u2500' * 40)
+        print("\u2500" * 40)
         print(f"{Fmt.Attacker} Hits: {aH}")
         print(f"{Fmt.Defender} Hits: {dH}\n")
         print(f"{Fmt.AttackerHead} HP: {attacker.currHP()}")
@@ -227,26 +294,30 @@ class Simulator:
             print(f"Outcome: {Fmt.defHead}Defender Victory{Style.RESET_ALL}")
 
         ipcSwing = self.attacker.valueDelta() - self.defender.valueDelta()
-        print(f"{Fore.LIGHTMAGENTA_EX}IPC Swing (Attacker):{
-              Style.RESET_ALL} {ipcSwing}\n")
+        print(
+            f"{Fore.LIGHTMAGENTA_EX}IPC Swing (Attacker):{
+              Style.RESET_ALL} {ipcSwing}\n"
+        )
 
     def LoadUnitCollection(listName, profileName):
         profile = pd.read_csv(
-            f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
-        unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+            f"UnitProfiles_{profileName}.csv", encoding="utf-8", delimiter=","
+        )
+        unitList = pd.read_csv(unitListsFile, encoding="utf-8", delimiter=",")
 
         units = UnitCollection(unitList[["Key", listName]], profile)
         return units
 
-    def LoadUnitCollectionFromUI(combatant:Combatant, profileName):
+    def LoadUnitCollectionFromUI(combatant: Combatant, profileName):
         headers = ["Key", "ListName"]
         unitList = combatant.units
-        units = [[UnitUIMap[unit].value, val] for unit,val in unitList.items()]
+        units = [[UnitUIMap[unit].value, val] for unit, val in unitList.items()]
         unitList = pd.DataFrame(units, columns=headers)
-        profile = pd.read_csv(f'UnitProfiles_{profileName}.csv', encoding="utf-8", delimiter=",")
+        profile = pd.read_csv(
+            f"UnitProfiles_{profileName}.csv", encoding="utf-8", delimiter=","
+        )
         units = UnitCollection(unitList, profile, combatant.power)
         return units
-
 
     def LoadAttacker(self, listName, profileName):
         self.attacker = Simulator.LoadUnitCollection(listName, profileName)
@@ -269,18 +340,27 @@ class Simulator:
             resultArr.append(results)
             self.attacker.reset()
             self.defender.reset()
-        resultDf = pd.DataFrame(resultArr, columns=[
-                                "Attacker Won", "Remainder Attacker", "Remainder Defender", "Average IPC Swing (Attacker)"])
+        resultDf = pd.DataFrame(
+            resultArr,
+            columns=[
+                "Attacker Won",
+                "Remainder Attacker",
+                "Remainder Defender",
+                "Average IPC Swing (Attacker)",
+            ],
+        )
         attackWinRate = resultDf["Attacker Won"].mean()
-        print(f"Attacker wins {Fore.RED}{attackWinRate:2.2%}{
-              Style.RESET_ALL} percent of the time.")
+        print(
+            f"Attacker wins {Fore.RED}{attackWinRate:2.2%}{
+              Style.RESET_ALL} percent of the time."
+        )
         victoryData = resultDf.groupby("Attacker Won").mean()
         # victoryData = victoryData.set_axis(
         #     ["Defender Won", "Attacker Won"], axis='index')
-        victoryData["Units Remaining"] = victoryData[[
-            "Remainder Attacker", "Remainder Defender"]].max(axis=1)
-        victoryData = victoryData[[
-            "Units Remaining", "Average IPC Swing (Attacker)"]]
+        victoryData["Units Remaining"] = victoryData[
+            ["Remainder Attacker", "Remainder Defender"]
+        ].max(axis=1)
+        victoryData = victoryData[["Units Remaining", "Average IPC Swing (Attacker)"]]
         print(tabulate(victoryData, headers="keys", tablefmt="fancy_grid"))
         print()
 
@@ -300,39 +380,51 @@ class Simulator:
             tuvSwing = self.attacker.valueDelta() - self.defender.valueDelta()
             results = [attackerWon, a, d, tuvSwing]
             resultArr.append(results)
-        headers = ["Round",
-                   "Attacker HP", "Attacker TUV", "Attacker Expected Hits", "Attacker Actual Hits",
-                   "Defender HP", "Defender TUV", "Defender Expected Hits", "Defender Actual Hits",
-                   "Max Rounds"]
+        headers = [
+            "Round",
+            "Attacker HP",
+            "Attacker TUV",
+            "Attacker Expected Hits",
+            "Attacker Actual Hits",
+            "Defender HP",
+            "Defender TUV",
+            "Defender Expected Hits",
+            "Defender Actual Hits",
+            "Max Rounds",
+        ]
         roundsDf = pd.DataFrame(roundStats, columns=headers)
         # Granular Analysis
-        groupedDf = roundsDf.groupby(["Max Rounds", "Round"]).aggregate({
-            'Round': 'size',
-            'Attacker HP': 'mean',
-            'Attacker TUV': 'mean',
-            'Attacker Expected Hits': 'mean',
-            'Attacker Actual Hits': 'mean',
-            'Defender HP': 'mean',
-            'Defender TUV': 'mean',
-            'Defender Expected Hits': 'mean',
-            'Defender Actual Hits': 'mean',
-        })
+        groupedDf = roundsDf.groupby(["Max Rounds", "Round"]).aggregate(
+            {
+                "Round": "size",
+                "Attacker HP": "mean",
+                "Attacker TUV": "mean",
+                "Attacker Expected Hits": "mean",
+                "Attacker Actual Hits": "mean",
+                "Defender HP": "mean",
+                "Defender TUV": "mean",
+                "Defender Expected Hits": "mean",
+                "Defender Actual Hits": "mean",
+            }
+        )
         groupedDf.rename(columns={"Round": "Count"}, inplace=True)
         groupedDf.reset_index()
         groupedDf.to_csv("tmp.csv", sep="\t")
 
         # Group by round
-        groupedDf = roundsDf.groupby(["Round"]).aggregate({
-            'Round': 'size',
-            'Attacker HP': 'mean',
-            'Attacker TUV': 'mean',
-            'Attacker Expected Hits': 'mean',
-            'Attacker Actual Hits': 'mean',
-            'Defender HP': 'mean',
-            'Defender TUV': 'mean',
-            'Defender Expected Hits': 'mean',
-            'Defender Actual Hits': 'mean',
-        })
+        groupedDf = roundsDf.groupby(["Round"]).aggregate(
+            {
+                "Round": "size",
+                "Attacker HP": "mean",
+                "Attacker TUV": "mean",
+                "Attacker Expected Hits": "mean",
+                "Attacker Actual Hits": "mean",
+                "Defender HP": "mean",
+                "Defender TUV": "mean",
+                "Defender Expected Hits": "mean",
+                "Defender Actual Hits": "mean",
+            }
+        )
         groupedDf.rename(columns={"Round": "Count"}, inplace=True)
         groupedDf.reset_index()
         groupedDf.to_csv("tmp2.csv", sep="\t")
@@ -361,10 +453,12 @@ class Simulator:
     def swapPlaces(attacker, defender):
         return (defender, attacker)
 
-    def simulateBattleWithStats(self,
-                                at_lossProfile=UnitCollection.defaultLossPriority,
-                                df_lossProfile=UnitCollection.defaultLossPriority,
-                                simCount=1000):
+    def simulateBattleWithStats(
+        self,
+        at_lossProfile=UnitCollection.defaultLossPriority,
+        df_lossProfile=UnitCollection.defaultLossPriority,
+        simCount=1000,
+    ):
         Unit.diceSize = 12
         # self.LoadAttacker(at, at_profile)
         # self.LoadDefender(df, df_profile)
@@ -380,14 +474,15 @@ class Simulator:
 class Inputs:
     pass
 
+
 def RunSingSimulation():
     # os.system('cls')
     parser = argparse.ArgumentParser()
     inputs = Inputs()
-    parser.add_argument('attacker')
-    parser.add_argument('attProfile')
-    parser.add_argument('defender')
-    parser.add_argument('defProfile')
+    parser.add_argument("attacker")
+    parser.add_argument("attProfile")
+    parser.add_argument("defender")
+    parser.add_argument("defProfile")
     parser.parse_args(namespace=inputs)
 
     sim = Simulator()
@@ -401,13 +496,12 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    lists = GetUnitList(True)
+    lists = GetUnitList(isLand=False)
     attacker = Simulator.LoadUnitCollectionFromUI(lists["attacker"], "Basic")
     defender = Simulator.LoadUnitCollectionFromUI(lists["defender"], "Basic")
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
-    attacker.PrintCollection()
+    print(attacker.generateUnitDict(isLand=False))
     exit()
     sim.SimulateBattle(printBattle=True, printOutcome=True)
-
