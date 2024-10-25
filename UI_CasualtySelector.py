@@ -295,15 +295,18 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
     assignDefaultCasualties(numHits)
 
-    # Create a Submit button
-    submit_button = tk.Button(
-        rootCas, text="Submit", command=rootCas.destroy, font=("Arial", 14)
-    )
-    rootCas.bind("<Return>",lambda e:rootCas.destroy())
-    submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
+    if len([i for i in currentUnits.values() if i > 0]) > 1:
+        # Create a Submit button
+        submit_button = tk.Button(
+            rootCas, text="Submit", command=rootCas.destroy, font=("Arial", 14)
+        )
+        rootCas.bind("<Return>",lambda e:rootCas.destroy())
+        submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
 
-    # Start the Tkinter event loop
-    rootCas.mainloop()
+        # Start the Tkinter event loop
+        rootCas.mainloop()
+    else:
+        rootCas.destroy()
 
     rv = {}
     if isNaval:  # Correct damaged battleship and carrier numbers
