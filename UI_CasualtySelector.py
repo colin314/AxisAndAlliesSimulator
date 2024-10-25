@@ -88,7 +88,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
     casualtyValDict = {}
     returnDict = {}
 
-    label = tk.Label(root, font=("Arial", 14), text="Select Casualties")
+    mainLblVar = tk.StringVar(value=f"Select 0 more casualties (of {numHits})")
+    label = tk.Label(root, font=("Arial", 14), textvariable=mainLblVar)
     label.grid(row=0, columnspan=UNITCOUNT, pady=10)
 
     images = []
@@ -96,6 +97,13 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     label = "attacker"
     spinboxValDict = {}
+
+    def updateMainLbl():
+        totalCasualties = getTotalCasualties()
+        mainLblVar.set(f"Select {leftToSelect()} more casualties (of {numHits})")
+
+    def leftToSelect():
+        return numHits - getTotalCasualties()
 
     def getUnitsLeft(unit:str):
         return int(casualtyValDict[unit].get())
@@ -123,6 +131,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     def loseUnit(unit):
         print(f"Losing {unit}")
+        if leftToSelect() == 0:
+            return
         # Get tk vars
         lostVar = spinboxValDict[unit]
         lostUnits = numUnitsLost(unit)
@@ -138,6 +148,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         # Update labels
         lostVar.set(lostUnits + 1)
         remainingVar.set(str(remainingUnits - 1))
+        updateMainLbl()
 
     def unloseUnit(unit):
         print(f"Unlosing {unit}")
@@ -152,6 +163,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         remainingVar = casualtyValDict[unit]
         lostVar.set(lostUnitCnt - 1)
         remainingVar.set(str(currentCnt + 1))
+        updateMainLbl()
 
     def updateCasualtyLabel(spinboxNum, value):
         # Get old value
@@ -165,17 +177,10 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         elif lost == (value - 1):
             spinboxValDict[unit].set(lost)
             loseUnit(unit)
+        elif lost == 0 and value == 0:
+            return
         else:
             raise Exception("Whoopsie")
-        
-        # val = currentUnits[unitDict[spinboxNum]]
-        # newVal = val - int(value)
-        # # Validate
-        # if newVal < 0:
-        #     spinboxVals[spinboxNum].set(spinboxVals[spinboxNum].get() - 1)
-        #     newVal = 0
-        # casualtyVals[spinboxNum].set(f"{newVal}")
-        # print(getTotalCasualties())
 
     for col in range(UNITCOUNT):
         # Current unit counts
@@ -239,10 +244,10 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
 if __name__ == "__main__":
     currentUnits = {
-        "infantry": 2,
-        "mech_infantry": 1,
-        "artillery": 2,
-        "armour": 5,
+        "infantry": 60,
+        "mech_infantry": 16,
+        "artillery": 300,
+        "armour": 5000,
         "fighter": 3,
         "tactical_bomber": 1,
         "bomber": 2,
@@ -251,6 +256,6 @@ if __name__ == "__main__":
         "cruiser": 0,
         "battleship": 0,
     }
-    vals = GetUnitCasualties(True, currentUnits, 3)
+    vals = GetUnitCasualties(True, currentUnits, 3516)
 
     print(vals)
