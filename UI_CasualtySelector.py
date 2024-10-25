@@ -1,3 +1,4 @@
+from typing import Union
 import tkinter as tk
 from tkinter import messagebox
 import os
@@ -103,6 +104,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
 
     # Create a 2D list to hold Spinbox widgets
     spinboxes = [None for _ in range(UNITCOUNT)]
+    spinboxDict = {}
     spinboxVals = [None for _ in range(UNITCOUNT)]
     casualtyLabels = [None for _ in range(UNITCOUNT)]
     casualtyVals = [None for _ in range(UNITCOUNT)]
@@ -182,12 +184,18 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         remainingVar.set(str(currentCnt + 1))
         updateMainLbl()
 
-    def updateCasualtyLabel(spinboxNum, value):
-        # Get old value
-        unit = unitDict[spinboxNum]
+    def getOldSpinboxVal(unit: Union[int, str]):
+        if isinstance(unit, int):
+            unit = unitDict[unit]
         originalCnt = currentUnits[unit]
         remaining = getUnitsLeft(unit)
         lost = originalCnt - remaining
+        return lost
+
+    def spinboxButtonPress(spinboxNum, value):
+        # Get old value
+        unit = unitDict[spinboxNum]
+        lost = getOldSpinboxVal(unit)
         if lost == (value + 1):
             spinboxValDict[unit].set(lost)
             unloseUnit(unit)
@@ -197,7 +205,36 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         elif lost == 0 and value == 0:
             return
         else:
+            messagebox.showerror("Error", "Unhandled case with spinbox button press")
             raise Exception("Whoopsie")
+
+    def spinboxFocusOut(event):
+        spinbox = event.widget
+        i = spinboxDict[spinbox]
+        # Check if val was updated
+        oldVal = getOldSpinboxVal(i)
+        unit = unitDict[i]
+        intVar = spinboxValDict[unit]
+        if intVar.get() == oldVal:
+            return  # Nothing changed, nothing to do
+
+        # Safeguard against too high or too low values
+        if intVar.get() < 0:
+            intVar.set(0)
+        if intVar.get() > currentUnits[unit]:
+            intVar.set(currentUnits[unit])
+
+        # Lose/Unlose units as needed
+        delta = intVar.get() - oldVal
+        if delta > 0:
+            intVar.set(oldVal)
+            for j in range(delta):
+                loseUnit(unit)
+        if delta < 0:
+            delta = abs(delta)
+            intVar.set(oldVal)
+            for j in range(delta):
+                unloseUnit(unit)
 
     for col in range(UNITCOUNT):
         # Current unit counts
@@ -207,17 +244,20 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits):
         var = tk.IntVar(value=0)
         spinboxValDict[unitDict[col]] = var
         spinboxVals[col] = var
-        spinboxes[col] = tk.Spinbox(
+        spinbox = tk.Spinbox(
             root,
             from_=0,
             to=10000,
             width=5,
             font=("Arial", 14),
             textvariable=var,
-            command=lambda i=col: updateCasualtyLabel(i, spinboxVals[i].get()),
+            command=lambda i=col: spinboxButtonPress(i, spinboxVals[i].get()),
         )
-        spinboxes[col].grid(row=3, column=col, padx=5, pady=5)
-        spinboxes[col].bind("<FocusIn>", select_all)
+        spinbox.grid(row=3, column=col, padx=5, pady=5)
+        spinbox.bind("<FocusIn>", select_all)
+        spinbox.bind("<FocusOut>", spinboxFocusOut)
+        spinboxes[col] = spinbox
+        spinboxDict[spinbox] = col
         # Override arrow behavior
 
         # Images
