@@ -376,7 +376,11 @@ def RunSingSimulation():
 
 
 if __name__ == "__main__":
-    isLand = True
+    parser = argparse.ArgumentParser()
+    inputs = Inputs()
+    parser.add_argument("isLand")
+    parser.parse_args(namespace=inputs)
+    isLand = True if int(inputs.isLand) == 1 else False
     lists = GetUnitList(isLand=isLand)
     attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
         lists["attacker"], "Basic"
