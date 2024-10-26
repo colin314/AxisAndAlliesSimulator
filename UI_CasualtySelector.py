@@ -295,7 +295,9 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
     assignDefaultCasualties(numHits)
 
-    if len([i for i in currentUnits.values() if i > 0]) > 1:
+    numberOfDistinctUnits = len([i for i in currentUnits.values() if i > 0])
+    subsPresent = isNaval and currentUnits["submarine"] > 0
+    if numberOfDistinctUnits > 1 or subsPresent:
         # Create a Submit button
         submit_button = tk.Button(
             rootCas, text="Submit", command=rootCas.destroy, font=("Arial", 14)

@@ -145,8 +145,9 @@ class Simulator:
 
     def _getCasualties(self, combatant:UnitCollection, numHits:int, isLand:bool, side:str):
             unitDict = combatant.generateUnitDict(isLand=isLand)
+            subPresent = not isLand and unitDict["submarine"] > 0
             if numHits > 0:
-                if numHits < combatant.currHP():
+                if numHits < combatant.currHP() or subPresent:
                     unitDict = GetUnitCasualties(isLand, unitDict, numHits, side, combatant.power)
                 else:
                     unitDict = {}
