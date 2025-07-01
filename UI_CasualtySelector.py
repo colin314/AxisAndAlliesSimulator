@@ -133,7 +133,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     casualtyValDict = {}
     returnDict = {}
 
-    mainLblVar = tk.StringVar(value=f"{side}: Select 0 more casualties (of {numHits})")
+    mainLblVar = tk.StringVar(value=f"{side}: Select {numHits} casualties (0 remaining)")
     label = tk.Label(rootCas, font=("Arial", 14), textvariable=mainLblVar)
     label.grid(row=0, columnspan=UNITCOUNT, pady=10)
 
@@ -145,7 +145,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
     def updateMainLbl():
         totalCasualties = getTotalCasualties()
-        mainLblVar.set(f"Select {leftToSelect()} more casualties (of {numHits})")
+        mainLblVar.set(f"Select {numHits} casualties ({leftToSelect()} remaining)")
 
     def leftToSelect():
         return numHits - getTotalCasualties()
