@@ -355,11 +355,28 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         df1 = self._unitStrArrToDf(self.oldTable)
         df2 = self._unitStrArrToDf(unitArr)
-        dfJoin = pd.concat([df1, df2], axis=1, join="outer")
+        print(df1)
+        print(df2)
+        dfJoin = pd.concat([df1, df2], axis=1, join="outer", keys=["Before", "After"])
+        dfJoin.columns = [f"{i}" for i, j in dfJoin.columns]
         printArr = [["Unit", "Before", "After"]]
-        df = dfJoin.infer_objects(copy=False).fillna(0).reset_index()
-        df.Count = df.Count.astype(int)
+
+        # Convert na to 0 (na comes from empty data frames)
+        dfJoin = dfJoin.infer_objects(copy=False).fillna(0)
+
+        # Convert to int to eliminate decimal places (and trailing .0)
+        dfJoin.Before = dfJoin.Before.astype(int)
+        dfJoin.After = dfJoin.After.astype(int)
+
+        # Apply bar to give visual indicator of remaining units
+        dfJoin['Before'] = dfJoin['Before'].apply(lambda x: str(x) + " " + Fore.WHITE + ( '█' * x ) + ' ')
+        dfJoin['After'] = dfJoin['After'].apply(lambda x: str(x) + " " + Fore.WHITE + ( '█' * x ) + ' ')
+
+        # Reset index to get unit names in a column
+        df = dfJoin.reset_index()
+
         printArr.extend(df.values.tolist())
+
         print(tabulate(printArr, tablefmt="fancy_grid"))
         self.oldTable = unitArr
 
