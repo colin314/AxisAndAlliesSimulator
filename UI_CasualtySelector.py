@@ -4,6 +4,26 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
+def center_window_left_half(window):
+    """Center the window in the left half of the screen"""
+    window.update_idletasks()  # Ensure window size is calculated
+    
+    # Get screen dimensions
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    
+    # Get window dimensions
+    window_width = window.winfo_reqwidth()
+    window_height = window.winfo_reqheight()
+    
+    # Calculate position for center of left half
+    left_half_width = screen_width // 2
+    x = (left_half_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+    
+    # Set window position
+    window.geometry(f"+{x}+{y}")
+
 defaultLossOrder_Ground = [
     "conscript",
     "aaGun",
@@ -306,6 +326,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
 
         # Start the Tkinter event loop
+        center_window_left_half(rootCas)
         rootCas.mainloop()
     else:
         rootCas.destroy()

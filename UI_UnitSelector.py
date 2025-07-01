@@ -3,6 +3,26 @@ from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 
+def center_window_left_half(window):
+    """Center the window in the left half of the screen"""
+    window.update_idletasks()  # Ensure window size is calculated
+    
+    # Get screen dimensions
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    
+    # Get window dimensions
+    window_width = window.winfo_reqwidth()
+    window_height = window.winfo_reqheight()
+    
+    # Calculate position for center of left half
+    left_half_width = screen_width // 2
+    x = (left_half_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+    
+    # Set window position
+    window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
 
 class Combatant:
     def __init__(self, power: str, units: dict[str, dict[str:int]]):
@@ -184,6 +204,8 @@ def GetUnitList(isLand: bool):
     submit_button.grid(row=9, columnspan=UNITCOUNT // 2, pady=10)
     resetButton = tk.Button(root, text="Reset", command=resetBoxes, font=("Arial", 14))
     resetButton.grid(row=9, columnspan=UNITCOUNT // 2, pady=10, column=UNITCOUNT // 2)
+
+    center_window_left_half(root)
 
     # Start the Tkinter event loop
     root.mainloop()
