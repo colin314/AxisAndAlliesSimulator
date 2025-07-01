@@ -16,6 +16,13 @@ from tqdm import tqdm
 
 from TechMapping import Tech
 
+# Import the battle rolls UI
+try:
+    from UI_BattleRolls import add_roll_result
+    GUI_AVAILABLE = True
+except ImportError:
+    GUI_AVAILABLE = False
+
 
 class UnitFormatter:
     """Utility class for color formatting of unit combat output."""
@@ -39,7 +46,7 @@ class Unit:
     used for all combat rolls.
     """
     
-    dice_size = 6
+    dice_size = 12
 
     def __init__(self, tech: List[Tech] = None):
         """
@@ -148,12 +155,13 @@ class CombatUnit(Unit):
         if isinstance(self, Submarine):
             self.valid_targets = [NavalUnit]
 
-    def _make_rolls(self, roll_values: List[int]) -> int:
+    def _make_rolls(self, roll_values: List[int], side: str = "") -> int:
         """
         Execute combat rolls for this unit.
         
         Args:
             roll_values: List of combat strength values to roll against
+            side: Which side is rolling ("Attacker" or "Defender")
             
         Returns:
             Number of hits scored
@@ -170,26 +178,33 @@ class CombatUnit(Unit):
             hits += 1 if hit else 0
             
             # Display the roll result
-            roll_display = Unit._get_roll_string(roll, value)
-            hit_text = "HIT" if hit else ""
-            unit_name = f"{self.__class__.__name__}:"
-            sys.stdout.write(f"{unit_name:<15} {roll_display} {hit_text}\n")
-            sys.stdout.flush()
+            unit_name = self.__class__.__name__
+            
+            if GUI_AVAILABLE:
+                # Use GUI display
+                add_roll_result(unit_name, roll, value, hit, side)
+            else:
+                # Fall back to console output
+                roll_display = Unit._get_roll_string(roll, value)
+                hit_text = "HIT" if hit else ""
+                sys.stdout.write(f"{unit_name:<15} {roll_display} {hit_text}\n")
+                sys.stdout.flush()
             
         return hits
 
-    def _do_standard_combat(self, strength: List[int]) -> int:
+    def _do_standard_combat(self, strength: List[int], side: str = "") -> int:
         """
         Perform standard combat phase rolls.
         
         Args:
             strength: List of combat strength values
+            side: Which side is rolling ("Attacker" or "Defender")
             
         Returns:
             Number of hits if unit hasn't made first strike, 0 otherwise
         """
         if not self._made_first_strike():
-            return self._make_rolls(strength)
+            return self._make_rolls(strength, side)
         else:
             return 0
 
@@ -204,13 +219,13 @@ class CombatUnit(Unit):
         self.did_first_strike = False
         return did_first_strike
 
-    def attack(self) -> int:
+    def attack(self, side: str = "Attacker") -> int:
         """Make an attack roll using the unit's attack strength."""
-        return self._do_standard_combat(self.attack_strength)
+        return self._do_standard_combat(self.attack_strength, side)
 
-    def defend(self) -> int:
+    def defend(self, side: str = "Defender") -> int:
         """Make a defense roll using the unit's defense strength."""
-        return self._do_standard_combat(self.defense_strength)
+        return self._do_standard_combat(self.defense_strength, side)
 
     def unit_hit_die(self, is_attack: bool = True) -> H:
         """
@@ -267,13 +282,14 @@ class FirstStrikeUnit(CombatUnit):
         super().__init__(strength_array, tech)
         self._counter_units = []
 
-    def _do_first_strike_combat(self, strength: List[int], opponent) -> int:
+    def _do_first_strike_combat(self, strength: List[int], opponent, side: str = "") -> int:
         """
         Execute first strike combat if not countered by enemy units.
         
         Args:
             strength: Combat strength values to roll against
             opponent: Enemy force being attacked
+            side: Which side is rolling ("Attacker" or "Defender")
             
         Returns:
             Number of hits if not countered, 0 if countered
@@ -288,15 +304,15 @@ class FirstStrikeUnit(CombatUnit):
             return 0
 
         self.did_first_strike = True
-        return self._make_rolls(strength)
+        return self._make_rolls(strength, side)
 
-    def _first_strike_attack(self, opponent) -> int:
+    def _first_strike_attack(self, opponent, side: str = "Attacker") -> int:
         """Execute first strike attack phase."""
-        return self._do_first_strike_combat(self.attack_strength, opponent)
+        return self._do_first_strike_combat(self.attack_strength, opponent, side)
 
-    def _first_strike_defense(self, opponent) -> int:
+    def _first_strike_defense(self, opponent, side: str = "Defender") -> int:
         """Execute first strike defense phase."""
-        return self._do_first_strike_combat(self.defense_strength, opponent)
+        return self._do_first_strike_combat(self.defense_strength, opponent, side)
 
 
 # Land Units

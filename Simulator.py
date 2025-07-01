@@ -21,6 +21,13 @@ from UI_UnitSelector import GetUnitList, Combatant
 from UI_CasualtySelector import get_unit_casualties
 from UnitsEnum import Units
 
+# Import battle rolls GUI if available
+try:
+    from UI_BattleRolls import clear_battle_rolls, show_battle_rolls_window
+    GUI_ROLLS_AVAILABLE = True
+except ImportError:
+    GUI_ROLLS_AVAILABLE = False
+
 # Constants
 UNIT_LISTS_FILE = "unitLists.csv"
 
@@ -93,6 +100,12 @@ class Simulator:
         max_rounds = sys.maxsize if max_rounds < 0 else max_rounds
         self.attacker.reset()
         self.defender.reset()
+        
+        # Clear battle rolls window if GUI is available
+        if GUI_ROLLS_AVAILABLE:
+            clear_battle_rolls()
+            show_battle_rolls_window()
+        
         battle_round = 0
         if print_battle:
             print(f"{bcolors.BOLD}{bcolors.GREEN}Battle Rounds{bcolors.ENDC}")
