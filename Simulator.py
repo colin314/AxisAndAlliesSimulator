@@ -13,6 +13,8 @@ import sys
 from tabulate import tabulate
 from UI_UnitSelector import GetUnitList, Combatant
 from UI_CasualtySelector import GetUnitCasualties
+import tkinter as tk
+from tkinter import messagebox
 
 unitListsFile = "unitLists.csv"
 from UnitsEnum import Units
@@ -141,14 +143,50 @@ class Simulator:
                     and self.attacker.currHP() > 0
                     and self.defender.currHP() > 0
                 ):
-                    userInput = input(
-                        "Press Enter to continue, or type 'r' to retreat: "
-                    )
-                    retreat = retreat if userInput == "" else True
+                    userInput = self.custom_message_box("Press the attack?","Would you like to press the attack or retreat?", "Press", "Retreat")
+                    retreat = retreat if userInput == "Press" else True
 
         if printOutcome:
             self.PrintBattleOutcome()
         return (self.attacker.currHP(), self.defender.currHP())
+
+    # A bunch of extra work just for a fancy message box...
+    def custom_message_box(self, title, message, button1_text="Yes", button2_text="No"):
+        result = {"value": None}
+        inputRoot = tk.Tk()
+        inputRoot.withdraw()
+
+        def on_button1():
+            result["value"] = button1_text
+            dialog.destroy()
+
+        def on_button2():
+            result["value"] = button2_text
+            dialog.destroy()
+
+        dialog = tk.Toplevel()
+        dialog.title(title)
+        dialog.grab_set()  # Make this window modal
+
+        tk.Label(dialog, text=message, padx=20, pady=20).pack()
+
+        button_frame = tk.Frame(dialog)
+        button_frame.pack(pady=(0, 20))
+
+        button1 = tk.Button(button_frame, text=button1_text, width=10, command=on_button1)
+        button1.pack(side=tk.LEFT, padx=10)
+        tk.Button(button_frame, text=button2_text, width=10, command=on_button2).pack(side=tk.LEFT, padx=10)
+
+        dialog.update_idletasks()
+        dialog.geometry(f"+{dialog.winfo_screenwidth()//2 - dialog.winfo_reqwidth()//2}"
+                        f"+{dialog.winfo_screenheight()//2 - dialog.winfo_reqheight()//2}")
+    # Cause focus to shift to first spinbox when window opens
+        dialog.after(1, lambda: button1.focus_force())
+        dialog.wait_window()  # Wait for the window to close
+        
+        inputRoot.destroy()
+        
+        return result["value"]
 
     def _getCasualties(self, combatant:UnitCollection, numHits:int, isLand:bool, side:str):
             unitDict = combatant.generateUnitDict(isLand=isLand)
