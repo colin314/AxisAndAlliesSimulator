@@ -432,14 +432,14 @@ class UnitCollection:
             dice = [u.unitHitDie(isAttack) for u in self._unitList]
             return sum(dice).mean()
         else:
-            return H({0: 12}).mean()
+            return H({0: Unit.diceSize}).mean()
 
     def expectedCurve(self, attack=True) -> H:
         if len(self._unitList) > 0:
             dice = [u.unitHitDie(attack) for u in self._unitList]
             return sum(dice)
         else:
-            return H({0: 12})
+            return H({0: Unit.diceSize})
 
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)

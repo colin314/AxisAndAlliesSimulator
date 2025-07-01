@@ -384,9 +384,9 @@ if __name__ == "__main__":
     isLand = True if int(inputs.isLand) == 1 else False
     lists = GetUnitList(isLand=isLand)
     attacker: UnitCollection = Simulator.LoadUnitCollectionFromUI(
-        lists["attacker"], "Basic"
+        lists["attacker"], "Original_d6"
     )
-    defender = Simulator.LoadUnitCollectionFromUI(lists["defender"], "Basic")
+    defender = Simulator.LoadUnitCollectionFromUI(lists["defender"], "Original_d6")
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender

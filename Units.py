@@ -21,7 +21,7 @@ class UFmt:
     DefenderHead = f"{defHead}Defender{Style.RESET_ALL}"
 
 class Unit:
-    diceSize = 12
+    diceSize = 6
 
     def __init__(self, tech:list[Tech] = []):
         self.cost = 0
@@ -40,7 +40,7 @@ class Unit:
     def _getRollStr(roll, strength):
         adjStr = (13 - strength)
         adjRoll = (13 - roll)
-        length = 12
+        length = Unit.diceSize
         if roll <= strength:
             p1 = Fore.GREEN + '█' * roll
             p2 = Fore.BLACK + '█' * (strength - roll) 
