@@ -208,7 +208,19 @@ def GetUnitList(isLand: bool):
     resetButton = tk.Button(root, text="Reset", command=resetBoxes, font=("Arial", 14))
     resetButton.grid(row=9, columnspan=UNITCOUNT // 2, pady=10, column=UNITCOUNT // 2)
 
+    # Hacky way to define custom focus shifting behavior. Accessability reps look away.
+    def toNextLine(event):
+        spinboxes[1][0].focus_set()
+    def toSubmit(event):
+        submit_button.focus_set()
+    for col in range(len(spinboxes[0])):
+        spinboxes[0][col].bind("<Return>", toNextLine)
+    for col in range(len(spinboxes[1])):
+        spinboxes[1][col].bind("<Return>", toSubmit)
+
     center_window_left_half(root)
+    # Since <Return> is bound elsewhere, it must be explicitly bound here
+    submit_button.bind("<Return>", lambda e: root.destroy())
 
     # Start the Tkinter event loop
     root.mainloop()
