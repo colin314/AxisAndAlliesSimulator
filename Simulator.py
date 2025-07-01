@@ -104,15 +104,22 @@ class Simulator:
                         u.didFirstStrike = True
 
             # General Combat Phase
-            print(f"{Fmt.AttackerHead}")
+            if printBattle:
+                print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
+                print("\u2550" * 40)
+                print(f"{Fmt.AttackerHead}")
             attackerHits = self.attacker.attack()
             attackerHitCount += len(attackerHits)
+            if printBattle:
+                print(f"{Fmt.Attacker} Hits: {attackerHitCount}\n")
             # Assign hits
             defUnits = self._getCasualties(self.defender, len(attackerHits),isLand,"Defender")
             
             print(f"{Fmt.DefenderHead}")
             defenderHits = self.defender.defend()
             defenderHitCount += len(defenderHits)
+            if printBattle:
+                print(f"{Fmt.Defender} Hits: {defenderHitCount}\n")
             # Assign hits to attacker
             attUnits = self._getCasualties(self.attacker, len(defenderHits),isLand,"Attacker")
             
@@ -178,10 +185,7 @@ class Simulator:
     def PrintBattleState(
         self, round, attacker: UnitCollection, defender: UnitCollection, aH, dH
     ):
-        print(f"Round {bcolors.RED}{round}{bcolors.ENDC}")
-        print("\u2500" * 40)
-        print(f"{Fmt.Attacker} Hits: {aH}")
-        print(f"{Fmt.Defender} Hits: {dH}\n")
+        print("\u2500" * 50 + "\n")
         print(f"{Fmt.AttackerHead} HP: {attacker.currHP()}")
         attacker.PrintCollectionComparison()
         print()
