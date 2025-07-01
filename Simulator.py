@@ -400,6 +400,76 @@ class Simulator:
         print(f"{Fmt.genHead}Statistics{Style.RESET_ALL}\n")
         self.generate_battle_stats(sim_count)
 
+    def simulate_battle_web(
+        self,
+        retreat_threshold=0,
+        max_rounds=-1,
+        is_land: bool = True
+    ) -> Tuple[int, int]:
+        """
+        Simulate a battle for web interface (non-interactive).
+        
+        Args:
+            retreat_threshold: HP threshold at which attacker retreats
+            max_rounds: Maximum number of rounds (-1 for unlimited)
+            is_land: True for land battle, False for naval battle
+            
+        Returns:
+            Tuple of (attacker_hp, defender_hp) remaining after battle
+        """
+        max_rounds = sys.maxsize if max_rounds < 0 else max_rounds
+        self.attacker.reset()
+        self.defender.reset()
+        battle_round = 0
+        retreat = False
+        
+        while (
+            self.attacker.currHP() > 0
+            and self.defender.currHP() > 0
+            and not retreat
+            and battle_round < max_rounds
+        ):
+            attacker_hit_count, defender_hit_count = (0, 0)
+            battle_round += 1
+            
+            # First Strike Phase
+            if self.attacker.CanFirstStrike():
+                attacker_hits = self.attacker.firstStrikeAttack(self.defender)
+                attacker_hit_count += len(attacker_hits)
+                def_units = self._getCasualties(self.defender, len(attacker_hits), is_land, "Defender")
+
+            if self.defender.CanFirstStrike():
+                defender_hits = self.defender.firstStrikeDefend(self.attacker)
+                defender_hit_count += len(defender_hits)
+                att_units = self._getCasualties(self.attacker, len(defender_hits), is_land, "Attacker")
+
+            if self.attacker.CanFirstStrike():
+                self.defender.reloadUnitsFromDict(def_units)
+                for u in self.defender._unitList:
+                    if isinstance(u, FirstStrikeUnit):
+                        u.didFirstStrike = True
+
+            if self.defender.CanFirstStrike():
+                self.attacker.reloadUnitsFromDict(att_units)
+                for u in self.attacker._unitList:
+                    if isinstance(u, FirstStrikeUnit):
+                        u.didFirstStrike = True
+
+            # General Combat Phase
+            attacker_hits = self.attacker.attack()
+            attacker_hit_count += len(attacker_hits)
+            def_units = self._getCasualties(self.defender, len(attacker_hits), is_land, "Defender")
+            
+            defender_hits = self.defender.defend()
+            defender_hit_count += len(defender_hits)
+            att_units = self._getCasualties(self.attacker, len(defender_hits), is_land, "Attacker")
+            
+            self.attacker.reloadUnitsFromDict(att_units)
+            self.defender.reloadUnitsFromDict(def_units)
+
+            retreat = self.attacker.currHP() <= retreat_threshold
+
+        return (self.attacker.currHP(), self.defender.currHP())
 
 class Inputs:
     pass
