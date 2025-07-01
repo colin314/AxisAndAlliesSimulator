@@ -1,6 +1,9 @@
 import pandas as pd
 from colorama import Fore
 
+print ('|' + '1'.rjust(10," ") + '|')
+print ('|' + '1'.ljust(10," ") + '|')
+
 df = pd.DataFrame({'Count': [1, 5, 6]}, index=["Infantry", "Artillery", "Tank"])
 
 df2 = pd.DataFrame({'Count': [1, 5, 6]}, index=["Infantry", "Artillery", "Tank"])

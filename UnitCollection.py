@@ -355,8 +355,6 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         df1 = self._unitStrArrToDf(self.oldTable)
         df2 = self._unitStrArrToDf(unitArr)
-        print(df1)
-        print(df2)
         dfJoin = pd.concat([df1, df2], axis=1, join="outer", keys=["Before", "After"])
         dfJoin.columns = [f"{i}" for i, j in dfJoin.columns]
         printArr = [["Unit", "Before", "After"]]
@@ -372,7 +370,7 @@ class UnitCollection:
         def fancyBar(x):
             numRed = x // 5
             numWhite = x % 5
-            return str(x).rjust(3," ") + " " + Fore.RED + "█" * numRed + Fore.WHITE + "█" * numWhite
+            return Fore.BLACK + "_" + Fore.RESET + str(x).rjust(3," ") + " " + Fore.RED + "█" * numRed + Fore.WHITE + "█" * numWhite + Fore.BLACK + "_" + Fore.RESET 
 
         # Apply bar to give visual indicator of remaining units
         dfJoin['Before'] = dfJoin['Before'].apply(fancyBar)
