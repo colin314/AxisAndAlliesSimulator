@@ -186,6 +186,8 @@ class Simulator:
         self, round, attacker: UnitCollection, defender: UnitCollection, aH, dH
     ):
         print("\u2500" * 50 + "\n")
+        print(f"{Fmt.Attacker} Hits: {aH}")
+        print(f"{Fmt.Defender} Hits: {dH}\n")
         print(f"{Fmt.AttackerHead} HP: {attacker.currHP()}")
         attacker.PrintCollectionComparison()
         print()
