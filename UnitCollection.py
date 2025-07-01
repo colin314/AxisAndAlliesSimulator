@@ -1,22 +1,34 @@
+"""
+Unit Collection module for Axis & Allies Simulator.
+
+This module manages collections of units, including loading unit profiles,
+creating combination units, handling combat casualties, and generating
+statistical reports about force composition and effectiveness.
+"""
+
+import json
 import math
-from Units import *
-from itertools import cycle, filterfalse, count
 from collections import Counter
+from itertools import count, cycle, filterfalse
 from statistics import mean, median
+from typing import Dict, List, Optional, Type, Union
+
 import pandas as pd
-from UnitsEnum import Units
+from dyce import H
+from matplotlib import pyplot as plt
 from tabulate import tabulate
+
 from Hit import Hit
 from Resources import bcolors
-from dyce import H
-import json
-from matplotlib import pyplot as plt
-from TechMapping import *
+from TechMapping import Tech, TechMapping
+from Units import *
+from UnitsEnum import Units
 
-# This is just to keep pandas from complaining
+# Suppress pandas warnings
 pd.set_option("future.no_silent_downcasting", True)
 
-UnitUIMap = {
+# Map UI strings to unit enum values
+UNIT_UI_MAP = {
     "infantry": Units.Infantry,
     "mech_infantry": Units.MechInfantry,
     "artillery": Units.Artillery,
@@ -36,9 +48,8 @@ UnitUIMap = {
     "transport": Units.Transport,
 }
 
-# This dictionary defines the mapping between the unit type enum
-# and specific unit types.
-unitDict = {
+# Map unit enum values to unit classes
+UNIT_CLASS_MAP = {
     Units.Infantry: Infantry,
     Units.MechInfantry: MechInfantry,
     Units.Artillery: Artillery,
@@ -67,12 +78,18 @@ unitDict = {
     Units.MechInfTank: MechInfTank,
 }
 
-
-comboSeparator = "^"
+COMBO_SEPARATOR = "^"
 
 
 class UnitCollection:
-    defaultLossPriority = [
+    """
+    A collection of units that will attack or defend together.
+    
+    This class manages groups of units, handles combined arms effects,
+    tracks casualties, and provides statistical analysis of combat effectiveness.
+    """
+    
+    DEFAULT_LOSS_PRIORITY = [
         AAA,
         Battleship,
         Conscript,
@@ -99,55 +116,67 @@ class UnitCollection:
         Carrier,
         DamagedCarrier,
     ]
-    """A group of units that will attack or defend together."""
 
-    # region Initialization functions
     def __init__(
-        self, unitList: pd.Series, unitProfiles: pd.DataFrame, power: str = "Neutral"
+        self, 
+        unit_list: pd.Series, 
+        unit_profiles: pd.DataFrame, 
+        power: str = "Neutral"
     ):
-        self._unitList = []
-        self.unitStrengths = {}
-        self.unitCosts = {}
+        """
+        Initialize a unit collection with units and their combat profiles.
+        
+        Args:
+            unit_list: Series containing unit counts by type
+            unit_profiles: DataFrame with unit combat statistics
+            power: Nation/power name for technology determination
+        """
+        self._unit_list: List[Unit] = []
+        self.unit_strengths: Dict[Type[Unit], tuple] = {}
+        self.unit_costs: Dict[Type[Unit], int] = {}
         self.power = power
-        self.Techs = TechMapping.GetTechs(power)
+        self.techs = TechMapping.GetTechs(power)
 
-        # Call initialization functions (load units, etc.)
-        self._loadUnitStrengths(unitProfiles)
-        # self._loadTechs()
-        self._loadUnits(unitList)
-        self._makeComboUnits()
-        self.defineLossPriority(UnitCollection.defaultLossPriority)
-        self._unitList.sort()
+        # Initialize the collection
+        self._load_unit_strengths(unit_profiles)
+        self._load_units(unit_list)
+        self._make_combo_units()
+        self.define_loss_priority(UnitCollection.DEFAULT_LOSS_PRIORITY)
+        self._unit_list.sort()
 
-        # Record original collection state to support resets
-        self.originalCost = self.currCost()
-        self._originalLossPriority = self._lossPriority.copy()
-        self._originalUnitList = self._unitList.copy()
-        unitCounter = Counter(type(obj) for obj in self._getGranularUnitList())
-        unitArr = [["Unit", "Count"]]
-        for objType, objCount in unitCounter.items():
-            unitArr.append([objType.__name__, objCount])
-        self.oldTable = unitArr
-        self.oldTableOriginal = unitArr.copy()
+        # Record original state for resets
+        self.original_cost = self.current_cost()
+        self._original_loss_priority = self._loss_priority.copy()
+        self._original_unit_list = self._unit_list.copy()
+        
+        # Create unit count table
+        unit_counter = Counter(type(obj) for obj in self._get_granular_unit_list())
+        unit_array = [["Unit", "Count"]]
+        for obj_type, obj_count in unit_counter.items():
+            unit_array.append([obj_type.__name__, obj_count])
+        self.old_table = unit_array
+        self.old_table_original = unit_array.copy()
 
-    def _loadUnitStrengths(self, unitProfiles: pd.DataFrame):
-        """Use the given profile to define the combat strengths of each unit type."""
-        for index, row in unitProfiles.iterrows():
-            # It's critical that the index values of the data frame match the int value in the Units enum
-            # Load the unit's strength
-            unitType = unitDict[Units(row["Key"])]
+    def _load_unit_strengths(self, unit_profiles: pd.DataFrame) -> None:
+        """
+        Load combat strengths and costs for each unit type from profiles.
+        
+        Args:
+            unit_profiles: DataFrame containing unit statistics
+        """
+        for index, row in unit_profiles.iterrows():
+            # Map from unit profile key to unit class
+            unit_type = UNIT_CLASS_MAP[Units(row["Key"])]
+            
+            # Parse attack and defense strength values
             strengths = []
             for vals in (row["Attack"], row["Defense"]):
-                strengthVals = [int(x) for x in str.split(vals, comboSeparator)]
-                strengths.append(strengthVals)
-            strengthTup = tuple(strengths)
-            # Leaving this horrid nested list comprehension for posterity
-            # strengthTup = tuple([[int(x) for x in str.split(vals,comboSeparator)] for vals in (
-            #     row["Attack"], row["Defense"])])
-            self.unitStrengths[unitType] = strengthTup
-
-            # Load the unit's cost
-            self.unitCosts[unitType] = int(row["Cost"])
+                strength_vals = [int(x) for x in str.split(vals, COMBO_SEPARATOR)]
+                strengths.append(strength_vals)
+            strength_tuple = tuple(strengths)
+            
+            self.unit_strengths[unit_type] = strength_tuple
+            self.unit_costs[unit_type] = int(row["Cost"])
 
     # def _loadTechs(self):
     #     if Tech.SuperSubs in self.Techs:
@@ -156,127 +185,168 @@ class UnitCollection:
     #         self.unitStrengths[Units.Submarine] = (attack, defense)
     #         print(self.unitStrengths[Units.Submarine])
 
-    def _loadUnits(self, unitList: pd.DataFrame):
-        """Use the given unit series to populate the collection with units."""
-        for index, row in unitList.iterrows():
+    def _load_units(self, unit_list: pd.DataFrame) -> None:
+        """
+        Populate the collection with units from the unit list.
+        
+        Args:
+            unit_list: DataFrame containing unit counts by type
+        """
+        for index, row in unit_list.iterrows():
             # Convert the int index to a Unit enum value, then get the type from the dictionary
-            unitType = unitDict[Units(row["Key"])]
+            unit_type = UNIT_CLASS_MAP[Units(row["Key"])]
             for i in range(row.iloc[1]):
-                self._addUnit(unitType)
+                self._add_unit(unit_type)
 
     # endregion
 
-    # region Private helper functions
-    def _unitTypeInList(self, unitType):
-        return any(type(unit) == unitType for unit in self._unitList)
+    # Helper Methods
+    def _unit_type_in_list(self, unit_type: Type[Unit]) -> bool:
+        """Check if any unit of the specified type exists in the collection."""
+        return any(type(unit) == unit_type for unit in self._unit_list)
 
-    def _unitInstanceInList(self, unitType):
-        return any(isinstance(unit, unitType) for unit in self._unitList)
+    def _unit_instance_in_list(self, unit_type: Type[Unit]) -> bool:
+        """Check if any instance of the specified unit type exists in the collection."""
+        return any(isinstance(unit, unit_type) for unit in self._unit_list)
 
-    def _removeUnitType(self, unitType, removeCount=1):
-        """Remove n units of the specified type from the unit list.
-        Returns the number of units removed."""
-        oldCount = len(self._unitList)
-        self._unitList = list(
+    def _remove_unit_type(self, unit_type: Type[Unit], remove_count: int = 1) -> int:
+        """
+        Remove specified number of units of the given type.
+        
+        Args:
+            unit_type: The type of unit to remove
+            remove_count: Number of units to remove
+            
+        Returns:
+            Number of units actually removed
+        """
+        old_count = len(self._unit_list)
+        self._unit_list = list(
             filterfalse(
-                lambda u, counter=count(): type(u) == unitType
-                and next(counter) < removeCount,
-                self._unitList,
+                lambda u, counter=count(): type(u) == unit_type
+                and next(counter) < remove_count,
+                self._unit_list,
             )
         )
-        newCount = len(self._unitList)
-        return oldCount - newCount
+        new_count = len(self._unit_list)
+        return old_count - new_count
 
-    def _removeUnitInstance(self, unitType, removeCount=1):
-        """Remove n units of the specified instance from the unit list.
-        Returns the number of units removed."""
-        oldCount = len(self._unitList)
-        self._unitList = list(
+    def _remove_unit_instance(self, unit_type: Type[Unit], remove_count: int = 1) -> int:
+        """
+        Remove specified number of unit instances of the given type.
+        
+        Args:
+            unit_type: The type of unit to remove
+            remove_count: Number of units to remove
+            
+        Returns:
+            Number of units actually removed
+        """
+        old_count = len(self._unit_list)
+        self._unit_list = list(
             filterfalse(
-                lambda u, counter=count(): isinstance(u, unitType)
-                and next(counter) < removeCount,
-                self._unitList,
+                lambda u, counter=count(): isinstance(u, unit_type)
+                and next(counter) < remove_count,
+                self._unit_list,
             )
         )
-        newCount = len(self._unitList)
-        return oldCount - newCount
+        new_count = len(self._unit_list)
+        return old_count - new_count
 
-    def _countUnitTypeInList(self, unitType):
-        return len([x for x in self._unitList if type(x) == unitType])
+    def _count_unit_type_in_list(self, unit_type: Type[Unit]) -> int:
+        """Count the number of units of the specified type."""
+        return len([x for x in self._unit_list if type(x) == unit_type])
 
-    def _addUnit(self, unitType):
-        self._unitList.append(self._makeUnit(unitType))
+    def _add_unit(self, unit_type: Type[Unit]) -> None:
+        """Add a new unit of the specified type to the collection."""
+        self._unit_list.append(self._make_unit(unit_type))
 
-    def _makeUnit(self, unitType):
-        unit = unitType(self.unitStrengths[unitType], self.Techs)
-        unit.cost = self.unitCosts[unitType]
+    def _make_unit(self, unit_type: Type[Unit]) -> Unit:
+        """
+        Create a new unit instance with proper strength and cost values.
+        
+        Args:
+            unit_type: The class of unit to create
+            
+        Returns:
+            Configured unit instance
+        """
+        unit = unit_type(self.unit_strengths[unit_type], self.techs)
+        unit.cost = self.unit_costs[unit_type]
         return unit
 
-    def _makeComboUnits(self):
-        # TODO: Wrap this in conditional so only advanced mech inf powers get it
-        if Tech.AdvancedMechInfantry in self.Techs:
-            while self._unitTypeInList(MechInfantry) and self._unitTypeInList(Tank):
-                if self._removeUnitType(Tank) == 0:
+    def _make_combo_units(self) -> None:
+        """
+        Create combined arms units by pairing compatible unit types.
+        
+        This method automatically combines units that fight more effectively
+        together, such as infantry with artillery or tanks with tactical bombers.
+        """
+        # Advanced Mechanized Infantry technology
+        if Tech.AdvancedMechInfantry in self.techs:
+            while self._unit_type_in_list(MechInfantry) and self._unit_type_in_list(Tank):
+                if self._remove_unit_type(Tank) == 0:
                     raise Exception("No tank removed when it should have been")
-                if self._removeUnitType(MechInfantry) == 0:
-                    raise Exception(
-                        "No mechanized infantry removed when it should have been"
-                    )
-                self._addUnit(MechInfTank)
+                if self._remove_unit_type(MechInfantry) == 0:
+                    raise Exception("No mechanized infantry removed when it should have been")
+                self._add_unit(MechInfTank)
 
-        # Inf & Art
+        # Infantry & Artillery combinations
         while (
-            self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)
-        ) and self._unitTypeInList(Artillery):
-            if self._removeUnitType(Artillery) == 0:
+            self._unit_type_in_list(Infantry) or self._unit_type_in_list(MechInfantry)
+        ) and self._unit_type_in_list(Artillery):
+            if self._remove_unit_type(Artillery) == 0:
                 raise Exception("No artillery removed when it should have been")
-            if self._removeUnitType(MechInfantry) == 1:
-                self._addUnit(MechInfArt)
+            if self._remove_unit_type(MechInfantry) == 1:
+                self._add_unit(MechInfArt)
                 continue
-            if self._removeUnitType(Infantry) == 1:
-                self._addUnit(InfArt)
+            if self._remove_unit_type(Infantry) == 1:
+                self._add_unit(InfArt)
                 continue
             raise Exception("No infantry removed when it should have been")
 
-        if Tech.AdvancedArtillery in self.Techs:
+        # Advanced Artillery technology
+        if Tech.AdvancedArtillery in self.techs:
             while (
-                self._unitTypeInList(Infantry) or self._unitTypeInList(MechInfantry)
-            ) and (self._unitTypeInList(InfArt) or self._unitTypeInList(MechInfArt)):
-                if self._removeUnitType(MechInfArt) == 1:
-                    if self._removeUnitType(MechInfantry) == 1:
-                        self._addUnit(MechInfArt2)
+                self._unit_type_in_list(Infantry) or self._unit_type_in_list(MechInfantry)
+            ) and (self._unit_type_in_list(InfArt) or self._unit_type_in_list(MechInfArt)):
+                if self._remove_unit_type(MechInfArt) == 1:
+                    if self._remove_unit_type(MechInfantry) == 1:
+                        self._add_unit(MechInfArt2)
                         continue
-                    if self._removeUnitType(Infantry) == 1:
-                        self._addUnit(InfMechInfArt)
+                    if self._remove_unit_type(Infantry) == 1:
+                        self._add_unit(InfMechInfArt)
                         continue
-                elif self._removeUnitType(InfArt) == 1:
-                    if self._removeUnitType(MechInfantry) == 1:
-                        self._addUnit(InfMechInfArt)
+                elif self._remove_unit_type(InfArt) == 1:
+                    if self._remove_unit_type(MechInfantry) == 1:
+                        self._add_unit(InfMechInfArt)
                         continue
-                    if self._removeUnitType(Infantry) == 1:
-                        self._addUnit(InfArt2)
+                    if self._remove_unit_type(Infantry) == 1:
+                        self._add_unit(InfArt2)
                         continue
                 raise Exception("Error building advanced artillery support")
 
         # Tactical bomber combined arms
-        while self._unitTypeInList(TacticalBomber) and (
-            self._unitTypeInList(Fighter) or self._unitTypeInList(Tank)
+        while self._unit_type_in_list(TacticalBomber) and (
+            self._unit_type_in_list(Fighter) or self._unit_type_in_list(Tank)
         ):
-            if self._removeUnitType(TacticalBomber) == 0:
+            if self._remove_unit_type(TacticalBomber) == 0:
                 raise Exception("No tactical bomber removed when it should have been")
-            if self._removeUnitType(Fighter) == 1:
-                self._addUnit(FighterTactBomber)
+            if self._remove_unit_type(Fighter) == 1:
+                self._add_unit(FighterTactBomber)
                 continue
-            if self._removeUnitType(Tank) == 1:
-                self._addUnit(TankTactBomber)
+            if self._remove_unit_type(Tank) == 1:
+                self._add_unit(TankTactBomber)
                 continue
             raise Exception("No fighter/tank removed when it should have been")
-        while self._countUnitTypeInList(Conscript) > 1:
-            if self._removeUnitType(Conscript, 2) != 2:
+        
+        # Conscript pairs
+        while self._count_unit_type_in_list(Conscript) > 1:
+            if self._remove_unit_type(Conscript, 2) != 2:
                 raise Exception("Error while creating conscript combo units")
-            self._addUnit(ConscriptPair)
+            self._add_unit(ConscriptPair)
 
-    def _getGranularUnitList(self):
+    def _get_granular_unit_list(self):
         unitList = []
 
         # recursive function to break up combo units into non-combo units
@@ -285,11 +355,11 @@ class UnitCollection:
                 return [unit]
             units = []
             for t in unit.priority:
-                subUnit = self._makeUnit(t)
+                subUnit = self._make_unit(t)
                 units.extend(breakUpComboUnit(subUnit))
             return units
 
-        for u in self._unitList:
+        for u in self._unit_list:
             if (
                 isinstance(u, ComboUnit)
                 and not isinstance(u, Battleship)
@@ -307,7 +377,7 @@ class UnitCollection:
 
     def __str__(self):
         collStr = "Units in collection: " + str(self.currHP()) + "\n"
-        unitCount = Counter(type(obj) for obj in self._unitList)
+        unitCount = Counter(type(obj) for obj in self._unit_list)
         for objType, objCount in unitCount.items():
             collStr += objType.__name__ + ": " + str(objCount) + "\n"
         return collStr + "\n"
@@ -317,12 +387,12 @@ class UnitCollection:
     # region Collection modification functions
 
     def reset(self):
-        self._unitList = self._originalUnitList.copy()
-        self._lossPriority = self._originalLossPriority.copy()
-        self.oldTable = self.oldTableOriginal.copy()
+        self._unit_list = self._original_unit_list.copy()
+        self._loss_priority = self._originalLossPriority.copy()
+        self.oldTable = self.old_table_original.copy()
 
-    def defineLossPriority(self, unitTypeList):
-        self._lossPriority = unitTypeList
+    def define_loss_priority(self, unitTypeList):
+        self._loss_priority = unitTypeList
         self._originalLossPriority = unitTypeList.copy()
 
     # endregion
@@ -331,15 +401,15 @@ class UnitCollection:
 
     def PrintCollection(self):
         # print(f"Unit Count: {self.currHP()}")
-        self._unitList.sort()
-        unitCounter = Counter(type(obj) for obj in self._unitList)
+        self._unit_list.sort()
+        unitCounter = Counter(type(obj) for obj in self._unit_list)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintGranularCollection(self):
-        unitList = self._getGranularUnitList()
+        unitList = self._get_granular_unit_list()
         unitCounter = Counter(type(obj) for obj in unitList)
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
@@ -347,9 +417,9 @@ class UnitCollection:
         print(tabulate(unitArr, headers="firstrow", tablefmt="fancy_grid"))
 
     def PrintCollectionComparison(self):
-        self._unitList.sort()
+        self._unit_list.sort()
         # print(f"Current HP: {self.currHP()}")
-        unitCounter = Counter(type(obj) for obj in self._getGranularUnitList())
+        unitCounter = Counter(type(obj) for obj in self._get_granular_unit_list())
         unitArr = [["Unit", "Count"]]
         for objType, objCount in unitCounter.items():
             unitArr.append([objType.__name__, objCount])
@@ -371,7 +441,7 @@ class UnitCollection:
         return df
 
     def printUnitsAndStrength(self, label="Unit List"):
-        for u in self._unitList:
+        for u in self._unit_list:
             print(label)
             if isinstance(u, ComboUnit):
                 print(type(u).__name__, u.attackStrength, u.defenseStrength)
@@ -383,11 +453,11 @@ class UnitCollection:
         print(label)
         hits = self.expectedHits(attack)
         genStats = {
-            "Total Cost": self.currCost(),
+            "Total Cost": self.current_cost(),
             "HP": self.currHP(),
-            "IPC / HP": self.currCost() / self.currHP(),
+            "IPC / HP": self.current_cost() / self.currHP(),
             "Expected Hits": self.expectedHits(attack),
-            "IPC / Hit": self.currCost() / hits if hits > 0 else "Infinity",
+            "IPC / Hit": self.current_cost() / hits if hits > 0 else "Infinity",
         }
         print(json.dumps(genStats, indent=4))
         stats = self.collectionEndurance(attack)
@@ -402,48 +472,48 @@ class UnitCollection:
     def GetCollectionStats(self, isAttack=True):
         hits = self.expectedHits(isAttack)
         genStats = {
-            "Total Cost": self.currCost(),
+            "Total Cost": self.current_cost(),
             "HP": self.currHP(),
-            "IPC / HP": self.currCost() / self.currHP(),
+            "IPC / HP": self.current_cost() / self.currHP(),
             "Expected Hits": self.expectedHits(isAttack),
-            "IPC / Hit": self.currCost() / hits if hits > 0 else "Infinity",
+            "IPC / Hit": self.current_cost() / hits if hits > 0 else "Infinity",
         }
         stats = self.collectionEndurance(isAttack)
         stats = {**genStats, **stats}
         return stats
 
     def currHP(self):
-        return len(self._getGranularUnitList())
+        return len(self._get_granular_unit_list())
 
     def unitCount(self):
         unitCount = 0
-        for u in self._unitList:
+        for u in self._unit_list:
             unitCount += len(u.attackStrength)
         return unitCount
 
-    def currCost(self):
+    def current_cost(self):
         totalCost = 0
-        for u in self._unitList:
+        for u in self._unit_list:
             totalCost += u.cost
         return totalCost
 
     def expectedHits(self, isAttack=True):
-        if len(self._unitList) > 0:
-            dice = [u.unitHitDie(isAttack) for u in self._unitList]
+        if len(self._unit_list) > 0:
+            dice = [u.unitHitDie(isAttack) for u in self._unit_list]
             return sum(dice).mean()
         else:
             return H({0: 12}).mean()
 
     def expectedCurve(self, attack=True) -> H:
-        if len(self._unitList) > 0:
-            dice = [u.unitHitDie(attack) for u in self._unitList]
+        if len(self._unit_list) > 0:
+            dice = [u.unitHitDie(attack) for u in self._unit_list]
             return sum(dice)
         else:
             return H({0: 12})
 
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)
-        cost = self.currCost()
+        cost = self.current_cost()
         return hits / cost * 10
 
     def collectionEndurance(self, attack=True):
@@ -460,23 +530,23 @@ class UnitCollection:
             }
             return rv
         startingUnitCount = self.currHP()
-        startingCost = self.currCost()
+        startingCost = self.current_cost()
         halfStrength = 0.5 * startingStrength
         currStrength = startingStrength
         placeholderUnit = CombatUnit((0, 0))
-        while len(self._unitList) > 0 and currStrength > halfStrength:
+        while len(self._unit_list) > 0 and currStrength > halfStrength:
             self.takeLosses([Hit(placeholderUnit)])
             currStrength = self.expectedHits(attack)
         endurance = startingUnitCount - self.currHP()
         enduranceRatio = float(endurance) / startingUnitCount
-        remainingValue = self.currCost()
+        remainingValue = self.current_cost()
         lostValue = startingCost - remainingValue
         relLostValue = float(lostValue) / startingCost
         costPerLostUnit = float(lostValue) / endurance
         rv = {
             "endurance": endurance,
             "enduranceRatio": f"{enduranceRatio:.1%}",
-            "remainingUnits": len(self._unitList),
+            "remainingUnits": len(self._unit_list),
             "lostValue": lostValue,
             "remainingValue": remainingValue,
             "% Value Lost": f"{relLostValue:.1%}",
@@ -489,14 +559,14 @@ class UnitCollection:
         placeholderUnit = CombatUnit((0, 0))
         curveList = []
         originalHP = self.currHP()
-        while len(self._unitList) > 0:
+        while len(self._unit_list) > 0:
             curveList.append([self.currHP(), self.expectedHits(isAttack)])
             self.takeLosses([Hit(placeholderUnit)])
         df = pd.DataFrame(curveList, columns=["HP Lost", "Expected Hits"])
         return df
 
     def valueDelta(self):
-        return self.currCost() - self.originalCost
+        return self.current_cost() - self.original_cost
 
     # endregion
 
@@ -504,7 +574,7 @@ class UnitCollection:
 
     def attack(self):
         hits = []
-        for u in self._unitList:
+        for u in self._unit_list:
             success = u.attack()
             if success > 0:
                 hits.extend(self._generateHit(u, success))
@@ -512,7 +582,7 @@ class UnitCollection:
 
     def firstStrikeAttack(self, opponent):
         hits = []
-        for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:
+        for u in [x for x in self._unit_list if isinstance(x, FirstStrikeUnit)]:
             success = u._firstStrikeAttack(opponent)
             if success > 0:
                 hits.extend(self._generateHit(u, success))
@@ -520,7 +590,7 @@ class UnitCollection:
 
     def defend(self):
         hits = []
-        for u in self._unitList:
+        for u in self._unit_list:
             success = u.defend()
             if success > 0:
                 hits.extend(self._generateHit(u, success))
@@ -528,7 +598,7 @@ class UnitCollection:
 
     def firstStrikeDefend(self, opponent):
         hits = []
-        for u in [x for x in self._unitList if isinstance(x, FirstStrikeUnit)]:
+        for u in [x for x in self._unit_list if isinstance(x, FirstStrikeUnit)]:
             success = u._firstStrikeDefense(opponent)
             if success > 0:
                 hits.extend(self._generateHit(u, success))
@@ -539,7 +609,7 @@ class UnitCollection:
         for i in range(hitNumber):
             hit = Hit(unit)
             # Air vs Sub
-            if isinstance(unit, AirUnit) and self._unitInstanceInList(Destroyer):
+            if isinstance(unit, AirUnit) and self._unit_instance_in_list(Destroyer):
                 hit.Immune.remove(Submarine)
             hits.append(hit)
         return hits
@@ -548,9 +618,9 @@ class UnitCollection:
         leftOver = []
         hitList.sort()
         for hit in hitList:
-            if len(self._unitList) == 0:
+            if len(self._unit_list) == 0:
                 break  # All units killed, no need to apply further hits
-            for unitType in self._lossPriority:
+            for unitType in self._loss_priority:
                 removed = 0
                 if self._unitTypeInList(unitType) and hit.UnitTypeIsValidTarget(
                     unitType
@@ -573,7 +643,7 @@ class UnitCollection:
             print(leftOver)
             hitList = []  # just keep track of hits that couldn't be applied at all
             for hit in leftOver:
-                if len(self._unitList) == 0:
+                if len(self._unit_list) == 0:
                     break
                 removedUnit = self._applyHit(hit)
                 if removedUnit == None:
@@ -588,7 +658,7 @@ class UnitCollection:
                 print(hitList)
 
     def CanFirstStrike(self):
-        return self._unitInstanceInList(FirstStrikeUnit)
+        return self._unit_instance_in_list(FirstStrikeUnit)
 
     def _correctComboUnits(self, comboType):
         self._addUnit(comboType.priority[0])
@@ -596,16 +666,16 @@ class UnitCollection:
 
     def _applyHit(self, hit: Hit):
         """Applies the hit with no regard for loss priority"""
-        unit = next((x for x in self._unitList if hit.UnitIsValidTarget(x)), None)
+        unit = next((x for x in self._unit_list if hit.UnitIsValidTarget(x)), None)
         if unit != None:
-            self._unitList.remove(unit)
+            self._unit_list.remove(unit)
         return unit
 
     def generateUnitDict(self, isLand: bool = True):
         rv = {}
         isNaval = not isLand
         # Need to
-        unitList = self._getGranularUnitList()
+        unitList = self._get_granular_unit_list()
         unitCounter = Counter(type(obj) for obj in unitList)
         _unitDict = {}
         for objType, objCount in unitCounter.items():
@@ -633,12 +703,18 @@ class UnitCollection:
             rv["battleship_hit"] = _unitDict["DamagedBattleship"] if "DamagedBattleship" in _unitDict.keys() else 0
         return rv
 
-    def reloadUnitsFromDict(self, newUnits: dict[str:int]):
-        self._unitList.clear()
-        for key, value in newUnits.items():
+    def reload_units_from_dict(self, new_units: Dict[str, int]) -> None:
+        """
+        Clear current units and reload from a dictionary mapping.
+        
+        Args:
+            new_units: Dictionary mapping unit UI names to counts
+        """
+        self._unit_list.clear()
+        for key, value in new_units.items():
             for i in range(value):
-                self._addUnit(unitDict[UnitUIMap[key]])
-        self._makeComboUnits()
+                self._add_unit(UNIT_CLASS_MAP[UNIT_UI_MAP[key]])
+        self._make_combo_units()
 
 
 # endregion

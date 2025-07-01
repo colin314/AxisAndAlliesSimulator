@@ -3,8 +3,8 @@ from Units import *
 
 class Hit:
     def __init__(self, unit:CombatUnit):
-        self.Vulnerable = unit.ValidTargets
-        self.Immune = unit.ImmuneTargets.copy()
+        self.Vulnerable = unit.valid_targets
+        self.Immune = unit.immune_targets.copy()
 
     def UnitIsValidTarget(self, unit: Unit):
         isVulnerable = any(isinstance(unit, vType) for vType in self.Vulnerable)

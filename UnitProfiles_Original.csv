@@ -21,3 +21,7 @@ Key,Unit,Cost,Attack,Defense
 19,Damaged Carrier,16,0,8
 20,Conscript,2,0,0
 21,ConscriptPair,4,0,0
+22,Infantry^Infantry^Artillery,10,4^4^4,4^4^4
+23,Infantry^Mech Infantry^Artillery,11,4^4^4,4^4^4
+24,Mech Infantry^Mech Infantry^Artillery,12,4^4^4,4^4^4
+25,Mech Infantry^Tank,10,4^6,4^6

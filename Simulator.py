@@ -121,14 +121,14 @@ class Simulator:
                 att_units = self._getCasualties(self.attacker, len(defender_hits), is_land, "Attacker")
 
             if self.attacker.CanFirstStrike():
-                self.defender.reloadUnitsFromDict(def_units)
-                for u in self.defender._unitList:
+                self.defender.reload_units_from_dict(def_units)
+                for u in self.defender._unit_list:
                     if isinstance(u, FirstStrikeUnit):
                         u.didFirstStrike = True
 
             if self.defender.CanFirstStrike():
-                self.attacker.reloadUnitsFromDict(att_units)
-                for u in self.attacker._unitList:
+                self.attacker.reload_units_from_dict(att_units)
+                for u in self.attacker._unit_list:
                     if isinstance(u, FirstStrikeUnit):
                         u.didFirstStrike = True
 
@@ -145,8 +145,8 @@ class Simulator:
             # Assign hits to attacker
             att_units = self._getCasualties(self.attacker, len(defender_hits), is_land, "Attacker")
             
-            self.attacker.reloadUnitsFromDict(att_units)
-            self.defender.reloadUnitsFromDict(def_units)
+            self.attacker.reload_units_from_dict(att_units)
+            self.defender.reload_units_from_dict(def_units)
 
             retreat = self.attacker.currHP() <= retreat_threshold
 
@@ -386,14 +386,14 @@ class Simulator:
 
     def simulate_battle_with_stats(
         self,
-        attacker_loss_profile=UnitCollection.defaultLossPriority,
-        defender_loss_profile=UnitCollection.defaultLossPriority,
+        attacker_loss_profile=UnitCollection.DEFAULT_LOSS_PRIORITY,
+        defender_loss_profile=UnitCollection.DEFAULT_LOSS_PRIORITY,
         sim_count: int = 1000,
     ):
         """Simulate a battle with detailed statistics."""
         Unit.diceSize = 12
-        self.attacker.defineLossPriority(attacker_loss_profile)
-        self.defender.defineLossPriority(defender_loss_profile)
+        self.attacker.define_loss_priority(attacker_loss_profile)
+        self.defender.define_loss_priority(defender_loss_profile)
 
         self.SimulateBattle(print_battle=True, print_outcome=True)
 
@@ -444,14 +444,14 @@ class Simulator:
                 att_units = self._getCasualties(self.attacker, len(defender_hits), is_land, "Attacker")
 
             if self.attacker.CanFirstStrike():
-                self.defender.reloadUnitsFromDict(def_units)
-                for u in self.defender._unitList:
+                self.defender.reload_units_from_dict(def_units)
+                for u in self.defender._unit_list:
                     if isinstance(u, FirstStrikeUnit):
                         u.didFirstStrike = True
 
             if self.defender.CanFirstStrike():
-                self.attacker.reloadUnitsFromDict(att_units)
-                for u in self.attacker._unitList:
+                self.attacker.reload_units_from_dict(att_units)
+                for u in self.attacker._unit_list:
                     if isinstance(u, FirstStrikeUnit):
                         u.didFirstStrike = True
 
@@ -464,8 +464,8 @@ class Simulator:
             defender_hit_count += len(defender_hits)
             att_units = self._getCasualties(self.attacker, len(defender_hits), is_land, "Attacker")
             
-            self.attacker.reloadUnitsFromDict(att_units)
-            self.defender.reloadUnitsFromDict(def_units)
+            self.attacker.reload_units_from_dict(att_units)
+            self.defender.reload_units_from_dict(def_units)
 
             retreat = self.attacker.currHP() <= retreat_threshold
 
@@ -504,9 +504,9 @@ if __name__ == "__main__":
     is_land = True if int(inputs.isLand) == 1 else False
     lists = GetUnitList(isLand=is_land)
     attacker: UnitCollection = Simulator.load_unit_collection_from_ui(
-        lists["attacker"], "Basic"
+        lists["attacker"], "Original_d6"
     )
-    defender = Simulator.load_unit_collection_from_ui(lists["defender"], "Basic")
+    defender = Simulator.load_unit_collection_from_ui(lists["defender"], "Original_d6")
     sim = Simulator()
     sim.attacker = attacker
     sim.defender = defender
