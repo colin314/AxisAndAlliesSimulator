@@ -45,6 +45,7 @@ def MainLoop():
     center_window_left_half(core)
 
     # Start the Tkinter event loop
+    core.after(1, lambda: core.focus_force())
     core.mainloop()
 
 

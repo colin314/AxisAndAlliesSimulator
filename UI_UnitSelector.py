@@ -197,6 +197,9 @@ def GetUnitList(isLand: bool):
             photoDict["attacker" if row == 0 else "defender"][unitDict[col]] = lbl
         spinBoxVals[label] = valDict
 
+    # Cause focus to shift to first spinbox when window opens
+    root.after(1, lambda: spinboxes[0][0].focus_force())
+
     # Create a Submit button
     submit_button = tk.Button(
         root, text="Submit", command=root.destroy, font=("Arial", 14)

@@ -1,3 +1,4 @@
+from logging import root
 from typing import Union
 import tkinter as tk
 from tkinter import messagebox
@@ -327,6 +328,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
         # Start the Tkinter event loop
         center_window_left_half(rootCas)
+        rootCas.after(1, lambda: submit_button.focus_force())
         rootCas.mainloop()
     else:
         rootCas.destroy()
