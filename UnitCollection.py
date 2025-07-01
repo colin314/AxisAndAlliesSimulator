@@ -368,9 +368,15 @@ class UnitCollection:
         dfJoin.Before = dfJoin.Before.astype(int)
         dfJoin.After = dfJoin.After.astype(int)
 
+        # Apply fancy formatting to bar (red bar for 5 units)
+        def fancyBar(x):
+            numRed = x // 5
+            numWhite = x % 5
+            return str(x).rjust(3," ") + " " + Fore.RED + "█" * numRed + Fore.WHITE + "█" * numWhite
+
         # Apply bar to give visual indicator of remaining units
-        dfJoin['Before'] = dfJoin['Before'].apply(lambda x: str(x) + " " + Fore.WHITE + ( '█' * x ) + ' ')
-        dfJoin['After'] = dfJoin['After'].apply(lambda x: str(x) + " " + Fore.WHITE + ( '█' * x ) + ' ')
+        dfJoin['Before'] = dfJoin['Before'].apply(fancyBar)
+        dfJoin['After'] = dfJoin['After'].apply(fancyBar)
 
         # Reset index to get unit names in a column
         df = dfJoin.reset_index()
