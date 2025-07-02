@@ -93,10 +93,8 @@ class CombatUnit(Unit):
         hits = 0
         for value in rollValues:
             x = random.randint(1, Config.DICE_SIZE)
-            # print(f"first roll: {x}")
             if self.advantage:
                 x = min(x,random.randint(1, Config.DICE_SIZE))
-                # print(f"second roll: {x}")
             hits += 1 if x <= value else 0
             sys.stdout.write(f"{f"{self.__class__.__name__}:":<15} {Unit._getRollStr(x,value)} {"HIT" if x <= value else ""}\n")
             sys.stdout.flush()
@@ -144,6 +142,7 @@ class CombatUnit(Unit):
         return sum(dice)
 
     def applyTech(self):
+        """Virtual function used to apply techs that modify combat strength (e.g., Super Subs)"""
         pass
 
 class ComboUnit(CombatUnit):
@@ -242,7 +241,7 @@ class Submarine(FirstStrikeUnit, NavalUnit):
 
     def applyTech(self):
         if Tech.SuperSubs in self.tech:
-            self.attackStrength = [x + 2 for x in self.attackStrength]
+            self.attackStrength = [x + Config.SUPER_SUB_STRENGTH for x in self.attackStrength]
 
 
 class Warship(CombatUnit, SurfaceShip):
