@@ -107,12 +107,14 @@ class Simulator:
                 attackerHits = self.attacker.firstStrikeAttack(self.defender)
                 attackerHitCount += len(attackerHits)
                 defUnits = self._getCasualties(self.defender, len(attackerHits), isLand, "Defender")
+                print()
 
             if self.defender.CanFirstStrike(attacker):
                 print(f"{Fmt.Defender} Submarines:")
                 defenderHits = self.defender.firstStrikeDefend(self.attacker)
                 defenderHitCount += len(defenderHits)
                 attUnits = self._getCasualties(self.attacker, len(defenderHits), isLand,"Attacker")
+                print()
 
             if self.attacker.CanFirstStrike(defender):
                 self.defender.reloadUnitsFromDict(defUnits)
