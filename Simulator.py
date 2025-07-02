@@ -106,14 +106,14 @@ class Simulator:
                 print(f"{Fmt.Attacker} Submarines:")
                 attackerHits = self.attacker.firstStrikeAttack(self.defender)
                 attackerHitCount += len(attackerHits)
-                defUnits = self._getCasualties(self.defender, len(attackerHits), isLand, "Defender")
+                defUnits = self._getCasualties(self.defender, self.attacker, len(attackerHits), isLand, "Defender")
                 print()
 
             if self.defender.CanFirstStrike(attacker):
                 print(f"{Fmt.Defender} Submarines:")
                 defenderHits = self.defender.firstStrikeDefend(self.attacker)
                 defenderHitCount += len(defenderHits)
-                attUnits = self._getCasualties(self.attacker, len(defenderHits), isLand,"Attacker")
+                attUnits = self._getCasualties(self.attacker, self.defender, len(defenderHits), isLand,"Attacker")
                 print()
 
             if self.attacker.CanFirstStrike(defender):
@@ -131,17 +131,17 @@ class Simulator:
             attackerHitCount += len(attackerHits)
             if printBattle:
                 print(f"{Fmt.Attacker} Hits: {attackerHitCount}\n")
-            # Assign hits
-            defUnits = self._getCasualties(self.defender, len(attackerHits),isLand,"Defender")
-            
+            # Assign hits to defender
+            defUnits = self._getCasualties(self.defender, self.attacker, len(attackerHits),isLand,"Defender")
+
             print(f"{Fmt.DefenderHead}")
             defenderHits = self.defender.defend()
             defenderHitCount += len(defenderHits)
             if printBattle:
                 print(f"{Fmt.Defender} Hits: {defenderHitCount}\n")
             # Assign hits to attacker
-            attUnits = self._getCasualties(self.attacker, len(defenderHits),isLand,"Attacker")
-            
+            attUnits = self._getCasualties(self.attacker, self.defender, len(defenderHits),isLand,"Attacker")
+
             self.attacker.reloadUnitsFromDict(attUnits)
             self.defender.reloadUnitsFromDict(defUnits)
 
@@ -166,6 +166,17 @@ class Simulator:
         if printOutcome:
             self.PrintBattleOutcome()
         return (self.attacker.currHP(), self.defender.currHP())
+
+    def manuallySelectCasualties(self, victim:UnitCollection, aggressor:UnitCollection):
+        # If we're applying submarine hits, then they cannot go to aircraft, so we need to manually handle that.
+        if aggressor._unitInstanceInList(Submarine):
+            return True
+        
+        # If the aggressor has aircraft without a supporting destroyer, and the victim has submarines, then we need to manually handle that.
+        if aggressor._unitInstanceInList(AirUnit) and not aggressor._unitInstanceInList(Destroyer) and victim._unitInstanceInList(Submarine):
+            return True
+
+        return False
 
     # A bunch of extra work just for a fancy message box...
     def custom_message_box(self, title, message, button1_text="Yes", button2_text="No"):
@@ -206,12 +217,13 @@ class Simulator:
         
         return result["value"]
 
-    def _getCasualties(self, combatant:UnitCollection, numHits:int, isLand:bool, side:str):
-            unitDict = combatant.generateUnitDict(isLand=isLand)
+    def _getCasualties(self, victim:UnitCollection, aggressor:UnitCollection, numHits:int, isLand:bool, side:str):
+            manualMode = self.manuallySelectCasualties(victim, aggressor)
+            unitDict = victim.generateUnitDict(isLand=isLand)
             subPresent = not isLand and unitDict["submarine"] > 0
             if numHits > 0:
-                if numHits < combatant.currHP() or subPresent:
-                    unitDict = GetUnitCasualties(isLand, unitDict, numHits, side, combatant.power)
+                if manualMode or numHits < victim.currHP() or subPresent:
+                    unitDict = GetUnitCasualties(isLand, unitDict, numHits, side, victim.power, manualMode=manualMode)
                 else:
                     unitDict = {}
             

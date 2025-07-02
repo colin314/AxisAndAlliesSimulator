@@ -63,7 +63,7 @@ powers = [
               "Neutral"
               ]
 
-def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:str, power:str="Neutral"):
+def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:str, power:str="Neutral", manualMode:bool=False):
     isNaval = not isLand
     if isLand:
         unitDict = {
@@ -134,7 +134,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     casualtyValDict = {}
     returnDict = {}
 
-    mainLblVar = tk.StringVar(value=f"{side}: Select {numHits} casualties (0 remaining)")
+    mainLblVar = tk.StringVar(value=f"{side}: Select {numHits} casualties ({numHits if manualMode else 0} remaining)")
     label = tk.Label(rootCas, font=("Arial", 14), textvariable=mainLblVar)
     label.grid(row=0, columnspan=UNITCOUNT, pady=10)
 
@@ -145,7 +145,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     spinboxValDict = {}
 
     def updateMainLbl():
-        totalCasualties = getTotalCasualties()
         mainLblVar.set(f"Select {numHits} casualties ({leftToSelect()} remaining)")
 
     def leftToSelect():
@@ -314,11 +313,21 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
             spinbox.grid_forget()
             botLbl.grid_forget()
 
-    assignDefaultCasualties(numHits)
+    if not manualMode:
+        assignDefaultCasualties(numHits)
+    else:
+        # Hacky way to make sure UI is updated with no weird spacing.
+        # There is weird spacing (likely from non-existent unit images) until the first time labels are updated
+        for unit in lossOrder:
+            unitsLeft = getUnitsLeft(unit)
+            if unitsLeft > 0:
+                loseUnit(unit)
+                unloseUnit(unit)
+                break
 
     numberOfDistinctUnits = len([i for i in currentUnits.values() if i > 0])
     subsPresent = isNaval and currentUnits["submarine"] > 0
-    if numberOfDistinctUnits > 1 or subsPresent:
+    if manualMode or numberOfDistinctUnits > 1 or subsPresent:
         # Create a Submit button
         submit_button = tk.Button(
             rootCas, text="Submit", command=rootCas.destroy, font=("Arial", 14)
@@ -346,19 +355,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
 
 if __name__ == "__main__":
-    # currentUnits = {
-    #     "infantry": 60,
-    #     "mech_infantry": 16,
-    #     "artillery": 300,
-    #     "armour": 5000,
-    #     "fighter": 3,
-    #     "tactical_bomber": 1,
-    #     "bomber": 2,
-    #     "aaGun": 5,
-    #     "conscript": 500,
-    #     "cruiser": 0,
-    #     "battleship": 0,
-    # }
     currentUnits = {
         "submarine": 2,
         "destroyer": 1,
