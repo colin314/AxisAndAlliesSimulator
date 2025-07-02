@@ -357,7 +357,7 @@ class UnitCollection:
         df2 = self._unitStrArrToDf(unitArr)
         dfJoin = pd.concat([df1, df2], axis=1, join="outer", keys=["Before", "After"])
         dfJoin.columns = [f"{i}" for i, j in dfJoin.columns]
-        printArr = [["Unit", "Before", "After"]]
+        printArr = [["Unit", "Units Left"]]
 
         # Convert na to 0 (na comes from empty data frames)
         dfJoin = dfJoin.infer_objects(copy=False).fillna(0)
@@ -366,15 +366,18 @@ class UnitCollection:
         dfJoin.Before = dfJoin.Before.astype(int)
         dfJoin.After = dfJoin.After.astype(int)
 
-        # Apply fancy formatting to bar (red bar for 5 units)
-        def fancyBar(x):
-            numRed = x // 5
-            numWhite = x % 5
-            return Fore.BLACK + "_" + Fore.RESET + str(x).rjust(3," ") + " " + Fore.RED + "█" * numRed + Fore.WHITE + "█" * numWhite + Fore.BLACK + "_" + Fore.RESET 
+        # Apply fancy formatting to bar
+        def veryFancyBar(arr):
+            lost = arr['ChangeVal']
+            remain = arr['After']
+            arr['Units Left'] = Fore.BLACK + "_" + Fore.RESET + str(remain).rjust(3," ") + (" (" + str(-lost).ljust(3) + ") " if lost > 0 else "       ") + Fore.GREEN + "█" * remain + Fore.RED + "█" * lost + Fore.BLACK + "_" + Fore.RESET 
+            return arr
 
         # Apply bar to give visual indicator of remaining units
-        dfJoin['Before'] = dfJoin['Before'].apply(fancyBar)
-        dfJoin['After'] = dfJoin['After'].apply(fancyBar)
+        dfJoin['ChangeVal'] = dfJoin['Before'] - dfJoin['After']
+        dfJoin['Units Left'] = ''
+        dfJoin = dfJoin.apply(veryFancyBar,axis=1)
+        dfJoin = dfJoin[['Units Left']]
 
         # Reset index to get unit names in a column
         df = dfJoin.reset_index()
