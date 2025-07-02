@@ -159,13 +159,14 @@ class FirstStrikeUnit(CombatUnit):
         super().__init__(strengthArr, tech)
         self._counterUnits = []
 
-    def _doFirstStrikeCombat(self, strength, opponent):
-        countered = False
+    def isCountered(self, opponent):
         for counter in self._counterUnits:
-            countered = opponent._unitInstanceInList(counter)
-            if countered:
-                break
-        if countered:
+            if opponent._unitInstanceInList(counter):
+                return True
+        return False
+
+    def _doFirstStrikeCombat(self, strength, opponent):
+        if self.isCountered(opponent):
             return 0
 
         self.didFirstStrike = True

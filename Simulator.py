@@ -102,29 +102,23 @@ class Simulator:
             attackerHitCount, defenderHitCount = (0, 0)
             round += 1
             # First Strike Phase
-            if self.attacker.CanFirstStrike():
+            if self.attacker.CanFirstStrike(defender):
                 print(f"{Fmt.Attacker} Submarines:")
                 attackerHits = self.attacker.firstStrikeAttack(self.defender)
                 attackerHitCount += len(attackerHits)
                 defUnits = self._getCasualties(self.defender, len(attackerHits), isLand, "Defender")
 
-            if self.defender.CanFirstStrike():
+            if self.defender.CanFirstStrike(attacker):
                 print(f"{Fmt.Defender} Submarines:")
                 defenderHits = self.defender.firstStrikeDefend(self.attacker)
                 defenderHitCount += len(defenderHits)
                 attUnits = self._getCasualties(self.attacker, len(defenderHits), isLand,"Attacker")
 
-            if self.attacker.CanFirstStrike():
+            if self.attacker.CanFirstStrike(defender):
                 self.defender.reloadUnitsFromDict(defUnits)
-                for u in self.defender._unitList:
-                    if isinstance(u, FirstStrikeUnit):
-                        u.didFirstStrike = True
 
-            if self.defender.CanFirstStrike():
+            if self.defender.CanFirstStrike(attacker):
                 self.attacker.reloadUnitsFromDict(attUnits)
-                for u in self.attacker._unitList:
-                    if isinstance(u, FirstStrikeUnit):
-                        u.didFirstStrike = True
 
             # General Combat Phase
             if printBattle:

@@ -618,8 +618,14 @@ class UnitCollection:
                 )
                 print(hitList)
 
-    def CanFirstStrike(self):
-        return self._unitInstanceInList(FirstStrikeUnit)
+    def CanFirstStrike(self, opponent):
+        canDo = False
+        if self._unitInstanceInList(FirstStrikeUnit):
+            canDo = True
+        # any(isinstance(unit, unitType) for unit in self._unitList)
+        if all(isinstance(unit,FirstStrikeUnit) and unit.isCountered(opponent) for unit in self._unitList):
+            canDo = False
+        return canDo
 
     def _correctComboUnits(self, comboType):
         self._addUnit(comboType.priority[0])
@@ -665,18 +671,29 @@ class UnitCollection:
         return rv
 
     def reloadUnitsFromDict(self, newUnits: dict[str:int]):
-        self._unitList.clear()
+        oldList = self._unitList
+        self._unitList = []
         for key, value in newUnits.items():
             for i in range(value):
                 self._addUnit(unitDict[UnitUIMap[key]])
         self._makeComboUnits()
 
+        # Do something incredibly hacky to preserve first strike results
+        # Loop through the old list, and for each first strike unit that did strike, find a corresponding
+        # unit in the new list and set the didFirstStrike property to True
+        for unit in oldList:
+            if isinstance(unit, FirstStrikeUnit) and unit.didFirstStrike:
+                for newUnit in self._unitList:
+                    if type(newUnit) == type(unit) and not newUnit.didFirstStrike:
+                        newUnit.didFirstStrike = True
+                        break
+        oldList.clear()
 
 # endregion
 
 
 if __name__ == "__main__":
-    profileName = "Basic"
+    profileName = "Original_d6"
     unitListsFile = "unitLists.csv"
     listName = "Attacker"
     profile = pd.read_csv(
@@ -684,14 +701,15 @@ if __name__ == "__main__":
     )
     unitList = pd.read_csv(unitListsFile, encoding="utf-8", delimiter=",")
     units = UnitCollection(unitList[listName], profile)
-    units.PrintGranularCollection()
+    
     # units.generateHitCurve()
 
-    # profileName = "Basic2"
-    # unitListsFile = "unitLists.csv"
-    # listName = "Defender"
-    # profile = pd.read_csv(
-    #     f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
-    # unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
-    # units = UnitCollection(unitList[listName], profile)
-    # units.PrintCollectionStats("Defender", attack=False)
+    profileName = "Original_d6"
+    unitListsFile = "unitLists.csv"
+    listName = "Defender"
+    profile = pd.read_csv(
+        f'UnitProfiles_{profileName}.csv', encoding='utf-8', delimiter=",")
+    unitList = pd.read_csv(unitListsFile, encoding='utf-8', delimiter=",")
+    units = UnitCollection(unitList[listName], profile)
+
+
