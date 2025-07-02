@@ -1,4 +1,5 @@
 import random
+from time import sleep
 from dyce import H
 from TechMapping import Tech
 from tqdm import tqdm
@@ -22,6 +23,7 @@ class UFmt:
 
 class Unit:
     diceSize = 6
+    rollDelay_ms = 0
 
     def __init__(self, tech:list[Tech] = []):
         self.cost = 0
@@ -44,11 +46,11 @@ class Unit:
         if roll <= strength:
             p1 = Fore.GREEN + '█' * roll
             p2 = Fore.BLACK + '█' * (strength - roll) 
-            p3 = Style.RESET_ALL + '-' * (length - strength)
+            p3 = Fore.BLACK + '-' * (length - strength) + Style.RESET_ALL
         else:
             p1 = Fore.LIGHTRED_EX + '█' * strength
             p2 = Fore.RED + '█' * (roll-strength)
-            p3 = Style.RESET_ALL + '-' * (length - roll)
+            p3 = Fore.BLACK + '-' * (length - roll) + Style.RESET_ALL
         bar = p1 + p2 + p3
         return f'|{bar}| {roll} / {strength}'
 
@@ -98,6 +100,7 @@ class CombatUnit(Unit):
             hits += 1 if x <= value else 0
             sys.stdout.write(f"{f"{self.__class__.__name__}:":<15} {Unit._getRollStr(x,value)} {"HIT" if x <= value else ""}\n")
             sys.stdout.flush()
+            sleep(Unit.rollDelay_ms / 1000)
         return hits
 
     def _doStandardCombat(self, strength):
