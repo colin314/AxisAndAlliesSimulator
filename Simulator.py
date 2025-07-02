@@ -15,6 +15,27 @@ from UI_UnitSelector import GetUnitList, Combatant
 from UI_CasualtySelector import GetUnitCasualties
 import tkinter as tk
 from tkinter import messagebox
+from Config import Config
+
+def center_window_left_half(window):
+    """Center the window in the left half of the screen"""
+    window.update_idletasks()  # Ensure window size is calculated
+    
+    # Get screen dimensions
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    
+    # Get window dimensions
+    window_width = window.winfo_reqwidth()
+    window_height = window.winfo_reqheight()
+    
+    # Calculate position for center of left half
+    left_half_width = screen_width // 2
+    x = (left_half_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+    
+    # Set window position
+    window.geometry(f"+{x}+{y}")
 
 unitListsFile = "unitLists.csv"
 from UnitsEnum import Units
@@ -182,6 +203,7 @@ class Simulator:
                         f"+{dialog.winfo_screenheight()//2 - dialog.winfo_reqheight()//2}")
     # Cause focus to shift to first spinbox when window opens
         dialog.after(1, lambda: button1.focus_force())
+        center_window_left_half(dialog)
         dialog.wait_window()  # Wait for the window to close
         
         inputRoot.destroy()
@@ -384,7 +406,6 @@ class Simulator:
         df_lossProfile=UnitCollection.defaultLossPriority,
         simCount=1000,
     ):
-        Unit.diceSize = 12
         # self.LoadAttacker(at, at_profile)
         # self.LoadDefender(df, df_profile)
         self.attacker.defineLossPriority(at_lossProfile)

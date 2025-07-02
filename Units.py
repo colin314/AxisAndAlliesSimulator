@@ -8,6 +8,7 @@ from colorama import Style
 from colorama import Back
 from colorama import Fore
 from colorama import init as colorama_init
+from Config import Config
 
 class UFmt:
     attHead = f"{Back.RED}{Style.BRIGHT}{Fore.WHITE}"
@@ -22,8 +23,7 @@ class UFmt:
     DefenderHead = f"{defHead}Defender{Style.RESET_ALL}"
 
 class Unit:
-    diceSize = 6
-    rollDelay_ms = 0
+    diceSize = Config.DICE_SIZE
 
     def __init__(self, tech:list[Tech] = []):
         self.cost = 0
@@ -42,7 +42,7 @@ class Unit:
     def _getRollStr(roll, strength):
         adjStr = (13 - strength)
         adjRoll = (13 - roll)
-        length = Unit.diceSize
+        length = Config.DICE_SIZE
         if roll <= strength:
             p1 = Fore.GREEN + '█' * roll
             p2 = Fore.BLACK + '█' * (strength - roll) 
@@ -92,15 +92,15 @@ class CombatUnit(Unit):
         """Equivalent of _makeRoll for non-Combo units"""
         hits = 0
         for value in rollValues:
-            x = random.randint(1, Unit.diceSize)
+            x = random.randint(1, Config.DICE_SIZE)
             # print(f"first roll: {x}")
             if self.advantage:
-                x = min(x,random.randint(1, Unit.diceSize))
+                x = min(x,random.randint(1, Config.DICE_SIZE))
                 # print(f"second roll: {x}")
             hits += 1 if x <= value else 0
             sys.stdout.write(f"{f"{self.__class__.__name__}:":<15} {Unit._getRollStr(x,value)} {"HIT" if x <= value else ""}\n")
             sys.stdout.flush()
-            sleep(Unit.rollDelay_ms / 1000)
+            sleep(Config.ROLL_DELAY_MS / 1000)
         return hits
 
     def _doStandardCombat(self, strength):
@@ -124,7 +124,7 @@ class CombatUnit(Unit):
 
     def unitHitDie(self, isAttack=True):
         """Returns a die (i.e., histogram) of potential outcomes of a combat roll."""
-        die = H(Unit.diceSize)
+        die = H(Config.DICE_SIZE)
         if isAttack:
             strengthVals = self.attackStrength
         else:
@@ -139,7 +139,7 @@ class CombatUnit(Unit):
                     0: die.ge(strength + 1)[1]
                 })
             else:
-                hitDie = H({0: Unit.diceSize})
+                hitDie = H({0: Config.DICE_SIZE})
             dice.append(hitDie)
         return sum(dice)
 

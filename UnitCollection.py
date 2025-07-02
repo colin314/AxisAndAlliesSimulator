@@ -1,3 +1,4 @@
+from Config import Config
 import math
 from Units import *
 from itertools import cycle, filterfalse, count
@@ -462,14 +463,14 @@ class UnitCollection:
             dice = [u.unitHitDie(isAttack) for u in self._unitList]
             return sum(dice).mean()
         else:
-            return H({0: Unit.diceSize}).mean()
+            return H({0: Config.DICE_SIZE}).mean()
 
     def expectedCurve(self, attack=True) -> H:
         if len(self._unitList) > 0:
             dice = [u.unitHitDie(attack) for u in self._unitList]
             return sum(dice)
         else:
-            return H({0: Unit.diceSize})
+            return H({0: Config.DICE_SIZE})
 
     def hitsPerIpc(self, attack=True):
         hits = self.expectedHits(attack)
@@ -675,7 +676,6 @@ class UnitCollection:
 
 
 if __name__ == "__main__":
-    Unit.diceSize = 12
     profileName = "Basic"
     unitListsFile = "unitLists.csv"
     listName = "Attacker"
