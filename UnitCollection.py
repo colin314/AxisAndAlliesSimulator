@@ -355,8 +355,12 @@ class UnitCollection:
             unitArr.append([objType.__name__, objCount])
         df1 = self._unitStrArrToDf(self.oldTable)
         df2 = self._unitStrArrToDf(unitArr)
+        df3 = self._unitStrArrToDf(self.oldTableOriginal)
+        df3 = df3.rename(columns={'Count':'Original'})
         dfJoin = pd.concat([df1, df2], axis=1, join="outer", keys=["Before", "After"])
         dfJoin.columns = [f"{i}" for i, j in dfJoin.columns]
+        dfJoin = pd.concat([dfJoin, df3], axis=1, join="outer")
+
         printArr = [["Unit", "Units Left"]]
 
         # Convert na to 0 (na comes from empty data frames)
@@ -365,12 +369,14 @@ class UnitCollection:
         # Convert to int to eliminate decimal places (and trailing .0)
         dfJoin.Before = dfJoin.Before.astype(int)
         dfJoin.After = dfJoin.After.astype(int)
+        dfJoin.Original = dfJoin.Original.astype(int)
 
         # Apply fancy formatting to bar
         def veryFancyBar(arr):
             lost = arr['ChangeVal']
             remain = arr['After']
-            arr['Units Left'] = Fore.BLACK + "_" + Fore.RESET + str(remain).rjust(3," ") + (" (" + str(-lost).ljust(3) + ") " if lost > 0 else "       ") + Fore.GREEN + "█" * remain + Fore.RED + "█" * lost + Fore.BLACK + "_" + Fore.RESET 
+            lostPrev = arr['Original'] - arr['Before']
+            arr['Units Left'] = Fore.BLACK + "_" + Fore.RESET + str(remain).rjust(3," ") + (" (" + str(-lost).ljust(3) + ") " if lost > 0 else "       ") + Fore.GREEN + "█" * remain + Fore.RED + "▄" * lost + Fore.WHITE + "▁" * lostPrev + Fore.BLACK + "_" + Fore.RESET 
             return arr
 
         # Apply bar to give visual indicator of remaining units
