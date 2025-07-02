@@ -267,9 +267,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
                 unloseUnit(unit)
 
     for col in range(UNITCOUNT):
-        # Current unit counts
-        topLbl = tk.Label(rootCas, text=str(currentUnits[unitDict[col]]), font=("Arial", 14))
-        topLbl.grid(row=2, column=col, padx=5, pady=5)
         # Spin Boxes
         var = tk.IntVar(value=0)
         spinboxValDict[unitDict[col]] = var
@@ -278,8 +275,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
             rootCas,
             from_=0,
             to=10000,
-            width=5,
-            font=("Arial", 14),
+            width=2,
+            font=("Arial", 24),
             textvariable=var,
             command=lambda i=col: spinboxButtonPress(i, spinboxVals[i].get()),
         )
@@ -288,7 +285,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         spinbox.bind("<FocusOut>", spinboxFocusOut)
         spinboxes[col] = spinbox
         spinboxDict[spinbox] = col
-        # Override arrow behavior
 
         # Images
         image = getUnitImage(col)
@@ -296,19 +292,16 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         photo = ImageTk.PhotoImage(image)
         photos.append(photo)
         imageLbl = tk.Label(rootCas, image=photo)
-        # spinboxes[row][col] = tk.Label(rootCas, text="Hello " + str(col), font=("arial",10))
         imageLbl.grid(row=1, column=col, padx=5, pady=5)
-        
 
         strVar = tk.StringVar(value=str(currentUnits[unitDict[col]]))
-        botLbl = tk.Label(rootCas, textvariable=strVar, font=("Arial", 14))
-        botLbl.grid(row=4, column=col, padx=5, pady=5)
+        botLbl = tk.Label(rootCas, textvariable=strVar, font=("Arial", 24))
+        botLbl.grid(row=2, column=col, padx=5, pady=5)
         casualtyLabels[col] = botLbl
         casualtyVals[col] = strVar
         casualtyValDict[unitDict[col]] = strVar
         
         if currentUnits[unitDict[col]] == 0:
-            topLbl.grid_forget()
             imageLbl.grid_forget()
             spinbox.grid_forget()
             botLbl.grid_forget()
@@ -369,5 +362,5 @@ if __name__ == "__main__":
         "transport": 0,
     }
     print(currentUnits)
-    vals = GetUnitCasualties(False, currentUnits, 4)
+    vals = GetUnitCasualties(False, currentUnits, 4, "Attacker", "Germans")
     print(vals)
