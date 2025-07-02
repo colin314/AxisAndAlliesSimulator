@@ -92,7 +92,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
             9: "carrier_hit",
         }
         lossOrder = defaultLossOrder_Naval
-        # Just create the "hit" version of 2 HP units
+        # To make sure the "hit" version of 2 HP units show up, Just create the "hit" version of 2 HP units. They will be removed later
         currentUnits["carrier_hit"] = (
             ( currentUnits["carrier_hit"] if "carrier_hit" in currentUnits.keys() else 0) + currentUnits["carrier"]
         )
@@ -112,11 +112,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     
     imageFileDict = get_file_paths(".\\Resources\\" + power)
 
-    def resetBoxes():
-        for x, y in returnDict.items():
-            for k, v in y.items():
-                v.set(0)
-
     # Create the main window
     rootCas = tk.Tk()
     rootCas.title("Spinbox Grid")
@@ -129,10 +124,10 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     spinboxes = [None for _ in range(UNITCOUNT)]
     spinboxDict = {}
     spinboxVals = [None for _ in range(UNITCOUNT)]
-    casualtyLabels = [None for _ in range(UNITCOUNT)]
-    casualtyVals = [None for _ in range(UNITCOUNT)]
-    casualtyValDict = {}
-    returnDict = {}
+    remainingUnitCountLabels = [None for _ in range(UNITCOUNT)]
+    remainingUnitCountVals = [None for _ in range(UNITCOUNT)]
+    remainingUnitCountValDict = {"str": tk.StringVar()}
+    remainingUnitCountValDict.clear()
 
     mainLblVar = tk.StringVar(value=f"{side}: Select {numHits} casualties ({numHits if manualMode else 0} remaining)")
     label = tk.Label(rootCas, font=("Arial", 14), textvariable=mainLblVar)
@@ -142,7 +137,8 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
     photos = []
 
     label = "attacker"
-    spinboxValDict = {}
+    spinboxValDict = {"1": tk.IntVar()}
+    spinboxValDict.clear()
 
     def updateMainLbl():
         mainLblVar.set(f"Select {numHits} casualties ({leftToSelect()} remaining)")
@@ -151,7 +147,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         return numHits - getTotalCasualties()
 
     def getUnitsLeft(unit: str):
-        return int(casualtyValDict[unit].get())
+        return int(remainingUnitCountValDict[unit].get())
 
     def numUnitsLost(unit: str):
         return spinboxValDict[unit].get()
@@ -169,10 +165,18 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
     def getTotalCasualties():
         origUnitCnt = sum(currentUnits.values())
-        newUnitCnt = sum([int(i.get()) for i in casualtyVals])
+        newUnitCnt = sum([int(i.get()) for i in remainingUnitCountVals])
         return origUnitCnt - newUnitCnt
 
-    def loseUnit(unit):
+    def lose2HPUnit(hitUnit: str):
+        # Update the "original" unit_hit count
+        currentUnits[hitUnit] = currentUnits[hitUnit] + 1
+        # Update the spinbox value (No need, since it's not lost)
+        # Update the remaining count label
+        remainingVar = remainingUnitCountValDict[hitUnit]
+        remainingVar.set(str(getUnitsLeft(hitUnit) + 1))
+
+    def loseUnit(unit:str):
         if leftToSelect() == 0:
             return
         # Get tk vars
@@ -180,7 +184,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         lostUnits = numUnitsLost(unit)
 
         # Get literal values
-        remainingVar = casualtyValDict[unit]
+        remainingVar = remainingUnitCountValDict[unit]
         remainingUnits = getUnitsLeft(unit)
 
         # If no units left, do nothing
@@ -192,6 +196,27 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         remainingVar.set(str(remainingUnits - 1))
         updateMainLbl()
 
+        # Account for 2 HP units
+        if unit == "carrier":
+            lose2HPUnit("carrier_hit")
+        elif unit == "battleship":
+            lose2HPUnit("battleship_hit")
+
+    def unlose2HPUnit(unit: str, hitUnit: str):
+        # Get number of carrier_hit that have been lost (above the original count)
+        # Number of carrier_hits (original) minus the number of carriers that have been assigned a hit
+        carriersAssignedHitsCnt = numUnitsLost(unit)
+        # The number of carrier_hit created by losing carriers is equal to the number of carrier_hit that currently exist minus the number of carrier that have been assigned hits.
+        hitCarriersRemainingCnt = int(remainingUnitCountValDict[hitUnit].get())
+        if hitCarriersRemainingCnt <= 0: # carrier_hit need to be un-lost first
+            unloseUnit(hitUnit)
+        # Update the "original" carrier_hit count
+        currentUnits[hitUnit] = currentUnits[hitUnit] - 1
+        # Update the spinbox value (No need, since it's not lost)
+        # Update the remaining count label
+        remainingVar = remainingUnitCountValDict[hitUnit]
+        remainingVar.set(str(getUnitsLeft(hitUnit) - 1))
+
     def unloseUnit(unit):
         originalCnt = currentUnits[unit]
         currentCnt = getUnitsLeft(unit)
@@ -200,11 +225,20 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         if currentCnt == originalCnt:
             return
 
+        # To unlose a 2 HP unit, we can't have lost the hit version of the unit.
+        # If there are no "hit" versions of the unit to recover, we need to quit
+        if unit == "carrier":
+            unlose2HPUnit("carrier", "carrier_hit")
+        elif unit == "battleship":
+            unlose2HPUnit("battleship", "battleship_hit")
+
         lostVar = spinboxValDict[unit]
-        remainingVar = casualtyValDict[unit]
+        remainingVar = remainingUnitCountValDict[unit]
         lostVar.set(lostUnitCnt - 1)
         remainingVar.set(str(currentCnt + 1))
         updateMainLbl()
+
+
 
     def getOldSpinboxVal(unit: Union[int, str]):
         if isinstance(unit, int):
@@ -297,14 +331,23 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         strVar = tk.StringVar(value=str(currentUnits[unitDict[col]]))
         botLbl = tk.Label(rootCas, textvariable=strVar, font=("Arial", 24))
         botLbl.grid(row=2, column=col, padx=5, pady=5)
-        casualtyLabels[col] = botLbl
-        casualtyVals[col] = strVar
-        casualtyValDict[unitDict[col]] = strVar
+        remainingUnitCountLabels[col] = botLbl
+        remainingUnitCountVals[col] = strVar
+        remainingUnitCountValDict[unitDict[col]] = strVar
         
         if currentUnits[unitDict[col]] == 0:
             imageLbl.grid_forget()
             spinbox.grid_forget()
             botLbl.grid_forget()
+
+    # Remove the extra "hit" version of 2 HP units that were added earlier
+    # carrier
+    currentUnits["carrier_hit"] = currentUnits["carrier_hit"] - currentUnits["carrier"]
+    remainingUnitCountValDict["carrier_hit"].set(currentUnits["carrier_hit"])
+
+    # battleship
+    currentUnits["battleship_hit"] = currentUnits["battleship_hit"] - currentUnits["battleship"]
+    remainingUnitCountValDict["battleship_hit"].set(currentUnits["battleship_hit"])
 
     if not manualMode:
         assignDefaultCasualties(numHits)
@@ -320,6 +363,7 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
 
     numberOfDistinctUnits = len([i for i in currentUnits.values() if i > 0])
     subsPresent = isNaval and currentUnits["submarine"] > 0
+
     if manualMode or numberOfDistinctUnits > 1 or subsPresent:
         # Create a Submit button
         submit_button = tk.Button(
@@ -336,11 +380,6 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
         rootCas.destroy()
 
     rv = {}
-    if isNaval:  # Correct damaged battleship and carrier numbers
-        battleships = getUnitsLeft("battleship")
-        currentUnits["battleship_hit"] = currentUnits["battleship_hit"] - battleships
-        carriers = getUnitsLeft("carrier")
-        currentUnits["carrier_hit"] = currentUnits["carrier_hit"] - carriers
     for unit, var in spinboxValDict.items():
         rv[unit] = currentUnits[unit] - var.get()
 
@@ -357,10 +396,10 @@ if __name__ == "__main__":
         "fighter": 1,
         "tactical_bomber": 1,
         "bomber": 1,
-        "battleship_hit": 0,
-        "carrier_hit": 0,
+        "battleship_hit": 1,
+        "carrier_hit": 1,
         "transport": 0,
     }
     print(currentUnits)
-    vals = GetUnitCasualties(False, currentUnits, 4, "Attacker", "Germans")
+    vals = GetUnitCasualties(False, currentUnits, 6, "Attacker", "Germans")
     print(vals)
