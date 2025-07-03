@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
+from Config import Config
 
 def center_window_left_half(window):
     """Center the window in the left half of the screen"""
@@ -25,73 +26,16 @@ def center_window_left_half(window):
     # Set window position
     window.geometry(f"+{x}+{y}")
 
-defaultLossOrder_Ground = [
-    "conscript",
-    "aaGun",
-    "infantry",
-    "mech_infantry",
-    "artillery",
-    "armour",
-    "fighter",
-    "tactical_bomber",
-    "bomber",
-]
 
-defaultLossOrder_Naval = [
-    "battleship",
-    "carrier",
-    "submarine",
-    "destroyer",
-    "cruiser",
-    "fighter",
-    "tactical_bomber",
-    "bomber",
-    "carrier_hit",
-    "battleship_hit",
-]
-
-powers = [
-              "Americans",
-              "ANZAC",
-              "British",
-              "Chinese",
-              "French",
-              "Germans",
-              "Italians",
-              "Japanese",
-              "Russians",
-              "Neutral"
-              ]
 
 def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:str, power:str="Neutral", manualMode:bool=False):
     isNaval = not isLand
     if isLand:
-        unitDict = {
-            0: "infantry",
-            1: "mech_infantry",
-            2: "artillery",
-            3: "armour",
-            4: "fighter",
-            5: "tactical_bomber",
-            6: "bomber",
-            7: "aaGun",
-            8: "conscript",
-        }
-        lossOrder = defaultLossOrder_Ground
+        unitDict = Config.landUnitDict
+        lossOrder = Config.defaultLossOrder_Ground
     else:
-        unitDict = {
-            0: "submarine",
-            1: "destroyer",
-            2: "cruiser",
-            3: "battleship",
-            4: "carrier",
-            5: "fighter",
-            6: "tactical_bomber",
-            7: "bomber",
-            8: "battleship_hit",
-            9: "carrier_hit",
-        }
-        lossOrder = defaultLossOrder_Naval
+        unitDict = Config.navalUnitDict
+        lossOrder = Config.defaultLossOrder_Naval
         # To make sure the "hit" version of 2 HP units show up, Just create the "hit" version of 2 HP units. They will be removed later
         currentUnits["carrier_hit"] = (
             ( currentUnits["carrier_hit"] if "carrier_hit" in currentUnits.keys() else 0) + currentUnits["carrier"]
