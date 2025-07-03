@@ -341,13 +341,14 @@ def GetUnitCasualties(isLand: bool, currentUnits: dict[str:int], numHits, side:s
             botLbl.grid_forget()
 
     # Remove the extra "hit" version of 2 HP units that were added earlier
-    # carrier
-    currentUnits["carrier_hit"] = currentUnits["carrier_hit"] - currentUnits["carrier"]
-    remainingUnitCountValDict["carrier_hit"].set(currentUnits["carrier_hit"])
+    if isNaval:
+        # carrier
+        currentUnits["carrier_hit"] = currentUnits["carrier_hit"] - currentUnits["carrier"]
+        remainingUnitCountValDict["carrier_hit"].set(currentUnits["carrier_hit"])
 
-    # battleship
-    currentUnits["battleship_hit"] = currentUnits["battleship_hit"] - currentUnits["battleship"]
-    remainingUnitCountValDict["battleship_hit"].set(currentUnits["battleship_hit"])
+        # battleship
+        currentUnits["battleship_hit"] = currentUnits["battleship_hit"] - currentUnits["battleship"]
+        remainingUnitCountValDict["battleship_hit"].set(currentUnits["battleship_hit"])
 
     if not manualMode:
         assignDefaultCasualties(numHits)
