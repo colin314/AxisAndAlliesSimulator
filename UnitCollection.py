@@ -444,7 +444,7 @@ class UnitCollection:
         return stats
 
     def currHP(self):
-        return len(self._getGranularUnitList())
+        return sum([x.HP for x in self._getGranularUnitList()])
 
     def unitCount(self):
         unitCount = 0

@@ -12,12 +12,14 @@ class TechMapping():
     def GetTechs(power:str):
         match power.upper():
             case "GERMANS":
-                return [Tech.AdvancedMechInfantry, Tech.JetFighters, Tech.SuperSubs]
+                return []
             case "AMERICANS": 
-                return [Tech.AdvancedArtillery, Tech.AdvancedMechInfantry, Tech.Radar, Tech.HeavyBombers]
+                return []
             case "RUSSIANS":
-                return [Tech.AdvancedArtillery]
+                return []
             case "BRITISH":
-                return [Tech.Radar]
+                return []
+            case "JAPANESE":
+                return [Tech.HeavyBombers]
             case _:
                 return []

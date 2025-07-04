@@ -29,6 +29,7 @@ class Unit:
         self.cost = 0
         self.tech = tech
         self.advantage = False
+        self.HP = 1
 
     def __lt__(self, other):
         return self.cost <= other.cost
@@ -260,6 +261,7 @@ class Carrier(Warship, ComboUnit):
 
     def __init__(self, strengthArr, tech:list[Tech] = []):
         super().__init__(strengthArr, tech)
+        self.HP = 2
 
 
 class DamagedBattleship(Warship):
@@ -272,6 +274,7 @@ class Battleship(Warship, ComboUnit):
 
     def __init__(self, strengthArr, tech:list[Tech] = []):
         super().__init__(strengthArr, tech)
+        self.HP = 2
 
 
 class Cruiser(Warship):
